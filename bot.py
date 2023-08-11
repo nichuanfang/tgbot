@@ -3,6 +3,9 @@ import telebot
 import requests
 from settings import config
 import logging
+from datetime import datetime
+from datetime import date
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (config.WEBHOOK_HOST,config.WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (config.BOT_TOKEN)
@@ -19,8 +22,6 @@ def send_traffic_info(message):
     Args:
         message (_type_): _description_
     """   
-    global CHAT_ID
-    CHAT_ID = message.chat.id
     url = f'https://api.dogyun.com/cvm/server/{config.DOGYUN_SERVER_ID}/traffic'
     headers = {
         'API-KEY': config.DOGYUN_API_KEY
@@ -51,8 +52,6 @@ def receive_monthly_benefits(message):
     Args:
         message (_type_): _description_
     """ 
-    global CHAT_ID
-    CHAT_ID = message.chat.id
     url = f'https://cvm.dogyun.com/traffic/package/level'
     headers = {
         'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN,
@@ -76,9 +75,43 @@ def draw_lottery(message):
     Args:
         message (_type_): _description_
     """    
-    global CHAT_ID
-    CHAT_ID = message.chat.id
+    pass
 
+def get_traffic_packet():
+    """领取流量包
+    """    
+    url = f'https://cvm.dogyun.com/traffic/package/level'
+    headers = {
+        'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN,
+        'Origin': 'https://cvm.dogyun.com',
+        'Referer': 'https://cvm.dogyun.com/traffic/package/list',
+        'Cookie': config.DOGYUN_COOKIE
+    }
+    # 发送post请求
+    response = requests.post(url, headers=headers)
+    # 获取返回的json数据
+    data = response.json()
+    # 获取领取结果
+    result = data['message']
+    # 获取当前时间
+    now = datetime.now()
+    # 获取当前日期
+    today = date.today()
+    # 获取当前时间
+    current_time = now.strftime("%H:%M:%S")
+    # 获取当前日期
+    current_date = today.strftime("%Y-%m-%d")
+    # 记录日志
+    logger.info(f'{current_date} {current_time} {result}')
+    # 发送通知
+    bot.send_message(config.CHAT_ID, f'{current_date} {current_time} {result}')
+    
+
+def lucky_draw_notice():
+    """抽奖活动通知
+    """ 
+    url = f'https://cvm.dogyun.com/traffic/package/list'
+    pass
 
 if __name__ == '__main__':
     
@@ -109,6 +142,13 @@ if __name__ == '__main__':
         bot.remove_webhook()
         # Set webhook
         bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+        
+        scheduler = BlockingScheduler()
+        # 每天尝试领一次流量包
+        scheduler.add_job(get_traffic_packet, 'cron', hour='12', minute='25', args=[])
+        # 每天定时监测是否有抽奖活动
+        scheduler.add_job(lucky_draw_notice, 'cron', hour='2', minute='0', args=[])
+        scheduler.start()
                 
         # Start flask server
         app.run(host=config.WEBHOOK_LISTEN,
