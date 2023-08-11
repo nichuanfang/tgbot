@@ -6,6 +6,8 @@ import logging
 from datetime import datetime
 from datetime import date
 from flask_apscheduler import APScheduler
+from bs4 import BeautifulSoup
+import lxml
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (config.WEBHOOK_HOST,config.WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (config.BOT_TOKEN)
@@ -83,7 +85,8 @@ def draw_lottery(message):
     """    
     pass
 
-@scheduler.task('cron', id='get_traffic_packet',hour='13', minute='02', second='05')   
+# 每月7号
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='11', hour='13', minute='30', second='0')
 def get_traffic_packet():
     """领取流量包
     """    
@@ -111,17 +114,34 @@ def get_traffic_packet():
     # 记录日志
     logger.info(f'{current_date} {current_time} {result}')
     # 发送通知
-    bot.send_message(config.CHAT_ID, f'{current_date} {current_time} {result}')
+    bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
 
+# 每天获取通知
+@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='8', minute='0', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
-    url = f'https://cvm.dogyun.com/traffic/package/list'
-    pass
+    url = f'https://console.dogyun.com/turntable'
+    headers = {
+        'Cookie': config.DOGYUN_COOKIE,
+        'Referer': 'https://member.dogyun.com/',
+        'Origin': 'https://console.dogyun.com',
+        'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN
+    }
+    # 发起get请求
+    response = requests.get(url, headers=headers)
+    # 根据xpath获取元素
+    soup = BeautifulSoup(response.text, 'lxml')
+    # 根据xpath获取元素
+    result = soup.find('h2',class_='mb-0 text-center').text
+    if result == '暂无抽奖活动':
+        pass
+    else:
+        bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
 
 
 if __name__ == '__main__':
-    
+    lucky_draw_notice()
     # run
     if config.ENV == "DEV":
         bot.infinity_polling() 
