@@ -99,6 +99,10 @@ if __name__ == '__main__':
             # Set webhook
             bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,certificate=open(config.WEBHOOK_SSL_CERT, 'r'))
             return "!", 200
+        
+        @app.route('/hahaha', methods=['GET', 'HEAD'])
+        def index():
+            return "设置成功!!!"
 
 
         # Process webhook calls
