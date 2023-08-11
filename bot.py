@@ -5,7 +5,7 @@ from settings import config
 import logging
 from datetime import datetime
 from datetime import date
-from apscheduler.schedulers.blocking import BlockingScheduler
+from flask_apscheduler import APScheduler
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (config.WEBHOOK_HOST,config.WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (config.BOT_TOKEN)
@@ -77,6 +77,21 @@ def draw_lottery(message):
     """    
     pass
 
+class Config(object):
+    JOBS = [
+        {
+            'id': 'job1',
+            'func': 'scheduler:get_traffic_packet',
+            'trigger': 'cron',
+            'day': '*',
+            'hour': '12',
+            'minute': '50',
+            'second': '20'
+        }
+    ]
+    SCHEDULER_API_ENABLED = True
+
+
 def get_traffic_packet():
     """领取流量包
     """    
@@ -125,7 +140,8 @@ if __name__ == '__main__':
         from flask import Flask, request
         
         app = flask.Flask(__name__)
-
+        app.config.from_object(Config())
+        
         @app.route('/', methods=['GET', 'HEAD'])
         def index():
             return ""
@@ -143,16 +159,13 @@ if __name__ == '__main__':
         # Set webhook
         bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
         
-        scheduler = BlockingScheduler()
-        # 每天尝试领一次流量包
-        scheduler.add_job(get_traffic_packet, 'cron', hour='12', minute='39', args=[])
-        # 每天定时监测是否有抽奖活动
-        scheduler.add_job(lucky_draw_notice, 'cron', hour='2', minute='0', args=[])
+        scheduler = APScheduler()
+        scheduler.init_app(app)
+        scheduler.start()
                 
         # Start flask server
         app.run(host=config.WEBHOOK_LISTEN,
                 port=config.WEBHOOK_PORT,
                 ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
                 debug=False)
-        scheduler.start()
         
