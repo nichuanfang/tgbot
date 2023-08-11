@@ -98,6 +98,10 @@ def receive_monthly_benefits(message):
     }
     # 发送post请求
     response = requests.post(url, headers=headers)
+    # 如果返回失败 tg通知dogyun cookie已过期
+    if response.status_code != 200:
+        bot.reply_to(message, 'dogyun cookie已过期,请更新cookie')
+        return
     # 获取返回的json数据
     data = response.json()
     # 获取领取结果
@@ -115,7 +119,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='7', hour='9', minute='0', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='16', minute='22', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
@@ -128,6 +132,10 @@ def get_traffic_packet():
     }
     # 发送post请求
     response = requests.post(url, headers=headers)
+    # 如果返回失败 tg通知dogyun cookie已过期
+    if response.status_code != 200:
+        bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
+        return
     # 获取返回的json数据
     data = response.json()
     # 获取领取结果
@@ -146,7 +154,7 @@ def get_traffic_packet():
     bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
-@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='16', minute='17', second='0')
+@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='9', minute='0', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
@@ -159,10 +167,13 @@ def lucky_draw_notice():
     }
     # 发起get请求
     response = requests.get(url, headers=headers)
+    # 如果返回失败 tg通知dogyun cookie已过期
+    if response.status_code != 200:
+        bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
+        return
     soup = BeautifulSoup(response.text, 'lxml')
     result = soup.find('h2',class_='mb-0 text-center').text
     if result == '暂无抽奖活动':
-        bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')   
         pass
     else:
         bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
