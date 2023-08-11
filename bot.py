@@ -86,7 +86,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='11', hour='13', minute='53', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='7', hour='8', minute='0', second='0')
 def get_traffic_packet():
     """领取流量包
     """    
@@ -117,7 +117,7 @@ def get_traffic_packet():
     bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
-@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='8', minute='0', second='0')
+@scheduler.task('cron', id='lucky_draw_notice', month='*', day='11', hour='13', minute='56', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
