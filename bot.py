@@ -97,7 +97,7 @@ if __name__ == '__main__':
         def index():
             bot.remove_webhook()
             # Set webhook
-            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,certificate=open(config.WEBHOOK_SSL_CERT, 'r'))
+            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
             return "!", 200
         
         # Process webhook calls
