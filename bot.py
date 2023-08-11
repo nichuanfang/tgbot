@@ -89,41 +89,31 @@ if __name__ == '__main__':
 
     elif config.ENV == "PROD":
         import flask
-        import threading
+        from flask import Flask, request
         
         app = flask.Flask(__name__)
 
-        # Empty webserver index, return nothing, just http 200
         @app.route('/', methods=['GET', 'HEAD'])
         def index():
-            return ''
+            bot.remove_webhook()
+            # Set webhook
+            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,certificate=open(config.WEBHOOK_SSL_CERT, 'r'))
+            return "!", 200
 
 
         # Process webhook calls
         @app.route(WEBHOOK_URL_PATH, methods=['POST'])
         def webhook():
-            if flask.request.headers.get('content-type') == 'application/json':
-                json_string = flask.request.get_data().decode('utf-8')
-                update = telebot.types.Update.de_json(json_string)
-                bot.process_new_updates([update])
-                return ''
-            else:
-                flask.abort(403)
-        
-        # 定时任务
+            json_string = request.get_data().decode('utf-8')
+            update = telebot.types.Update.de_json(json_string)
+            bot.process_new_updates([update])
+            return "!", 200
+                
 
-        # Remove webhook, it fails sometimes the set if there is a previous webhook
-        bot.remove_webhook()
-
-        time.sleep(0.1)
-
-        # Set webhook
-        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-                        certificate=open(config.WEBHOOK_SSL_CERT, 'r'))
 
         # Start flask server
         app.run(host=config.WEBHOOK_LISTEN,
                 port=config.WEBHOOK_PORT,
                 ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
-                debug=True)
+                debug=False)
         
