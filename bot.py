@@ -23,6 +23,34 @@ class Config(object):
 
 scheduler = APScheduler()
 
+@bot.message_handler(commands=['server_info'])
+def get_server_status(message):
+    """获取服务器状态
+
+    Returns:
+        _type_: _description_
+    """    
+    url = f'https://api.dogyun.com/cvm/server/{config.DOGYUN_SERVER_ID}'
+    headers = {
+        'API-KEY': config.DOGYUN_API_KEY
+    }
+    # GET请求
+    response = requests.get(url, headers=headers)
+    # 获取返回的json数据
+    data = response.json()
+    # 获取服务器状态
+    if data['success']:
+        server_info = data['data']
+        # 获取服务器健康状态
+        health = server_info['health']
+        # cpu
+        cpu = health['cpu']/health['maxcpu']*100
+        # 内存
+        memory = health['mem']/health['maxmem']*100
+        bot.reply_to(message, f'服务器状态:{data["status"]}\nCPU:{cpu}%\n内存:{memory}%')
+    else:
+        bot.reply_to(message, '获取服务器状态失败')
+
 @bot.message_handler(commands=['traffic_info'])
 def send_traffic_info(message):
     """流量详情
