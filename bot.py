@@ -168,7 +168,6 @@ def lucky_draw_notice():
 
 
 if __name__ == '__main__':
-    lucky_draw_notice()
     # run
     if config.ENV == "DEV":
         bot.infinity_polling() 
