@@ -6,7 +6,7 @@ BOT_TOKEN = '6682477712:AAEoEBftr_qvA8Q7EO6QLebhiERSDc-58Fk'
 CHAT_ID = 5913565300
 WEBHOOK_HOST = 'bot.cinima.asia'
 WEBHOOK_PORT = 88  # 443, 80, 88 or 8443 (port need to be 'open')
-WEBHOOK_LISTEN = 'bot.cinima.asia'  # In some VPS you may need to put here the IP addr
+WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 WEBHOOK_SSL_CERT = '/etc/letsencrypt/live/cinima.asia/fullchain.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = '/etc/letsencrypt/live/cinima.asia/privkey.pem'  # Path to the ssl private key
 
