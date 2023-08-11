@@ -88,7 +88,7 @@ def draw_lottery(message):
 # 每月7号
 @scheduler.task('cron', id='get_traffic_packet', month='*', day='7', hour='8', minute='0', second='0')
 def get_traffic_packet():
-    """领取流量包
+    """自动领取流量包
     """    
     url = f'https://cvm.dogyun.com/traffic/package/level'
     headers = {
@@ -117,7 +117,7 @@ def get_traffic_packet():
     bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
-@scheduler.task('cron', id='lucky_draw_notice', month='*', day='11', hour='13', minute='59', second='0')
+@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='8', minute='0', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
@@ -133,7 +133,6 @@ def lucky_draw_notice():
     soup = BeautifulSoup(response.text, 'lxml')
     result = soup.find('h2',class_='mb-0 text-center').text
     if result == '暂无抽奖活动':
-        bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
         pass
     else:
         bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
