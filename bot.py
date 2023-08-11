@@ -4,7 +4,7 @@ import requests
 from settings import config
 import logging
 
-WEBHOOK_URL_BASE = "http://%s:%s" % (config.WEBHOOK_HOST,config.WEBHOOK_PORT)
+WEBHOOK_URL_BASE = "https://%s:%s" % (config.WEBHOOK_HOST,config.WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (config.BOT_TOKEN)
 
 logger = telebot.logger
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         def index():
             bot.remove_webhook()
             # Set webhook
-            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,certificate=open(config.WEBHOOK_SSL_CERT, 'r'))
             return "!", 200
 
 
@@ -109,13 +109,9 @@ if __name__ == '__main__':
             bot.process_new_updates([update])
             return "!", 200
                 
-        
-        bot.remove_webhook()
-        # Set webhook
-        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
-        
         # Start flask server
         app.run(host=config.WEBHOOK_LISTEN,
                 port=config.WEBHOOK_PORT,
+                ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
                 debug=False)
         
