@@ -101,7 +101,7 @@ if __name__ == '__main__':
             return "!", 200
         
         @app.route('/hahaha', methods=['GET', 'HEAD'])
-        def index():
+        def aaa():
             return "设置成功!!!"
 
 
