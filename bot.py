@@ -15,6 +15,12 @@ telebot.logger.setLevel(logging.INFO)
 
 bot = telebot.TeleBot(config.BOT_TOKEN)
 
+class Config(object):
+    SCHEDULER_API_ENABLED = True
+
+
+scheduler = APScheduler()
+
 @bot.message_handler(commands=['traffic_info'])
 def send_traffic_info(message):
     """流量详情
@@ -77,50 +83,41 @@ def draw_lottery(message):
     """    
     pass
 
-
-class Config(object):
-    JOBS = [
-        {
-            'id': 'job1',
-            'func': 'get_traffic_packet',
-            'args': (),
-            'trigger': 'cron',
-            'day': '*',
-            'hour': '12',
-            'minute': '53',
-            'second': '20'
-        }
-    ]
-    SCHEDULER_API_ENABLED = True
-    
+@scheduler.task('cron', id='get_traffic_packet',hour='13', minute='02', second='05')   
 def get_traffic_packet():
-            """领取流量包
-            """    
-            url = f'https://cvm.dogyun.com/traffic/package/level'
-            headers = {
-                'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN,
-                'Origin': 'https://cvm.dogyun.com',
-                'Referer': 'https://cvm.dogyun.com/traffic/package/list',
-                'Cookie': config.DOGYUN_COOKIE
-            }
-            # 发送post请求
-            response = requests.post(url, headers=headers)
-            # 获取返回的json数据
-            data = response.json()
-            # 获取领取结果
-            result = data['message']
-            # 获取当前时间
-            now = datetime.now()
-            # 获取当前日期
-            today = date.today()
-            # 获取当前时间
-            current_time = now.strftime("%H:%M:%S")
-            # 获取当前日期
-            current_date = today.strftime("%Y-%m-%d")
-            # 记录日志
-            logger.info(f'{current_date} {current_time} {result}')
-            # 发送通知
-            bot.send_message(config.CHAT_ID, f'{current_date} {current_time} {result}')
+    """领取流量包
+    """    
+    url = f'https://cvm.dogyun.com/traffic/package/level'
+    headers = {
+        'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN,
+        'Origin': 'https://cvm.dogyun.com',
+        'Referer': 'https://cvm.dogyun.com/traffic/package/list',
+        'Cookie': config.DOGYUN_COOKIE
+    }
+    # 发送post请求
+    response = requests.post(url, headers=headers)
+    # 获取返回的json数据
+    data = response.json()
+    # 获取领取结果
+    result = data['message']
+    # 获取当前时间
+    now = datetime.now()
+    # 获取当前日期
+    today = date.today()
+    # 获取当前时间
+    current_time = now.strftime("%H:%M:%S")
+    # 获取当前日期
+    current_date = today.strftime("%Y-%m-%d")
+    # 记录日志
+    logger.info(f'{current_date} {current_time} {result}')
+    # 发送通知
+    bot.send_message(config.CHAT_ID, f'{current_date} {current_time} {result}')
+
+def lucky_draw_notice():
+    """抽奖活动通知
+    """ 
+    url = f'https://cvm.dogyun.com/traffic/package/list'
+    pass
 
 
 if __name__ == '__main__':
@@ -134,12 +131,6 @@ if __name__ == '__main__':
         import flask
         from flask import Flask, request
         
-        
-        def lucky_draw_notice():
-            """抽奖活动通知
-            """ 
-            url = f'https://cvm.dogyun.com/traffic/package/list'
-            pass
         
         app = flask.Flask(__name__)
         app.config.from_object(Config())
@@ -161,7 +152,6 @@ if __name__ == '__main__':
         # Set webhook
         bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
         
-        scheduler = APScheduler()
         scheduler.init_app(app)
         scheduler.start()
                 
