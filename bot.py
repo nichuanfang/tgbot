@@ -100,15 +100,9 @@ if __name__ == '__main__':
             bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,certificate=open(config.WEBHOOK_SSL_CERT, 'r'))
             return "!", 200
         
-        @app.route('/hahaha', methods=['GET', 'HEAD'])
-        def aaa():
-            return "设置成功!!!"
-
-
         # Process webhook calls
-        @app.route(WEBHOOK_URL_PATH, methods=['POST'])
+        @app.route(WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
         def webhook():
-            logging.info("---Webhook triggered---")
             json_string = request.get_data().decode('utf-8')
             update = telebot.types.Update.de_json(json_string)
             bot.process_new_updates([update])
