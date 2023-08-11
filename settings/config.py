@@ -4,7 +4,7 @@ ENV = 'PROD'
 # tg配置
 BOT_TOKEN = '6682477712:AAEoEBftr_qvA8Q7EO6QLebhiERSDc-58Fk'
 CHAT_ID = 5913565300
-WEBHOOK_HOST = 'bot.cinima.asia'
+WEBHOOK_HOST = '154.202.60.190'
 WEBHOOK_PORT = 88  # 443, 80, 88 or 8443 (port need to be 'open')
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 
