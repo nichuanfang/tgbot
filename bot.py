@@ -145,7 +145,7 @@ if __name__ == '__main__':
         
         scheduler = BlockingScheduler()
         # 每天尝试领一次流量包
-        scheduler.add_job(get_traffic_packet, 'cron', hour='12', minute='25', args=[])
+        scheduler.add_job(get_traffic_packet, 'cron', hour='12', minute='36', args=[])
         # 每天定时监测是否有抽奖活动
         scheduler.add_job(lucky_draw_notice, 'cron', hour='2', minute='0', args=[])
         scheduler.start()
