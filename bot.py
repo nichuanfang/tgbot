@@ -98,12 +98,13 @@ def receive_monthly_benefits(message):
     }
     # 发送post请求
     response = requests.post(url, headers=headers)
-    # 如果返回失败 tg通知dogyun cookie已过期
-    if response.status_code != 200:
+    # 获取返回的json数据
+    try:
+        data = response.json()
+    except:
+        # tg通知dogyun cookie已过期
         bot.reply_to(message, 'dogyun cookie已过期,请更新cookie')
         return
-    # 获取返回的json数据
-    data = response.json()
     # 获取领取结果
     result = data['message']
     bot.reply_to(message, result)
@@ -119,7 +120,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='16', minute='22', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='16', minute='32', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
@@ -136,8 +137,12 @@ def get_traffic_packet():
     if response.status_code != 200:
         bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
         return
-    # 获取返回的json数据
-    data = response.json()
+    try:
+        data = response.json()
+    except:
+        # tg通知dogyun cookie已过期
+        bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
+        return
     # 获取领取结果
     result = data['message']
     # 获取当前时间
@@ -167,12 +172,13 @@ def lucky_draw_notice():
     }
     # 发起get请求
     response = requests.get(url, headers=headers)
-    # 如果返回失败 tg通知dogyun cookie已过期
-    if response.status_code != 200:
+    
+    soup = BeautifulSoup(response.text, 'lxml')
+    
+    result = soup.find('h2',class_='mb-0 text-center').text
+    if result is None or result == '':
         bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
         return
-    soup = BeautifulSoup(response.text, 'lxml')
-    result = soup.find('h2',class_='mb-0 text-center').text
     if result == '暂无抽奖活动':
         pass
     else:
@@ -182,6 +188,7 @@ def lucky_draw_notice():
 if __name__ == '__main__':
     # run
     if config.ENV == "DEV":
+        bot.remove_webhook()
         bot.infinity_polling() 
 
 
