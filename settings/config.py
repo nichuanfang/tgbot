@@ -7,8 +7,8 @@ CHAT_ID = 5913565300
 WEBHOOK_HOST = 'bot.cinima.asia'
 WEBHOOK_PORT = 88  # 443, 80, 88 or 8443 (port need to be 'open')
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
-WEBHOOK_SSL_CERT = '/etc/letsencrypt/live/cinima.asia/fullchain.pem'  # Path to the ssl certificate
-WEBHOOK_SSL_PRIV = '/etc/letsencrypt/live/cinima.asia/privkey.pem'  # Path to the ssl private key
+WEBHOOK_SSL_CERT = '/root/code/docker/dockerfile_work/xray/cert/cert.pem'  # Path to the ssl certificate
+WEBHOOK_SSL_PRIV = '/root/code/docker/dockerfile_work/xray/cert/key.pem'  # Path to the ssl private key
 
 # dogyun相关
 DOGYUN_API_KEY = 'CX75AKIJOGQY3JUGG5DJF3RMQX0KV0ORT5PL'
