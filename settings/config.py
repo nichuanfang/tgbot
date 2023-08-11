@@ -1,4 +1,4 @@
-# 环境ENV or PROD
+# DEV or PROD
 ENV = 'PROD'
 
 # tg配置

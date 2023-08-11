@@ -95,18 +95,20 @@ if __name__ == '__main__':
 
         @app.route('/', methods=['GET', 'HEAD'])
         def index():
-            bot.remove_webhook()
-            # Set webhook
-            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
-            return "!", 200
+            return ""
         
         # Process webhook calls
-        @app.route(WEBHOOK_URL_PATH, methods=['POST'])
+        @app.route(WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
         def webhook():
             json_string = request.get_data().decode('utf-8')
             update = telebot.types.Update.de_json(json_string)
             bot.process_new_updates([update])
             return "!", 200
+        
+        # 设置webhook
+        bot.remove_webhook()
+        # Set webhook
+        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
                 
         # Start flask server
         app.run(host=config.WEBHOOK_LISTEN,
