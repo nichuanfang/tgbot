@@ -148,11 +148,11 @@ if __name__ == '__main__':
         scheduler.add_job(get_traffic_packet, 'cron', hour='12', minute='39', args=[])
         # 每天定时监测是否有抽奖活动
         scheduler.add_job(lucky_draw_notice, 'cron', hour='2', minute='0', args=[])
-        scheduler.start()
                 
         # Start flask server
         app.run(host=config.WEBHOOK_LISTEN,
                 port=config.WEBHOOK_PORT,
                 ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
                 debug=False)
+        scheduler.start()
         
