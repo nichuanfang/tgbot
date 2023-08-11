@@ -120,7 +120,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='16', minute='40', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='7', hour='9', minute='0', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
@@ -155,7 +155,7 @@ def get_traffic_packet():
     bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
-@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='16', minute='40', second='0')
+@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='9', minute='0', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
@@ -176,10 +176,10 @@ def lucky_draw_notice():
         bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
         return
     if result == '暂无抽奖活动':
-        bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')  
         pass
     else:
         bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
+        logger.info(f'抽奖活动通知: {result}')
 
 
 if __name__ == '__main__':
