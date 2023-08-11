@@ -120,7 +120,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='16', minute='32', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='16', minute='35', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
@@ -133,10 +133,6 @@ def get_traffic_packet():
     }
     # 发送post请求
     response = requests.post(url, headers=headers)
-    # 如果返回失败 tg通知dogyun cookie已过期
-    if response.status_code != 200:
-        bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
-        return
     try:
         data = response.json()
     except:
