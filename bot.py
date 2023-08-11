@@ -43,11 +43,12 @@ def get_server_status(message):
         server_info = data['data']
         # 获取服务器健康状态
         health = server_info['health']
+        ip = server_info['ipv4']
         # cpu
-        cpu = health['cpu']/health['maxcpu']*100
+        cpu = round(health['cpu']/health['maxcpu']*100,2)
         # 内存
-        memory = health['mem']/health['maxmem']*100
-        bot.reply_to(message, f'服务器状态:{data["status"]}\nCPU:{cpu}%\n内存:{memory}%')
+        memory = round(health['mem']/health['maxmem']*100,2)
+        bot.reply_to(message, f'IP:  {ip}\n状态:  {data["data"]["status"]}\nCPU:  {cpu}%\n内存:  {memory}%')
     else:
         bot.reply_to(message, '获取服务器状态失败')
 
