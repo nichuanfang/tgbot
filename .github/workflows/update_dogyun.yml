@@ -1,1 +1,23 @@
 # 更新dogyun的cookie触发tg机器人后台重启
+name: update dogyun
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 更新tgbot
+        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+        continue-on-error: true
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          user: ${{ secrets.VPS_USER }}
+          pass: ${{ secrets.VPS_PASS }}
+          port: ${{ secrets.VPS_PORT }}
+          connect_timeout: 10s
+          first_ssh: |
+            systemctl restart tgbot

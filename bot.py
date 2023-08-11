@@ -86,7 +86,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='11', hour='13', minute='30', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='11', hour='13', minute='50', second='0')
 def get_traffic_packet():
     """领取流量包
     """    
@@ -130,9 +130,7 @@ def lucky_draw_notice():
     }
     # 发起get请求
     response = requests.get(url, headers=headers)
-    # 根据xpath获取元素
     soup = BeautifulSoup(response.text, 'lxml')
-    # 根据xpath获取元素
     result = soup.find('h2',class_='mb-0 text-center').text
     if result == '暂无抽奖活动':
         pass
