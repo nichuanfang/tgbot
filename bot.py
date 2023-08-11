@@ -77,20 +77,6 @@ def draw_lottery(message):
     """    
     pass
 
-class Config(object):
-    JOBS = [
-        {
-            'id': 'job1',
-            'func': 'scheduler:get_traffic_packet',
-            'trigger': 'cron',
-            'day': '*',
-            'hour': '12',
-            'minute': '50',
-            'second': '20'
-        }
-    ]
-    SCHEDULER_API_ENABLED = True
-
 
 def get_traffic_packet():
     """领取流量包
@@ -127,6 +113,21 @@ def lucky_draw_notice():
     """ 
     url = f'https://cvm.dogyun.com/traffic/package/list'
     pass
+
+class Config(object):
+    JOBS = [
+        {
+            'id': 'job1',
+            'func': 'scheduler:get_traffic_packet',
+            'trigger': 'cron',
+            'day': '*',
+            'hour': '12',
+            'minute': '53',
+            'second': '20'
+        }
+    ]
+    SCHEDULER_API_ENABLED = True
+
 
 if __name__ == '__main__':
     
