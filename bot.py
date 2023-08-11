@@ -146,7 +146,7 @@ def get_traffic_packet():
     bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
-@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='16', minute='13', second='0')
+@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='16', minute='17', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
@@ -162,6 +162,7 @@ def lucky_draw_notice():
     soup = BeautifulSoup(response.text, 'lxml')
     result = soup.find('h2',class_='mb-0 text-center').text
     if result == '暂无抽奖活动':
+        bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')   
         pass
     else:
         bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
