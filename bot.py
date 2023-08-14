@@ -35,7 +35,11 @@ def get_server_status(message):
         'API-KEY': config.DOGYUN_API_KEY
     }
     # GET请求
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers)
+    except Exception as e:
+        bot.reply_to(message, f'获取服务器状态失败: {e.args[0]}')
+        return
     # 获取返回的json数据
     data = response.json()
     # 获取服务器状态
@@ -63,10 +67,14 @@ def send_traffic_info(message):
     headers = {
         'API-KEY': config.DOGYUN_API_KEY
     }
-    # GET请求
-    response = requests.get(url, headers=headers)
-    # 获取返回的json数据
-    data = response.json()
+    try:
+        # GET请求
+        response = requests.get(url, headers=headers)
+        # 获取返回的json数据
+        data = response.json()
+    except Exception as e:
+        bot.reply_to(message, f'获取流量详情失败: {e.args[0]}')
+        return
     # 获取流量信息
     traffic_info = data['data'][-1]
     # 被动流入
@@ -96,8 +104,12 @@ def receive_monthly_benefits(message):
         'Referer': 'https://cvm.dogyun.com/traffic/package/list',
         'Cookie': config.DOGYUN_COOKIE
     }
-    # 发送post请求
-    response = requests.post(url, headers=headers)
+    try:
+        # 发送post请求
+        response = requests.post(url, headers=headers)
+    except Exception as e:
+        bot.reply_to(message, f'领取每月流量包失败: {e.args[0]}')
+        return
     # 获取返回的json数据
     try:
         data = response.json()
@@ -131,8 +143,13 @@ def get_traffic_packet():
         'Referer': 'https://cvm.dogyun.com/traffic/package/list',
         'Cookie': config.DOGYUN_COOKIE
     }
-    # 发送post请求
-    response = requests.post(url, headers=headers)
+    try:
+        # 发送post请求
+        response = requests.post(url, headers=headers)
+    except Exception as e:
+        # tg通知dogyun cookie已过期
+        bot.send_message(config.CHAT_ID, f'领取流量包失败: {e.args[0]}!')
+        return
     try:
         data = response.json()
     except:
@@ -166,8 +183,12 @@ def lucky_draw_notice():
         'Origin': 'https://console.dogyun.com',
         'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN
     }
-    # 发起get请求
-    response = requests.get(url, headers=headers)
+    try:
+        # 发起get请求
+        response = requests.get(url, headers=headers)
+    except Exception as e:
+        bot.send_message(config.CHAT_ID, f'抽奖活动通知失败: {e.args[0]}!')
+        return
     
     soup = BeautifulSoup(response.text, 'lxml')
     
