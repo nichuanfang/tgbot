@@ -230,6 +230,11 @@ if __name__ == '__main__':
             bot.process_new_updates([update])
             return "!", 200
         
+        # 禁止爬虫
+        @app.route('/robots.txt')
+        def robots():
+            return "User-agent: *\nDisallow: /", 200
+        
         # 设置webhook
         bot.remove_webhook()
         # Set webhook
