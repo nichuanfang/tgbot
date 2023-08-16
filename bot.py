@@ -36,7 +36,7 @@ def get_server_status(message):
     }
     # GET请求
     try:
-        response = requests.get(url, headers=headers,verify=False)
+        response = requests.get(url, headers=headers,verify=True)
     except Exception as e:
         bot.reply_to(message, f'获取服务器状态失败: {e.args[0]}')
         return
@@ -69,7 +69,7 @@ def send_traffic_info(message):
     }
     try:
         # GET请求
-        response = requests.get(url, headers=headers,verify=False)
+        response = requests.get(url, headers=headers,verify=True)
         # 获取返回的json数据
         data = response.json()
     except Exception as e:
@@ -106,7 +106,7 @@ def receive_monthly_benefits(message):
     }
     try:
         # 发送post请求
-        response = requests.post(url, headers=headers,verify=False)
+        response = requests.post(url, headers=headers,verify=True)
     except Exception as e:
         bot.reply_to(message, f'领取每月流量包失败: {e.args[0]}')
         return
@@ -145,7 +145,7 @@ def get_traffic_packet():
     }
     try:
         # 发送post请求
-        response = requests.post(url, headers=headers,verify=False)
+        response = requests.post(url, headers=headers,verify=True)
     except Exception as e:
         # tg通知dogyun cookie已过期
         bot.send_message(config.CHAT_ID, f'领取流量包失败: {e.args[0]}!')
@@ -185,7 +185,7 @@ def lucky_draw_notice():
     }
     try:
         # 发起get请求
-        response = requests.get(url, headers=headers,verify=False)
+        response = requests.get(url, headers=headers,verify=True)
     except Exception as e:
         bot.send_message(config.CHAT_ID, f'抽奖活动通知失败: {e.args[0]}!')
         return
