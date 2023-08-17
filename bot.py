@@ -242,10 +242,14 @@ if __name__ == '__main__':
         
         scheduler.init_app(app)
         scheduler.start()
-                
-        # Start flask server
-        app.run(host=config.WEBHOOK_LISTEN,
-                port=config.WEBHOOK_PORT,
-                ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
-                debug=False)
+        
+        try:      
+            # Start flask server
+            app.run(host=config.WEBHOOK_LISTEN,
+                    port=config.WEBHOOK_PORT,
+                    ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
+                    debug=False)
+        except Exception as e:
+            time.sleep(15)
+            
         
