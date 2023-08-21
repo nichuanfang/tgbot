@@ -221,7 +221,11 @@ if __name__ == '__main__':
         
         @app.route('/')
         def home():
-            return 'Hello, World!'
+            # 设置webhook
+            bot.remove_webhook()
+            # Set webhook
+            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+            return 'Webhook设置成功!'
 
         
         # Process webhook calls
@@ -236,11 +240,6 @@ if __name__ == '__main__':
         @app.route('/robots.txt')
         def robots():
             return "User-agent: *\nDisallow: /", 200
-        
-        # 设置webhook
-        bot.remove_webhook()
-        # Set webhook
-        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
         
         scheduler.init_app(app)
         scheduler.start()
