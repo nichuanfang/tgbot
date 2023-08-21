@@ -216,11 +216,13 @@ if __name__ == '__main__':
         
         
         app = flask.Flask(__name__)
+        
         app.config.from_object(Config())
         
-        @app.route('/', methods=['GET', 'HEAD'])
-        def index():
-            return ""
+        @app.route('/')
+        def home():
+            return 'Hello, World!'
+
         
         # Process webhook calls
         @app.route(WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
@@ -242,14 +244,10 @@ if __name__ == '__main__':
         
         scheduler.init_app(app)
         scheduler.start()
-        
-        try:      
-            # Start flask server
-            app.run(host=config.WEBHOOK_LISTEN,
-                    port=config.WEBHOOK_PORT,
-                    ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
-                    debug=False)
-        except Exception as e:
-            time.sleep(15)
+        # Start flask server
+        app.run(host=config.WEBHOOK_LISTEN,
+                port=config.WEBHOOK_PORT,
+                ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
+                debug=False)
             
         
