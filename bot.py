@@ -132,7 +132,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='22', hour='1', minute='51', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='22', hour='1', minute='54', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
@@ -219,6 +219,9 @@ if __name__ == '__main__':
         
         app.config.from_object(Config())
         
+        scheduler.init_app(app)
+        scheduler.start()
+        
         @app.route('/')
         def home():
             # 设置webhook
@@ -247,7 +250,4 @@ if __name__ == '__main__':
                 ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
                 debug=False)
         
-        scheduler.init_app(app)
-        scheduler.start()
-            
         
