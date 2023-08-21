@@ -15,7 +15,7 @@ WEBHOOK_URL_PATH = "/%s/" % (config.BOT_TOKEN)
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
 
-bot = telebot.TeleBot(config.BOT_TOKEN)
+bot = telebot.TeleBot(config.BOT_TOKEN,threaded=False)
 
 class Config(object):
     SCHEDULER_API_ENABLED = True
@@ -227,17 +227,20 @@ if __name__ == '__main__':
             # 设置webhook
             bot.remove_webhook()
             # Set webhook
-            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,max_connections=1)
             return 'Webhook设置成功!'
 
         
         # Process webhook calls
         @app.route(WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
         def webhook():
-            json_string = request.get_data().decode('utf-8')
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_updates([update])
-            return "!", 200
+            if flask.request.headers.get('content-type') == 'application/json':
+                json_string = flask.request.get_data().decode('utf-8')
+                update = telebot.types.Update.de_json(json_string)
+                bot.process_new_updates([update])
+                return ''
+            else:
+                flask.abort(403)
         
         # 禁止爬虫
         @app.route('/robots.txt')
