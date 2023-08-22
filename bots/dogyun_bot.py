@@ -1,25 +1,18 @@
-import time
 import telebot
 import requests
-from settings import config
-import logging
+from settings.config import flask
+from settings.config import dogyun
 from datetime import datetime
 from datetime import date
 from flask_apscheduler import APScheduler
 from bs4 import BeautifulSoup
 import lxml
 
-WEBHOOK_URL_BASE = "https://%s:%s" % (config.WEBHOOK_HOST,config.WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % (config.BOT_TOKEN)
+DOGYUN_WEBHOOK_URL_PATH = "/%s/" % (dogyun['BOT_TOKEN'])
 
 logger = telebot.logger
-telebot.logger.setLevel(logging.INFO)
 
-bot = telebot.TeleBot(config.BOT_TOKEN,threaded=False)
-
-class Config(object):
-    SCHEDULER_API_ENABLED = True
-
+bot = telebot.TeleBot(dogyun['BOT_TOKEN'],threaded=False)
 
 scheduler = APScheduler()
 
@@ -30,9 +23,9 @@ def get_server_status(message):
     Returns:
         _type_: _description_
     """    
-    url = f'https://api.dogyun.com/cvm/server/{config.DOGYUN_SERVER_ID}'
+    url = f'https://api.dogyun.com/cvm/server/{dogyun["DOGYUN_SERVER_ID"]}'
     headers = {
-        'API-KEY': config.DOGYUN_API_KEY
+        'API-KEY': dogyun['DOGYUN_API_KEY']
     }
     # GET请求
     try:
@@ -63,9 +56,9 @@ def send_traffic_info(message):
     Args:
         message (_type_): _description_
     """   
-    url = f'https://api.dogyun.com/cvm/server/{config.DOGYUN_SERVER_ID}/traffic'
+    url = f'https://api.dogyun.com/cvm/server/{dogyun["DOGYUN_SERVER_ID"]}/traffic'
     headers = {
-        'API-KEY': config.DOGYUN_API_KEY
+        'API-KEY': dogyun['DOGYUN_API_KEY']
     }
     try:
         # GET请求
@@ -99,10 +92,10 @@ def receive_monthly_benefits(message):
     """ 
     url = f'https://cvm.dogyun.com/traffic/package/level'
     headers = {
-        'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN,
+        'X-Csrf-Token': dogyun['DOGYUN_CSRF_TOKEN'],
         'Origin': 'https://cvm.dogyun.com',
         'Referer': 'https://cvm.dogyun.com/traffic/package/list',
-        'Cookie': config.DOGYUN_COOKIE
+        'Cookie': dogyun['DOGYUN_COOKIE']
     }
     try:
         # 发送post请求
@@ -138,23 +131,23 @@ def get_traffic_packet():
     """    
     url = f'https://cvm.dogyun.com/traffic/package/level'
     headers = {
-        'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN,
+        'X-Csrf-Token': dogyun['DOGYUN_CSRF_TOKEN'],
         'Origin': 'https://cvm.dogyun.com',
         'Referer': 'https://cvm.dogyun.com/traffic/package/list',
-        'Cookie': config.DOGYUN_COOKIE
+        'Cookie': dogyun['DOGYUN_COOKIE']
     }
     try:
         # 发送post请求
         response = requests.post(url, headers=headers,verify=True)
     except Exception as e:
         # tg通知dogyun cookie已过期
-        bot.send_message(config.CHAT_ID, f'领取流量包失败: {e.args[0]}!')
+        bot.send_message(dogyun['CHAT_ID'], f'领取流量包失败: {e.args[0]}!')
         return
     try:
         data = response.json()
     except:
         # tg通知dogyun cookie已过期
-        bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
+        bot.send_message(dogyun['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
         return
     # 获取领取结果
     result = data['message']
@@ -169,7 +162,7 @@ def get_traffic_packet():
     # 记录日志
     logger.info(f'{current_date} {current_time} {result}')
     # 发送通知
-    bot.send_message(config.CHAT_ID, f'等级奖励通用流量包: {result}')
+    bot.send_message(dogyun['CHAT_ID'], f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
 @scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='9', minute='0', second='0')
@@ -178,79 +171,52 @@ def lucky_draw_notice():
     """ 
     url = f'https://console.dogyun.com/turntable'
     headers = {
-        'Cookie': config.DOGYUN_COOKIE,
+        'Cookie': dogyun['DOGYUN_COOKIE'],
         'Referer': 'https://member.dogyun.com/',
         'Origin': 'https://console.dogyun.com',
-        'X-Csrf-Token': config.DOGYUN_CSRF_TOKEN
+        'X-Csrf-Token': dogyun['DOGYUN_CSRF_TOKEN']
     }
     try:
         # 发起get请求
         response = requests.get(url, headers=headers,verify=True)
     except Exception as e:
-        bot.send_message(config.CHAT_ID, f'抽奖活动通知失败: {e.args[0]}!')
+        bot.send_message(dogyun['CHAT_ID'], f'抽奖活动通知失败: {e.args[0]}!')
         return
     
     soup = BeautifulSoup(response.text, 'lxml')
     
     result = soup.find('h2',class_='mb-0 text-center').text
     if result is None or result == '':
-        bot.send_message(config.CHAT_ID, 'dogyun cookie已过期,请更新cookie!')
+        bot.send_message(dogyun['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
         return
     if result == '暂无抽奖活动':
         pass
     else:
-        bot.send_message(config.CHAT_ID, f'抽奖活动通知: {result}')    
+        bot.send_message(dogyun['CHAT_ID'], f'抽奖活动通知: {result}')
         logger.info(f'抽奖活动通知: {result}')
+        
 
-
-if __name__ == '__main__':
-    # run
-    if config.ENV == "DEV":
+def webhook(app,FLASK_URL_BASE):
+    """设置webhook
+    """    
+    # Set webhook
+    @app.route('/dogyun')
+    def home():
+        # 设置webhook
         bot.remove_webhook()
-        bot.infinity_polling() 
-
-
-    elif config.ENV == "PROD":
-        import flask
-        from flask import Flask, request
-        
-        
-        app = flask.Flask(__name__)
-        
-        app.config.from_object(Config())
-        
-        scheduler.init_app(app)
-        scheduler.start()
-        
-        @app.route('/')
-        def home():
-            # 设置webhook
-            bot.remove_webhook()
-            # Set webhook
-            bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,max_connections=1)
-            return 'Webhook设置成功!'
+        # Set webhook
+        bot.set_webhook(url=FLASK_URL_BASE + DOGYUN_WEBHOOK_URL_PATH,max_connections=1)
+        return 'dogyun-Webhook设置成功!'
 
         
-        # Process webhook calls
-        @app.route(WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
-        def webhook():
-            if flask.request.headers.get('content-type') == 'application/json':
-                json_string = flask.request.get_data().decode('utf-8')
-                update = telebot.types.Update.de_json(json_string)
-                bot.process_new_updates([update])
-                return ''
-            else:
-                flask.abort(403)
-        
-        # 禁止爬虫
-        @app.route('/robots.txt')
-        def robots():
-            return "User-agent: *\nDisallow: /", 200
-        
-        # Start flask server
-        app.run(host=config.WEBHOOK_LISTEN,
-                port=config.WEBHOOK_PORT,
-                ssl_context=(config.WEBHOOK_SSL_CERT, config.WEBHOOK_SSL_PRIV),
-                debug=False)
-        
-        
+    # Process webhook calls
+    @app.route(DOGYUN_WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
+    def webhook():
+        if flask.request.headers.get('content-type') == 'application/json':
+            json_string = flask.request.get_data().decode('utf-8')
+            update = telebot.types.Update.de_json(json_string)
+            bot.process_new_updates([update])
+            return ''
+        else:
+            flask.abort(403)
+
