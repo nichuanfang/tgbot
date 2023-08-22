@@ -2,14 +2,15 @@ import telebot
 from bots import dogyun_bot
 from bots.dogyun_bot import scheduler
 from settings import config
-from settings.config import flask
+from settings.config import dogyun_config
+from settings.config import flask_config
 import logging
 
 # 设置tg的日志
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
 
-FLASK_URL_BASE = flask['FLASK_URL_BASE']
+FLASK_URL_BASE = flask_config['FLASK_URL_BASE']
 
 class Config(object):
     SCHEDULER_API_ENABLED = True
@@ -41,11 +42,11 @@ if __name__ == '__main__':
             return "User-agent: *\nDisallow: /", 200
         
         # 设置webhook
-        dogyun_bot.webhook(app,FLASK_URL_BASE)
+        dogyun_bot.webhook(app,flask,FLASK_URL_BASE)
         
         
         # Start flask server
-        app.run(host=flask['FLASK_LISTEN'],
-                port=flask['FLASK_PORT'],
-                ssl_context=(flask['FLASK_SSL_CERT'], flask['FLASK_SSL_PRIV']),
+        app.run(host=flask_config['FLASK_LISTEN'],
+                port=flask_config['FLASK_PORT'],
+                ssl_context=(flask_config['FLASK_SSL_CERT'], flask_config['FLASK_SSL_PRIV']),
                 debug=False)
