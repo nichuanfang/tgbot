@@ -1,8 +1,8 @@
 import telebot
 from bots import dogyun_bot
+from bots import tmdb_bot
 from bots.dogyun_bot import scheduler
 from settings import config
-from settings.config import dogyun_config
 from settings.config import flask_config
 import logging
 
@@ -20,8 +20,8 @@ if __name__ == '__main__':
     # run
     if config.ENV == "DEV":
         # 本地测试单个机器人
-        dogyun_bot.bot.remove_webhook()
-        dogyun_bot.bot.infinity_polling() 
+        tmdb_bot.bot.remove_webhook()
+        tmdb_bot.bot.infinity_polling() 
 
 
     elif config.ENV == "PROD":
@@ -43,6 +43,7 @@ if __name__ == '__main__':
         
         # 设置webhook
         dogyun_bot.webhook(app,flask,FLASK_URL_BASE)
+        tmdb_bot.webhook(app,flask,FLASK_URL_BASE)
         
         
         # Start flask server
