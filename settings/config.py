@@ -1,5 +1,5 @@
 # 环境'DEV' or 'PROD'
-ENV = 'DEV'
+ENV = 'PROD'
 
 flask = {
     'FLASK_HOST': 'bot.cinima.asia',
