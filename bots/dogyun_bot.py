@@ -200,7 +200,7 @@ def webhook(app,flask,FLASK_URL_BASE):
     """    
     # Set webhook
     @app.route('/dogyun')
-    def home():
+    def dogyun():
         # 设置webhook
         bot.remove_webhook()
         # Set webhook
@@ -210,7 +210,7 @@ def webhook(app,flask,FLASK_URL_BASE):
         
     # Process webhook calls
     @app.route(DOGYUN_WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
-    def webhook():
+    def dogyun_webhook():
         if flask.request.headers.get('content-type') == 'application/json':
             json_string = flask.request.get_data().decode('utf-8')
             update = telebot.types.Update.de_json(json_string)
