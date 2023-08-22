@@ -124,7 +124,7 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='*', hour='12', minute='25', second='0')
+@scheduler.task('cron', id='get_traffic_packet', month='*', day='7', hour='9', minute='0', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
