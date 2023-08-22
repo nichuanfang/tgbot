@@ -64,7 +64,7 @@ def webhook(app,flask,FLASK_URL_BASE):
         bot.remove_webhook()
         # Set webhook
         bot.set_webhook(url=FLASK_URL_BASE + TMDB_WEBHOOK_URL_PATH,max_connections=1)
-        return 'dogyun-Webhook设置成功!'
+        return 'tmdb-Webhook设置成功!'
 
         
     # Process webhook calls
