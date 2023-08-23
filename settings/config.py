@@ -20,10 +20,3 @@ dogyun_config = {
     'DOGYUN_CSRF_TOKEN': '566cfb52-a04a-4a73-aed6-835b035c7087',
     'DOGYUN_COOKIE': 'SESSION=OTY3ZmRjMzQtMmFiMi00ZjdiLWI2YjQtZWM5MTBiOTkxYTM2'
 }
-
-tmdb_config = {
-    'BOT_TOKEN': '6675909655:AAFz7tDgi_NZfAPAPcLuVOQ9jrW9wm6FVlc',
-    'CHAT_ID': 5913565300,  
-    # tmdb相关
-    'TMDB_API_KEY': 'c0f69aaaa3b6cbf57ca725169c77f219'
-}
