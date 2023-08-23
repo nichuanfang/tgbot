@@ -1,5 +1,6 @@
 import telebot
 from bots import dogyun_bot
+from bots import github_workflow_bot
 from bots.dogyun_bot import scheduler
 from settings import config
 from settings.config import flask_config
@@ -42,6 +43,7 @@ if __name__ == '__main__':
         
         # 设置webhook
         dogyun_bot.webhook(app,flask,FLASK_URL_BASE)
+        github_workflow_bot.webhook(app,flask,FLASK_URL_BASE)
         
         
         # Start flask server
