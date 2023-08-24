@@ -1,53 +1,44 @@
 import telebot
 from bots import dogyun_bot
+from bots.dogyun_bot import get_traffic_packet,lucky_draw_notice
 from bots import github_workflow_bot
-from bots.dogyun_bot import scheduler
-from settings import config
-from settings.config import flask_config
 import logging
+import threading
+from apscheduler.schedulers.blocking import BlockingScheduler
+from datetime import datetime
 
 # 设置tg的日志
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
+scheduler = BlockingScheduler()
 
-FLASK_URL_BASE = flask_config['FLASK_URL_BASE']
+def dogyun_bot_func():
+    dogyun_bot.bot.remove_webhook()
+    # 启动轮询
+    dogyun_bot.bot.infinity_polling()
+    
+def github_workflow_bot_func():
+    github_workflow_bot.bot.remove_webhook()
+    # 启动轮询
+    github_workflow_bot.bot.infinity_polling()
 
-class Config(object):
-    SCHEDULER_API_ENABLED = True
+def scheduler_func():
+    # 每月7号获取流量包
+    scheduler.add_job(get_traffic_packet, 'cron', id='get_traffic_packet', month='*', day='7', hour='9', minute='0', second='0')
+    # 每天9点通知抽奖活动
+    scheduler.add_job(lucky_draw_notice, 'cron', id='lucky_draw_notice', month='*', day='*', hour='9', minute='0', second='0')
+    logger.info('Scheduler started!')
+    # 开启定时任务
+    scheduler.start()
 
 if __name__ == '__main__':
+    thread1 = threading.Thread(target=dogyun_bot_func, daemon=True)
+    thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
+    thread3 = threading.Thread(target=scheduler_func, daemon=True)
     
-    # run
-    if config.ENV == "DEV":
-        # 本地测试单个机器人
-        dogyun_bot.bot.remove_webhook()
-        dogyun_bot.bot.infinity_polling() 
-
-
-    elif config.ENV == "PROD":
-        import flask
-        from flask import Flask, request
-        
-        
-        app = flask.Flask(__name__)
-        
-        app.config.from_object(Config())
-        
-        scheduler.init_app(app)
-        scheduler.start()
-        
-        # 禁止爬虫
-        @app.route('/robots.txt')
-        def robots():
-            return "User-agent: *\nDisallow: /", 200
-        
-        # 设置webhook
-        dogyun_bot.webhook(app,flask,FLASK_URL_BASE)
-        github_workflow_bot.webhook(app,flask,FLASK_URL_BASE)
-        
-        
-        # Start flask server
-        app.run(host=flask_config['FLASK_LISTEN'],
-                port=flask_config['FLASK_PORT'],
-                ssl_context=(flask_config['FLASK_SSL_CERT'], flask_config['FLASK_SSL_PRIV']),
-                debug=False)
+    thread1.start()
+    thread2.start()
+    thread3.start()
+    
+    while True:
+        pass

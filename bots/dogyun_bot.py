@@ -3,17 +3,12 @@ import requests
 from settings.config import dogyun_config
 from datetime import datetime
 from datetime import date
-from flask_apscheduler import APScheduler
 from bs4 import BeautifulSoup
 import lxml
-
-DOGYUN_WEBHOOK_URL_PATH = "/%s/" % (dogyun_config['BOT_TOKEN'])
 
 logger = telebot.logger
 
 bot = telebot.TeleBot(dogyun_config['BOT_TOKEN'],threaded=False)
-
-scheduler = APScheduler()
 
 @bot.message_handler(commands=['server_info'])
 def get_server_status(message):
@@ -124,7 +119,6 @@ def draw_lottery(message):
     pass
 
 # 每月7号
-@scheduler.task('cron', id='get_traffic_packet', month='*', day='7', hour='9', minute='0', second='0')
 def get_traffic_packet():
     """自动领取流量包
     """    
@@ -164,7 +158,6 @@ def get_traffic_packet():
     bot.send_message(dogyun_config['CHAT_ID'], f'等级奖励通用流量包: {result}')
 
 # 每天获取通知
-@scheduler.task('cron', id='lucky_draw_notice', month='*', day='*', hour='9', minute='0', second='0')
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
@@ -193,29 +186,3 @@ def lucky_draw_notice():
     else:
         bot.send_message(dogyun_config['CHAT_ID'], f'抽奖活动通知: {result}')
         logger.info(f'抽奖活动通知: {result}')
-        
-
-def webhook(app,flask,FLASK_URL_BASE):
-    """设置webhook
-    """    
-    # Set webhook
-    @app.route('/dogyun')
-    def dogyun():
-        # 设置webhook
-        bot.remove_webhook()
-        # Set webhook
-        bot.set_webhook(url=FLASK_URL_BASE + DOGYUN_WEBHOOK_URL_PATH,max_connections=1)
-        return 'dogyun-Webhook设置成功!'
-
-        
-    # Process webhook calls
-    @app.route(DOGYUN_WEBHOOK_URL_PATH, methods=['POST'],strict_slashes=False)
-    def dogyun_webhook():
-        if flask.request.headers.get('content-type') == 'application/json':
-            json_string = flask.request.get_data().decode('utf-8')
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_updates([update])
-            return ''
-        else:
-            flask.abort(403)
-
