@@ -26,7 +26,14 @@ def ssh_connect( _host,_port,_username, _password ):
 
 # 运行命令
 def ssh_exec_cmd( _ssh_fd, _cmd ):
-    return _ssh_fd.exec_command( _cmd )
+    stdin, stdout, stderr =  _ssh_fd.exec_command( _cmd )
+    while not stdout.channel.exit_status_ready():
+        result = stdout.readline()
+        print(result)
+        if stdout.channel.exit_status_ready():
+            a = stdout.readlines()
+            print(a)
+            break
 
 # 关闭SSH
 def ssh_close( _ssh_fd ):
@@ -199,9 +206,9 @@ def update_xray_route(message):
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
     ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    bot.reply_to(message, '已更新xray客户端路由规则')
     ssh_exec_cmd(ssd_fd,script)
     ssh_close(ssd_fd)
-    bot.reply_to(message, '已更新xray客户端路由规则')
         
 @bot.message_handler(commands=['bitwarden_backup'])
 def bitwarden_backup(message):
@@ -212,9 +219,9 @@ def bitwarden_backup(message):
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
     ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    bot.reply_to(message, '已备份bitwarden')
     ssh_exec_cmd(ssd_fd,script)
     ssh_close(ssd_fd)
-    bot.reply_to(message, '已备份bitwarden')
 
 # 每月7号
 def get_traffic_packet():
