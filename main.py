@@ -40,5 +40,4 @@ if __name__ == '__main__':
     thread2.start()
     thread3.start()
     
-    while True:
-        pass
+    thread1.join()
