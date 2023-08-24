@@ -6,6 +6,7 @@ from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
+import subprocess
 
 logger = telebot.logger
 
@@ -177,7 +178,7 @@ def update_xray_route(message):
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
     try:
-        os.system(script) 
+        subprocess.call(script, shell=True) 
         bot.reply_to(message, '更新xray客户端路由规则成功')
     except:
         bot.reply_to(message, '更新xray客户端路由规则失败')
@@ -191,7 +192,7 @@ def bitwarden_backup(message):
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
     try:
-        os.system(script) 
+        subprocess.call(script, shell=True)
         bot.reply_to(message, '备份bitwarden成功')
     except:
         bot.reply_to(message, '备份bitwarden失败')
