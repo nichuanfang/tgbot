@@ -6,7 +6,6 @@ from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
-import paramiko
 
 logger = telebot.logger
 
