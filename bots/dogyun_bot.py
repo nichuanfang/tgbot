@@ -6,11 +6,32 @@ from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
-import subprocess
+import paramiko
 
 logger = telebot.logger
 
 bot = telebot.TeleBot(dogyun_config['BOT_TOKEN'],threaded=False)
+
+
+# 连接方法
+def ssh_connect( _host,_port,_username, _password ):
+    try:
+        _ssh_fd = paramiko.SSHClient()
+        _ssh_fd.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
+        _ssh_fd.connect( _host, port=_port ,username = _username, password = _password )
+    except Exception as e:
+        print( 'ssh %s@%s: %s' % (_username, _host, e) )
+        exit()
+    return _ssh_fd
+
+# 运行命令
+def ssh_exec_cmd( _ssh_fd, _cmd ):
+    return _ssh_fd.exec_command( _cmd )
+
+# 关闭SSH
+def ssh_close( _ssh_fd ):
+    _ssh_fd.close()
+    
 
 @bot.message_handler(commands=['server_info'])
 def get_server_status(message):
@@ -177,11 +198,10 @@ def update_xray_route(message):
         message (_type_): _description_
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
-    try:
-        subprocess.call(script, shell=True) 
-        bot.reply_to(message, '更新xray客户端路由规则成功')
-    except:
-        bot.reply_to(message, '更新xray客户端路由规则失败')
+    ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    ssh_exec_cmd(ssd_fd,script)
+    ssh_close(ssd_fd)
+    bot.reply_to(message, '已更新xray客户端路由规则')
         
 @bot.message_handler(commands=['bitwarden_backup'])
 def bitwarden_backup(message):
@@ -191,12 +211,10 @@ def bitwarden_backup(message):
         message (_type_): _description_
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
-    try:
-        subprocess.call(script, shell=True)
-        bot.reply_to(message, '备份bitwarden成功')
-    except:
-        bot.reply_to(message, '备份bitwarden失败')
-
+    ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    ssh_exec_cmd(ssd_fd,script)
+    ssh_close(ssd_fd)
+    bot.reply_to(message, '已备份bitwarden')
 
 # 每月7号
 def get_traffic_packet():
