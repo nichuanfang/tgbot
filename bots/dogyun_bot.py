@@ -1,3 +1,4 @@
+import os
 import telebot
 import requests
 from settings.config import dogyun_config
@@ -5,6 +6,7 @@ from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
+import paramiko
 
 logger = telebot.logger
 
@@ -167,6 +169,20 @@ def draw_lottery(message):
     else:
         bot.reply_to(message, f'抽奖失败: {data["message"]}')
         
+@bot.message_handler(commands=['update_xray_route'])
+def run_bash(message):
+    """更新xray客户端路由规则
+
+    Args:
+        message (_type_): _description_
+    """    
+    script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
+    try:
+        os.system(script) 
+        bot.reply_to(message, '更新xray客户端路由规则成功')
+    except:
+        bot.reply_to(message, '更新xray客户端路由规则失败')
+
 
 # 每月7号
 def get_traffic_packet():
