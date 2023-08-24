@@ -111,12 +111,62 @@ def receive_monthly_benefits(message):
 
 @bot.message_handler(commands=['draw_lottery'])
 def draw_lottery(message):
-    """抽奖(待完善)
+    """抽奖
 
     Args:
         message (_type_): _description_
     """    
-    pass
+    url = f'https://console.dogyun.com/turntable/lottery'
+    headers = {
+        'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
+        'Origin': 'https://cvm.dogyun.com',
+        'Referer': 'https://console.dogyun.com/turntable',
+        'Cookie': dogyun_config['DOGYUN_COOKIE']
+    }
+    # 发送put请求
+    try:
+        response = requests.put(url, headers=headers,verify=True)
+    except Exception as e:
+        bot.reply_to(message, f'抽奖失败: {e.args[0]}')
+        return
+    # 获取返回的json数据
+    try:
+        data = response.json()
+    except:
+        # tg通知dogyun cookie已过期
+        bot.reply_to(message, 'dogyun cookie已过期,请更新cookie')
+        return
+    # 获取抽奖结果
+    result = data['success']
+    if result:
+        # 查看奖品
+        prize_url = f'https://console.dogyun.com/turntable/prize/page'
+        prize_body = {"draw":2,"columns":[{"data":"prizeName","name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}},
+                                          {"data":"status","name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}},
+                                          {"data":"createTime","name":"","searchable":True,"orderable":True,"search":{"value":"","regex":False}},
+                                          {"data":"descr","name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}}]
+                                          ,"order":[{"column":2,"dir":"desc"}],"start":0,"length":10,"search":{"value":"","regex":False}}
+        # post请求
+        try:
+            prize_response = requests.post(prize_url,json = prize_body ,headers=headers,verify=True)
+        except Exception as e:
+            bot.reply_to(message, f'查看奖品失败: {e.args[0]}')
+            return
+        # 获取返回的json数据
+        try:
+            prize_data = prize_response.json()
+        except:
+            # tg通知dogyun cookie已过期
+            bot.reply_to(message, 'dogyun cookie已过期,请更新cookie')
+            return
+        # 获取奖品信息
+        prize_infos:list = prize_data['data']
+        
+        if len(prize_infos) > 0 and prize_infos[0]['createTime'].split(' ')[0] == date.today().strftime("%Y-%m-%d"):
+            bot.reply_to(message, f'抽奖结果: 成功\n奖品: {prize_infos[0]["prizeName"]}\n状态: {prize_infos[0]["status"]}\n描述: {prize_infos[0]["descr"]}')
+    else:
+        bot.reply_to(message, f'抽奖失败: {data["message"]}')
+        
 
 # 每月7号
 def get_traffic_packet():
@@ -172,17 +222,19 @@ def lucky_draw_notice():
         # 发起get请求
         response = requests.get(url, headers=headers,verify=True)
     except Exception as e:
-        bot.send_message(dogyun_config['CHAT_ID'], f'抽奖活动通知失败: {e.args[0]}!')
+        bot.send_message(dogyun_config['CHAT_ID'], '抽奖活动通知失败!')
         return
-    
-    soup = BeautifulSoup(response.text, 'lxml')
-    
-    result = soup.find('h2',class_='mb-0 text-center').text
-    if result is None or result == '':
+    try:
+        data = response.json()
+    except:
+        # tg通知dogyun cookie已过期
         bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
         return
-    if result == '暂无抽奖活动':
+    soup = BeautifulSoup(response.text, 'lxml')
+    try:
+        result = soup.find('a',class_='gb-turntable-btn').text
+        bot.send_message(dogyun_config['CHAT_ID'], f'抽奖活动通知: {soup.find("strong").text}')
+        logger.info(f'抽奖活动通知: {soup.find("strong").text}')
+    except:
+        # '暂无抽奖活动'
         pass
-    else:
-        bot.send_message(dogyun_config['CHAT_ID'], f'抽奖活动通知: {result}')
-        logger.info(f'抽奖活动通知: {result}')
