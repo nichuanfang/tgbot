@@ -169,7 +169,7 @@ def draw_lottery(message):
         bot.reply_to(message, f'抽奖失败: {data["message"]}')
         
 @bot.message_handler(commands=['update_xray_route'])
-def run_bash(message):
+def update_xray_route(message):
     """更新xray客户端路由规则
 
     Args:
@@ -181,6 +181,20 @@ def run_bash(message):
         bot.reply_to(message, '更新xray客户端路由规则成功')
     except:
         bot.reply_to(message, '更新xray客户端路由规则失败')
+        
+@bot.message_handler(commands=['bitwarden_backup'])
+def bitwarden_backup(message):
+    """备份bitwarden
+
+    Args:
+        message (_type_): _description_
+    """    
+    script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
+    try:
+        os.system(script) 
+        bot.reply_to(message, '备份bitwarden成功')
+    except:
+        bot.reply_to(message, '备份bitwarden失败')
 
 
 # 每月7号
