@@ -12,9 +12,6 @@ logger = telebot.logger
 
 bot = telebot.TeleBot(dogyun_config['BOT_TOKEN'],threaded=False)
 
-set_email_script = 'git config --global user.email "f18326186224@gmail.com"'
-set_username_script = 'git config --global user.name "Jaychouzzz"'
-
 @bot.message_handler(commands=['server_info'])
 def get_server_status(message):
     """获取服务器状态
@@ -181,8 +178,6 @@ def update_xray_route(message):
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
     try:
-        subprocess.call(f'{set_email_script}', shell=True)
-        subprocess.call(f'{set_username_script}', shell=True)
         subprocess.call(script, shell=True) 
         bot.reply_to(message, '更新xray客户端路由规则成功')
     except:
@@ -197,8 +192,6 @@ def bitwarden_backup(message):
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
     try:
-        subprocess.call(f'{set_email_script}', shell=True)
-        subprocess.call(f'{set_username_script}', shell=True)
         subprocess.call(script, shell=True)
         bot.reply_to(message, '备份bitwarden成功')
     except:
