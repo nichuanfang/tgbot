@@ -124,15 +124,13 @@ def receive_monthly_benefits(message):
     try:
         # 发送post请求
         response = requests.post(url, headers=headers,verify=True)
-    except Exception as e:
-        bot.reply_to(message, f'领取每月流量包失败: {e.args[0]}')
-        return
-    # 获取返回的json数据
-    try:
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            return
         data = response.json()
-    except:
-        # tg通知dogyun cookie已过期
-        bot.reply_to(message, 'dogyun cookie已过期,请更新cookie')
+    except Exception as e:
+        logger.error(e)
         return
     # 获取领取结果
     result = data['message']
@@ -156,15 +154,13 @@ def draw_lottery(message):
     # 发送put请求
     try:
         response = requests.put(url, headers=headers,verify=True)
-    except Exception as e:
-        bot.reply_to(message, f'抽奖失败: {e.args[0]}')
-        return
-    # 获取返回的json数据
-    try:
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            return
         data = response.json()
-    except:
-        # tg通知dogyun cookie已过期
-        bot.reply_to(message, 'dogyun cookie已过期,请更新cookie')
+    except Exception as e:
+        logger.error(e)
         return
     # 获取抽奖结果
     result = data['success']
@@ -237,15 +233,13 @@ def get_traffic_packet():
     try:
         # 发送post请求
         response = requests.post(url, headers=headers,verify=True)
-    except Exception as e:
-        # tg通知dogyun cookie已过期
-        bot.send_message(dogyun_config['CHAT_ID'], f'领取流量包失败: {e.args[0]}!')
-        return
-    try:
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            return
         data = response.json()
-    except:
-        # tg通知dogyun cookie已过期
-        bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+    except Exception as e:
+        logger.error(e)
         return
     # 获取领取结果
     result = data['message']
@@ -276,14 +270,13 @@ def lucky_draw_notice():
     try:
         # 发起get请求
         response = requests.get(url, headers=headers,verify=True)
-    except Exception as e:
-        bot.send_message(dogyun_config['CHAT_ID'], '抽奖活动通知失败!')
-        return
-    try:
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            return
         data = response.json()
-    except:
-        # tg通知dogyun cookie已过期
-        bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+    except Exception as e:
+        logger.error(e)
         return
     soup = BeautifulSoup(response.text, 'lxml')
     try:
@@ -293,3 +286,4 @@ def lucky_draw_notice():
     except:
         # '暂无抽奖活动'
         pass
+    
