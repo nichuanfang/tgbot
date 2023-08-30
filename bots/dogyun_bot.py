@@ -206,7 +206,11 @@ def update_xray_route(message):
     except:
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
-    ssh_exec_cmd(ssd_fd,script)
+    try:
+        ssh_exec_cmd(ssd_fd,script)
+    except:
+        bot.reply_to(message, '执行脚本报错')
+        return
     ssh_close(ssd_fd)
     bot.reply_to(message, '已更新xray客户端路由规则')
         
@@ -223,7 +227,11 @@ def bitwarden_backup(message):
     except:
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
-    ssh_exec_cmd(ssd_fd,script)
+    try:
+        ssh_exec_cmd(ssd_fd,script)
+    except:
+        bot.reply_to(message, '执行脚本报错')
+        return
     ssh_close(ssd_fd)
     bot.reply_to(message, '已备份bitwarden')
 

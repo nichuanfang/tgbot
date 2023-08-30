@@ -4,3 +4,4 @@ lxml==4.9.2
 paramiko==3.3.1
 pyTelegramBotAPI==4.13.0
 Requests==2.31.0
+tmdbv3api==1.9.0
