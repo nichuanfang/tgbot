@@ -20,15 +20,6 @@ logger = telebot.logger
 
 bot = telebot.TeleBot(tmdb_config['BOT_TOKEN'],threaded=False)
 
-@bot.message_handler()
-def common(message):
-    raw_msg = message.text.strip().replace(' ', '')
-    if message.text and not message.text.startswith('/'):
-        message.text = '/movie_search '+raw_msg
-        search_movie(message)
-        message.text = '/tv_search '+raw_msg
-        search_tv(message)
-
 @bot.message_handler(commands=['movie_popular'])
 def movie_popular(message):
     res = movie.popular()
@@ -84,3 +75,11 @@ def search_tv(message):
         bot.send_message(message.chat.id,tv_text,'MarkdownV2')
     
     
+@bot.message_handler(content_types=['text'])
+def common(message):
+    raw_msg = message.text.strip().replace(' ', '')
+    if raw_msg and not raw_msg.startswith('/'):
+        message.text = '/movie_search '+raw_msg
+        search_movie(message)
+        message.text = '/tv_search '+raw_msg
+        search_tv(message)
