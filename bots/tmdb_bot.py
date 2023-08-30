@@ -20,6 +20,15 @@ logger = telebot.logger
 
 bot = telebot.TeleBot(tmdb_config['BOT_TOKEN'],threaded=False)
 
+@bot.message_handler()
+def common(message):
+    raw_msg = message.text.strip().replace(' ', '')
+    if message.text and not message.text.startswith('/'):
+        message.text = '/movie_search '+raw_msg
+        search_movie(message)
+        message.text = '/tv_search '+raw_msg
+        search_tv(message)
+
 @bot.message_handler(commands=['movie_popular'])
 def movie_popular(message):
     res = movie.popular()
@@ -55,7 +64,8 @@ def search_movie(message):
         movie_name = f'{movie_res.title} ({movie_res["release_date"].split("-")[0]})'
         movie_tmdb_url = f'https://www.themoviedb.org/movie/{movie_res.id}?language=zh-CN'
         movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
-    bot.send_message(message.chat.id,movie_text,'MarkdownV2')
+    if len(movie_search.results) != 0:
+        bot.send_message(message.chat.id,movie_text,'MarkdownV2')
     
 @bot.message_handler(commands=['tv_search'])
 def search_tv(message):
@@ -70,7 +80,7 @@ def search_tv(message):
         tv_name = f'{tv_res.name} ({tv_res["first_air_date"].split("-")[0]})'
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
         tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
-    
-    bot.send_message(message.chat.id,tv_text,'MarkdownV2')
+    if len(tv_search.results) != 0:
+        bot.send_message(message.chat.id,tv_text,'MarkdownV2')
     
     
