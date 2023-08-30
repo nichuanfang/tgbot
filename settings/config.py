@@ -14,3 +14,9 @@ github_config = {
     'CHAT_ID': 5913565300,
     'GITHUB_TOKEN': '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',
 }
+
+tmdb_config = {
+    'BOT_TOKEN': '6331108974:AAFL21ItMbS_u1FleaYmBxOQ3RYUT306JI4',
+    'CHAT_ID': 5913565300,
+    'API_KEY': 'c0f69aaaa3b6cbf57ca725169c77f219'
+}

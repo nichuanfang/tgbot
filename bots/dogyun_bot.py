@@ -201,7 +201,11 @@ def update_xray_route(message):
         message (_type_): _description_
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
-    ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    try:
+        ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    except:
+        bot.reply_to(message, '无法连接到服务器154.202.60.190')
+        return
     ssh_exec_cmd(ssd_fd,script)
     ssh_close(ssd_fd)
     bot.reply_to(message, '已更新xray客户端路由规则')
@@ -214,7 +218,11 @@ def bitwarden_backup(message):
         message (_type_): _description_
     """    
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
-    ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    try:
+        ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    except:
+        bot.reply_to(message, '无法连接到服务器154.202.60.190')
+        return
     ssh_exec_cmd(ssd_fd,script)
     ssh_close(ssd_fd)
     bot.reply_to(message, '已备份bitwarden')

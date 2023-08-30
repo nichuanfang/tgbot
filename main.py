@@ -2,6 +2,7 @@ import telebot
 from bots import dogyun_bot
 from bots.dogyun_bot import get_traffic_packet,lucky_draw_notice
 from bots import github_workflow_bot
+from bots import tmdb_bot
 import logging
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -21,6 +22,12 @@ def github_workflow_bot_func():
     github_workflow_bot.bot.remove_webhook()
     # 启动轮询
     github_workflow_bot.bot.infinity_polling()
+    
+
+def tmdb_bot_func():
+    tmdb_bot.bot.remove_webhook()
+    # 启动轮询
+    tmdb_bot.bot.infinity_polling()
 
 def scheduler_func():
     # 每月7号获取流量包
@@ -34,10 +41,12 @@ def scheduler_func():
 if __name__ == '__main__':
     thread1 = threading.Thread(target=dogyun_bot_func, daemon=True)
     thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
-    thread3 = threading.Thread(target=scheduler_func, daemon=True)
+    thread3 = threading.Thread(target=tmdb_bot_func, daemon=True)
+    thread4 = threading.Thread(target=scheduler_func, daemon=True)
     
     thread1.start()
     thread2.start()
     thread3.start()
+    thread4.start()
     
     thread1.join()
