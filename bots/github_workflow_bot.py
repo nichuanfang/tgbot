@@ -20,7 +20,7 @@ def scrape_metadata(message):
         'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
     }
     requests.post('https://api.github.com/repos/nichuanfang/movie-tvshow-spider/dispatches',data=json.dumps({"event_type": "刮削影视元信息"}),headers=header)
-    bot.reply_to(message, '已触发工作流: 刮削影视元信息')
+    bot.reply_to(message, '已触发工作流: 刮削影视元信息,查看刮削日志: https://github.com/nichuanfang/movie-tvshow-spider/actions')
     
 @bot.message_handler(commands=['update_proxy'])
 def update_proxy(message):
