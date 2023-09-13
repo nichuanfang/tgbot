@@ -68,7 +68,7 @@ def search_tv(message):
     tv_text = '*剧集结果:*\n'
     tv_search = tv.search(message.text[11:])
     for tv_res in tv_search.results:
-        tv_name = f'{tv_res.name} ({tv_res["first_air_date"].split("-")[0]})'
+        tv_name = f'{tv_res.name} {tv_res.original_name} ({tv_res["first_air_date"].split("-")[0]})'
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
         tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
     if len(tv_search.results) != 0:
