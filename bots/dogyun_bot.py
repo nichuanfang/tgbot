@@ -361,3 +361,23 @@ def balance_lack_notice():
             logger.info(f'余额不足提醒: {balance}元')
     except:
         pass
+    
+@bot.message_handler(content_types=['text'])
+def common(message):
+    raw_msg = message.text.strip().replace(' ', '')
+    # 更新cookie
+    if raw_msg and not raw_msg.startswith('/') and raw_msg.startswith('SESSION=') and len(raw_msg)==len(dogyun_config['DOGYUN_COOKIE']):
+        # 提交到github
+        with open('settings/config.py', 'r+') as f:
+            lines = f.readlines()
+        with open('settings/config.py', 'w+') as f:
+            for line in lines:
+                if line.startswith('DOGYUN_COOKIE'):
+                    line = f'DOGYUN_COOKIE = \'{raw_msg}\'\n'
+                f.write(line)
+        # 提交到github
+        os.system('git add settings/config.py')
+        os.system('git commit -m "update dogyun cookie"')
+        os.system('git push')   
+        bot.reply_to(message, '更新cookie成功')
+        return
