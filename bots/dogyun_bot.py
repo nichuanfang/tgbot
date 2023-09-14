@@ -29,7 +29,7 @@ def ssh_exec_cmd( _ssh_fd, _cmd,message):
     stdin, stdout, stderr =  _ssh_fd.exec_command( _cmd )
     while not stdout.channel.exit_status_ready():
         result = stdout.readline()
-        print(result)
+        logger.info(result)
         if stdout.channel.exit_status_ready():
             a = stdout.readlines()
             bot.reply_to(message, a)
