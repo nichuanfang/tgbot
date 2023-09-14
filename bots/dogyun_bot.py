@@ -235,6 +235,29 @@ def bitwarden_backup(message):
     ssh_close(ssd_fd)
     bot.reply_to(message, '已备份bitwarden')
 
+# 执行bash脚本
+@bot.message_handler(commands=['exec_cmd'])
+def exec_cmd(message):
+    """执行bash脚本
+
+    Args:
+        message (_type_): _description_
+    """    
+    script = message.text[10:]
+    try:
+        ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
+    except:
+        bot.reply_to(message, '无法连接到服务器154.202.60.190')
+        return
+    try:
+        ssh_exec_cmd(ssd_fd,script)
+    except:
+        bot.reply_to(message, '执行命令报错')
+        return
+    ssh_close(ssd_fd)
+    bot.reply_to(message, '已执行命令')
+
+
 # 每月7号
 def get_traffic_packet():
     """自动领取流量包
@@ -272,7 +295,7 @@ def get_traffic_packet():
     # 发送通知
     bot.send_message(dogyun_config['CHAT_ID'], f'等级奖励通用流量包: {result}')
 
-# 每天获取通知
+# 每天获取通知 余额提醒 流量提醒
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
