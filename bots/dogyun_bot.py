@@ -357,7 +357,7 @@ def balance_lack_notice():
         result = soup.find('span',class_='h5 font-weight-normal').text
         # 根据正则表达式提取数字
         balance = re.findall(r"\d+\.?\d*", result)[0]
-        if float(balance) < 100:
+        if float(balance) < 10:
             bot.send_message(dogyun_config['CHAT_ID'], f'余额不足提醒: {balance}元')
             logger.info(f'余额不足提醒: {balance}元')
     except:
