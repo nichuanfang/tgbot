@@ -380,8 +380,8 @@ def common(message):
         script = 'cd /root/code/tgbot && ' + \
                         'git add /root/code/tgbot/settings/config.py && '+\
                         'git commit -m "update dogyun cookie" && '+\
-                        'git config --global user.name jaychouzzz && '+ \
-                        'git config --global user.email f18326186224@gmail.com && '+\
+                        'git config --system user.name jaychouzzz && '+ \
+                        'git config --system user.email f18326186224@gmail.com && '+\
                         'git push origin main'
         
         subprocess.Popen(script,shell=True)
