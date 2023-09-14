@@ -86,7 +86,7 @@ def search_movie(message):
         movie_tmdb_url = f'https://www.themoviedb.org/movie/{movie_res.id}?language=zh-CN'
         movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
     if len(movie_search.results) != 0:
-        bot.send_message(message.chat.id,movie_text,'MarkdownV2')
+        return bot.send_message(message.chat.id,movie_text,'MarkdownV2')
     else:
         return None
     
@@ -114,7 +114,7 @@ def search_tv(message):
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
         tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
     if len(tv_search.results) != 0:
-        bot.send_message(message.chat.id,tv_text,'MarkdownV2')
+        return bot.send_message(message.chat.id,tv_text,'MarkdownV2')
     else:
         return None
     
