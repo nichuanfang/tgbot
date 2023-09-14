@@ -378,12 +378,12 @@ def common(message):
                 f.write(line)
         # 提交到github
         script = 'cd /root/code/tgbot && ' + \
-                        'git config --system user.name jaychouzzz && '+ \
-                        'git config --system user.email f18326186224@gmail.com && '+\
                         'git add /root/code/tgbot/settings/config.py && '+\
                         'git commit -m "update dogyun cookie" && '+\
-                        'git push'
+                        'git config --global user.name jaychouzzz && '+ \
+                        'git config --global user.email f18326186224@gmail.com && '+\
+                        'git push origin main'
         
-        subprocess.call(script,shell=True)   
+        subprocess.Popen(script,shell=True)
         bot.reply_to(message, '更新cookie成功')
         return
