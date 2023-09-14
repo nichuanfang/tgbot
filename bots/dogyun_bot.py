@@ -362,7 +362,7 @@ def balance_lack_notice():
             logger.info(f'余额不足提醒: {balance}元')
     except:
         pass
-    
+
 @bot.message_handler(content_types=['text'])
 def common(message):
     raw_msg = message.text.strip().replace(' ', '')
@@ -378,6 +378,7 @@ def common(message):
                 f.write(line)
         # 提交到github
         script = 'cd /root/code/tgbot && ' + \
+                        'git remote set-url origin git@github.com:nichuanfang/tgbot.git'+\
                         'git add /root/code/tgbot/settings/config.py && '+\
                         'git commit -m "update dogyun cookie" && '+\
                         'git config --system user.name jaychouzzz && '+ \
