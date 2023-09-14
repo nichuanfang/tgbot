@@ -25,16 +25,14 @@ def ssh_connect( _host,_port,_username, _password ):
     return _ssh_fd
 
 # 运行命令
-def ssh_exec_cmd( _ssh_fd, _cmd,message):
+def ssh_exec_cmd( _ssh_fd, _cmd):
     stdin, stdout, stderr =  _ssh_fd.exec_command( _cmd )
     while not stdout.channel.exit_status_ready():
         result = stdout.readline()
-        logger.info(result)
         if stdout.channel.exit_status_ready():
             a = stdout.readlines()
-            logger.info('总结果: \n'+result)
-            # bot.reply_to(message, a)
-            break
+            logger.info(a)
+            return
 
 # 关闭SSH
 def ssh_close( _ssh_fd ):
@@ -208,11 +206,12 @@ def update_xray_route(message):
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
     try:
-        ssh_exec_cmd(ssd_fd,script,message)
+        ssh_exec_cmd(ssd_fd,script)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
     ssh_close(ssd_fd)
+    bot.reply_to(message, '更新xray客户端路由规则成功')
         
 @bot.message_handler(commands=['bitwarden_backup'])
 def bitwarden_backup(message):
@@ -228,11 +227,12 @@ def bitwarden_backup(message):
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
     try:
-        ssh_exec_cmd(ssd_fd,script,message)
+        ssh_exec_cmd(ssd_fd,script)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
     ssh_close(ssd_fd)
+    bot.reply_to(message, '备份bitwarden成功')
 
 # 执行bash脚本
 @bot.message_handler(commands=['exec_cmd'])
@@ -252,11 +252,12 @@ def exec_cmd(message):
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
     try:
-        ssh_exec_cmd(ssd_fd,script,message)
+        ssh_exec_cmd(ssd_fd,script)
     except:
         bot.reply_to(message, '执行命令报错')
         return
     ssh_close(ssd_fd)
+    bot.reply_to(message, '执行命令成功')
 
 
 # 每月7号

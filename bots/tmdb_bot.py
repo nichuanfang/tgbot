@@ -26,7 +26,10 @@ def movie_popular(message):
     movie_text = '*电影推荐:*\n'
     for movie_res in res.results:
         try:
-            release_date = '('+movie_res["release_date"].split("-")[0]+')'
+            if movie_res["release_date"] == None or movie_res["release_date"] == '':
+                release_date = ''
+            else:
+                release_date = '('+movie_res["release_date"].split("-")[0]+')'
         except:
             release_date = ''
         if movie_res.original_title == movie_res.title:
@@ -44,7 +47,10 @@ def tv_popular(message):
     tv_text = '*剧集推荐:*\n'
     for tv_res in res.results:
         try:
-            first_air_date = '('+tv_res["first_air_date"].split("-")[0]+')'
+            if tv_res["first_air_date"] == None or tv_res["first_air_date"] == '':
+                first_air_date = ''
+            else:
+                first_air_date = '('+tv_res["first_air_date"].split("-")[0]+')'
         except:
             first_air_date = ''
         if tv_res.original_name == tv_res.name:
@@ -67,7 +73,10 @@ def search_movie(message):
     movie_search  = movie.search(message.text[14:])
     for movie_res in movie_search.results:
         try:
-            release_date = '('+movie_res["release_date"].split("-")[0]+')'
+            if movie_res["release_date"] == None or movie_res["release_date"] == '':
+                release_date = ''
+            else:
+                release_date = '('+movie_res["release_date"].split("-")[0]+')'
         except:
             release_date = ''
         if movie_res.original_title == movie_res.title:
@@ -90,7 +99,10 @@ def search_tv(message):
     tv_search = tv.search(message.text[11:])
     for tv_res in tv_search.results:
         try:
-            first_air_date = '('+tv_res["first_air_date"].split("-")[0]+')'
+            if tv_res["first_air_date"] == None or tv_res["first_air_date"] == '':
+                first_air_date = ''
+            else:
+                first_air_date = '('+tv_res["first_air_date"].split("-")[0]+')'
         except:
             first_air_date = ''
         if tv_res.original_name == tv_res.name:
