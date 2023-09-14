@@ -244,6 +244,7 @@ def exec_cmd(message):
     script = message.text[10:]
     if script in ['systemctl stop tgbot','systemctl restart tgbot','reboot']:
         bot.reply_to(message, '禁止执行该命令')
+        return
     try:
         ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
     except:
