@@ -362,29 +362,3 @@ def balance_lack_notice():
             logger.info(f'余额不足提醒: {balance}元')
     except:
         pass
-
-@bot.message_handler(content_types=['text'])
-def common(message):
-    raw_msg = message.text.strip().replace(' ', '')
-    # 更新cookie
-    if raw_msg and not raw_msg.startswith('/') and raw_msg.startswith('SESSION=') and len(raw_msg)==len(dogyun_config['DOGYUN_COOKIE']):
-        # 提交到github
-        with open('/root/code/tgbot/settings/config.py', 'r+',encoding='utf-8') as f:
-            lines = f.readlines()
-        with open('/root/code/tgbot/settings/config.py', 'w+',encoding='utf-8') as f:
-            for line in lines:
-                if line.lstrip().startswith('\'DOGYUN_COOKIE\''):
-                    line = f'    \'DOGYUN_COOKIE\' : \'{raw_msg}\'\n'
-                f.write(line)
-        # 提交到github
-        script = 'cd /root/code/tgbot && ' + \
-                        'git remote set-url origin git@github.com:nichuanfang/tgbot.git'+\
-                        'git add /root/code/tgbot/settings/config.py && '+\
-                        'git commit -m "update dogyun cookie" && '+\
-                        'git config --system user.name jaychouzzz && '+ \
-                        'git config --system user.email f18326186224@gmail.com && '+\
-                        'git push origin main'
-        
-        subprocess.Popen(script,shell=True)
-        bot.reply_to(message, '更新cookie成功')
-        return
