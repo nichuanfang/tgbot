@@ -32,7 +32,8 @@ def ssh_exec_cmd( _ssh_fd, _cmd,message):
         logger.info(result)
         if stdout.channel.exit_status_ready():
             a = stdout.readlines()
-            bot.reply_to(message, a)
+            logger.info('总结果: \n'+result)
+            # bot.reply_to(message, a)
             break
 
 # 关闭SSH
