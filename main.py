@@ -1,6 +1,6 @@
 import telebot
 from bots import dogyun_bot
-from bots.dogyun_bot import get_traffic_packet,lucky_draw_notice
+from bots.dogyun_bot import get_traffic_packet,lucky_draw_notice,balance_lack_notice
 from bots import github_workflow_bot
 from bots import tmdb_bot
 import logging
@@ -34,6 +34,8 @@ def scheduler_func():
     scheduler.add_job(get_traffic_packet, 'cron', id='get_traffic_packet', month='*', day='7', hour='9', minute='0', second='0')
     # 每天9点通知抽奖活动
     scheduler.add_job(lucky_draw_notice, 'cron', id='lucky_draw_notice', month='*', day='*', hour='9', minute='0', second='0')
+    # 每天9点通知余额不足
+    scheduler.add_job(balance_lack_notice, 'cron', id='balance_lack_notice', month='*', day='*', hour='9', minute='0', second='0')
     logger.info('Scheduler started!')
     # 开启定时任务
     scheduler.start()

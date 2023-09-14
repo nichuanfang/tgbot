@@ -1,4 +1,5 @@
 import os
+import re
 import telebot
 import requests
 from settings.config import dogyun_config
@@ -297,7 +298,7 @@ def get_traffic_packet():
     # 发送通知
     bot.send_message(dogyun_config['CHAT_ID'], f'等级奖励通用流量包: {result}')
 
-# 每天获取通知 余额提醒 流量提醒
+# 每天获取通知
 def lucky_draw_notice():
     """抽奖活动通知
     """ 
@@ -328,3 +329,35 @@ def lucky_draw_notice():
         # '暂无抽奖活动'
         pass
     
+    
+# 余额不足提醒
+def balance_lack_notice():
+    """余额不足提醒
+    """ 
+    url = f'https://console.dogyun.com'
+    headers = {
+        'Cookie': dogyun_config['DOGYUN_COOKIE'],
+        'Referer': 'https://member.dogyun.com/',
+        'Origin': 'https://console.dogyun.com',
+        'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN']
+    }
+    try:
+        # 发起get请求
+        response = requests.get(url, headers=headers,verify=True)
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            return
+    except Exception as e:
+        logger.error(e)
+        return
+    soup = BeautifulSoup(response.text, 'lxml')
+    try:
+        result = soup.find('span',class_='h5 font-weight-normal').text
+        # 根据正则表达式提取数字
+        balance = re.findall(r"\d+\.?\d*", result)[0]
+        if float(balance) < 100:
+            bot.send_message(dogyun_config['CHAT_ID'], f'余额不足提醒: {balance}元')
+            logger.info(f'余额不足提醒: {balance}元')
+    except:
+        pass
