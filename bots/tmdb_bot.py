@@ -87,6 +87,8 @@ def search_movie(message):
         movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
     if len(movie_search.results) != 0:
         bot.send_message(message.chat.id,movie_text,'MarkdownV2')
+    else:
+        return None
     
 @bot.message_handler(commands=['tv_search'])
 def search_tv(message):
@@ -113,6 +115,8 @@ def search_tv(message):
         tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
     if len(tv_search.results) != 0:
         bot.send_message(message.chat.id,tv_text,'MarkdownV2')
+    else:
+        return None
     
     
 @bot.message_handler(content_types=['text'])
@@ -120,6 +124,8 @@ def common(message):
     raw_msg = message.text.strip().replace(' ', '')
     if raw_msg and not raw_msg.startswith('/'):
         message.text = '/movie_search '+raw_msg
-        search_movie(message)
+        movie_res = search_movie(message)
         message.text = '/tv_search '+raw_msg
-        search_tv(message)
+        tv_res = search_tv(message)
+        if movie_res and tv_res:
+            bot.reply_to(message,'未找到任何电影剧集!')
