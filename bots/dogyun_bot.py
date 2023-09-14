@@ -368,12 +368,12 @@ def common(message):
     # 更新cookie
     if raw_msg and not raw_msg.startswith('/') and raw_msg.startswith('SESSION=') and len(raw_msg)==len(dogyun_config['DOGYUN_COOKIE']):
         # 提交到github
-        with open('settings/config.py', 'r+') as f:
+        with open('settings/config.py', 'r+',encoding='utf-8') as f:
             lines = f.readlines()
-        with open('settings/config.py', 'w+') as f:
+        with open('settings/config.py', 'w+',encoding='utf-8') as f:
             for line in lines:
-                if line.startswith('DOGYUN_COOKIE'):
-                    line = f'DOGYUN_COOKIE = \'{raw_msg}\'\n'
+                if line.lstrip().startswith('\'DOGYUN_COOKIE\''):
+                    line = f'    \'DOGYUN_COOKIE\' : \'{raw_msg}\'\n'
                 f.write(line)
         # 提交到github
         os.system('git add settings/config.py')
