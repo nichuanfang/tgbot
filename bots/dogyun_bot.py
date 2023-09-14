@@ -25,14 +25,14 @@ def ssh_connect( _host,_port,_username, _password ):
     return _ssh_fd
 
 # 运行命令
-def ssh_exec_cmd( _ssh_fd, _cmd ):
+def ssh_exec_cmd( _ssh_fd, _cmd,message):
     stdin, stdout, stderr =  _ssh_fd.exec_command( _cmd )
     while not stdout.channel.exit_status_ready():
         result = stdout.readline()
         print(result)
         if stdout.channel.exit_status_ready():
             a = stdout.readlines()
-            print(a)
+            bot.reply_to(message, a)
             break
 
 # 关闭SSH
@@ -207,12 +207,11 @@ def update_xray_route(message):
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
     try:
-        ssh_exec_cmd(ssd_fd,script)
+        ssh_exec_cmd(ssd_fd,script,message)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
     ssh_close(ssd_fd)
-    bot.reply_to(message, '已更新xray客户端路由规则')
         
 @bot.message_handler(commands=['bitwarden_backup'])
 def bitwarden_backup(message):
@@ -228,12 +227,11 @@ def bitwarden_backup(message):
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
     try:
-        ssh_exec_cmd(ssd_fd,script)
+        ssh_exec_cmd(ssd_fd,script,message)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
     ssh_close(ssd_fd)
-    bot.reply_to(message, '已备份bitwarden')
 
 # 执行bash脚本
 @bot.message_handler(commands=['exec_cmd'])
@@ -244,18 +242,19 @@ def exec_cmd(message):
         message (_type_): _description_
     """    
     script = message.text[10:]
+    if script in ['systemctl stop tgbot','systemctl restart tgbot','reboot']:
+        bot.reply_to(message, '禁止执行该命令')
     try:
         ssd_fd = ssh_connect('154.202.60.190',60022,'root','Ld08MAiSoL8Ag9P')
     except:
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
         return
     try:
-        ssh_exec_cmd(ssd_fd,script)
+        ssh_exec_cmd(ssd_fd,script,message)
     except:
         bot.reply_to(message, '执行命令报错')
         return
     ssh_close(ssd_fd)
-    bot.reply_to(message, '已执行命令')
 
 
 # 每月7号
