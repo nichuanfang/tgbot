@@ -127,7 +127,7 @@ def receive_monthly_benefits(message):
         response = requests.post(url, headers=headers,verify=True)
         if response.url == 'https://account.dogyun.com/login':
             # tg通知dogyun cookie已过期
-            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
             return
         data = response.json()
     except Exception as e:
@@ -157,7 +157,7 @@ def draw_lottery(message):
         response = requests.put(url, headers=headers,verify=True)
         if response.url == 'https://account.dogyun.com/login':
             # tg通知dogyun cookie已过期
-            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
             return
         data = response.json()
     except Exception as e:
@@ -278,7 +278,7 @@ def get_traffic_packet():
         response = requests.post(url, headers=headers,verify=True)
         if response.url == 'https://account.dogyun.com/login':
             # tg通知dogyun cookie已过期
-            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
             return
         data = response.json()
     except Exception as e:
@@ -315,7 +315,7 @@ def lucky_draw_notice():
         response = requests.get(url, headers=headers,verify=True)
         if response.url == 'https://account.dogyun.com/login':
             # tg通知dogyun cookie已过期
-            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
             return
         data = response.json()
     except Exception as e:
@@ -347,7 +347,7 @@ def balance_lack_notice():
         response = requests.get(url, headers=headers,verify=True)
         if response.url == 'https://account.dogyun.com/login':
             # tg通知dogyun cookie已过期
-            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie!')
+            bot.send_message(dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
             return
     except Exception as e:
         logger.error(e)
