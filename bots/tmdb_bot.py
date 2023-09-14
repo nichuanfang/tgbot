@@ -127,5 +127,5 @@ def common(message):
         movie_res = search_movie(message)
         message.text = '/tv_search '+raw_msg
         tv_res = search_tv(message)
-        if movie_res and tv_res:
+        if movie_res == None and tv_res == None:
             bot.reply_to(message,'未找到任何电影剧集!')
