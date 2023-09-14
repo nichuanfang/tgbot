@@ -8,6 +8,7 @@ from datetime import date
 from bs4 import BeautifulSoup
 import lxml
 import paramiko
+import subprocess
 
 logger = telebot.logger
 
@@ -376,10 +377,13 @@ def common(message):
                     line = f'    \'DOGYUN_COOKIE\' : \'{raw_msg}\'\n'
                 f.write(line)
         # 提交到github
-        os.system('cd /root/code/tgbot && git config --global user.email "f18326186224@gmail.com"')
-        os.system('cd /root/code/tgbot && git config --global user.name "jaychzzz"')
-        os.system('cd /root/code/tgbot && git add /root/code/tgbot/settings/config.py')
-        os.system('cd /root/code/tgbot && git commit -m "update dogyun cookie"')
-        os.system('cd /root/code/tgbot && git push')   
+        script = 'cd /root/code/tgbot' + \
+                        'git config --global user.name jaychouzzz'+ \
+                        'git config --global user.email f18326186224@gmail.com'+\
+                        'git add /root/code/tgbot/settings/config.py'+\
+                        'git commit -m "update dogyun cookie"'+\
+                        'git push'
+        
+        subprocess.call(script,shell=True)   
         bot.reply_to(message, '更新cookie成功')
         return
