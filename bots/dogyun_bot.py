@@ -376,7 +376,8 @@ def common(message):
                     line = f'    \'DOGYUN_COOKIE\' : \'{raw_msg}\'\n'
                 f.write(line)
         # 提交到github
-        os.system('git add settings/config.py')
+        os.system('cd /root/code/tgbot')
+        os.system('git add /root/code/tgbot/settings/config.py')
         os.system('git commit -m "update dogyun cookie"')
         os.system('git push')   
         bot.reply_to(message, '更新cookie成功')
