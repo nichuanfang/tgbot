@@ -32,10 +32,7 @@ def movie_popular(message):
                 release_date = '('+movie_res["release_date"].split("-")[0]+')'
         except:
             release_date = ''
-        if movie_res.original_title == movie_res.title:
-            movie_name = f'{movie_res.title} {release_date}'
-        else:
-            movie_name = f'{movie_res.title} {movie_res.original_title} {release_date}'
+        movie_name = f'{movie_res.title} {release_date}'
         movie_tmdb_url = f'https://www.themoviedb.org/movie/{movie_res.id}?language=zh-CN'
         movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
     bot.send_message(message.chat.id,movie_text,'MarkdownV2')
@@ -53,10 +50,7 @@ def tv_popular(message):
                 first_air_date = '('+tv_res["first_air_date"].split("-")[0]+')'
         except:
             first_air_date = ''
-        if tv_res.original_name == tv_res.name:
-            tv_name = f'{tv_res.name} {first_air_date}'
-        else:
-            tv_name = f'{tv_res.name} {tv_res.original_name} {first_air_date}'
+        tv_name = f'{tv_res.name} {first_air_date}'
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
         tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
     
@@ -79,10 +73,7 @@ def search_movie(message):
                 release_date = '('+movie_res["release_date"].split("-")[0]+')'
         except:
             release_date = ''
-        if movie_res.original_title == movie_res.title:
-            movie_name = f'{movie_res.title} {release_date}'
-        else:
-            movie_name = f'{movie_res.title} {movie_res.original_title} {release_date}'
+        movie_name = f'{movie_res.title} {release_date}'
         movie_tmdb_url = f'https://www.themoviedb.org/movie/{movie_res.id}?language=zh-CN'
         movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
     if len(movie_search.results) != 0:
@@ -107,10 +98,7 @@ def search_tv(message):
                 first_air_date = '('+tv_res["first_air_date"].split("-")[0]+')'
         except:
             first_air_date = ''
-        if tv_res.original_name == tv_res.name:
-            tv_name = f'{tv_res.name} {first_air_date}'
-        else:
-            tv_name = f'{tv_res.name} {tv_res.original_name} {first_air_date}'
+        tv_name = f'{tv_res.name} {first_air_date}'
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
         tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
     if len(tv_search.results) != 0:
