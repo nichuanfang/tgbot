@@ -38,7 +38,7 @@ def scheduler_func():
                       month='*', day='7', hour='9', minute='0', second='0')
     # 每天9点通知抽奖活动
     scheduler.add_job(lucky_draw_notice, 'cron', id='lucky_draw_notice',
-                      month='*', day='*', hour='23', minute='08', second='0')
+                      month='*', day='*', hour='9', minute='0', second='0')
     # 每天9点通知余额不足
     scheduler.add_job(balance_lack_notice, 'cron', id='balance_lack_notice',
                       month='*', day='*', hour='9', minute='0', second='0')
