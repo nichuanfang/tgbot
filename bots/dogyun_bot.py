@@ -218,7 +218,7 @@ def update_xray_route(message):
     """
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
     try:
-        ssd_fd = ssh_connect('154.202.60.190', 60022,
+        ssd_fd = ssh_connect('154.202.60.190', 60893,
                              'root', 'Ld08MAiSoL8Ag9P')
     except:
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
@@ -241,7 +241,7 @@ def bitwarden_backup(message):
     """
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
     try:
-        ssd_fd = ssh_connect('154.202.60.190', 60022,
+        ssd_fd = ssh_connect('154.202.60.190', 60893,
                              'root', 'Ld08MAiSoL8Ag9P')
     except:
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
@@ -269,7 +269,7 @@ def exec_cmd(message):
         bot.reply_to(message, '禁止执行该命令')
         return
     try:
-        ssd_fd = ssh_connect('154.202.60.190', 60022,
+        ssd_fd = ssh_connect('154.202.60.190', 60893,
                              'root', 'Ld08MAiSoL8Ag9P')
     except:
         bot.reply_to(message, '无法连接到服务器154.202.60.190')
