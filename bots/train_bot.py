@@ -329,7 +329,7 @@ def query_handler(message, from_station, to_station):
         # 按照发车点排序
         collect_result = sorted(
             collect_result, key=lambda x: x.start_time, reverse=False)
-        for index, train in enumerate(collect_result):
+        for train in collect_result:
             train_message = train_message + f'•  车次:  {train.train_no}\n'
             train_message = train_message + \
                 f'    起点:  {reversed_stations[train.from_station]}\n'
@@ -341,10 +341,12 @@ def query_handler(message, from_station, to_station):
                 f'    到点:  {train.arrive_time}\n'
             train_message = train_message + \
                 f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
-            if index != len(collect_result)-1:
-                train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
-
+            train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
+        train_message = + \
+            f'[注]: 余票查看格式为 无座|二等座|一等座|特等座'
+        bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
         bot.send_message(message.chat.id, train_message)
+
     except Exception as e:
         bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!')
         return None
