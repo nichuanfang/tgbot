@@ -325,7 +325,7 @@ def to_station_handler(message, stations, from_station):
 def query_handler(message, stations, from_station, to_station):
     train_date = message.text
     # 校验日期格式
-    if not re.match(r'\d{4}-\d{2}-\d{2}', train_date):
+    if not re.match(r'\d{4}-\d{1,2}-\d{1,2}', train_date):
         text = '日期格式错误,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(
