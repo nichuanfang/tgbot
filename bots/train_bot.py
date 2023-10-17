@@ -347,8 +347,9 @@ def query_handler(message, stations, from_station, to_station):
         json_data = json.loads(response.text)
         result = json_data['data']['result']
         new_result = [decrypt(item) for item in result]
-        collect_result = handle(message, stations, new_result)[0]
-        reversed_stations = handle(message, stations, new_result)[1]
+        collect = handle(message, stations, new_result)
+        collect_result = collect[0]
+        reversed_stations = collect[1]
         if collect_result == None or len(collect_result) == 0:
             bot.send_message(message.chat.id, '无余票')
             return None
