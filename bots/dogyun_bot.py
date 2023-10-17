@@ -121,24 +121,29 @@ def send_traffic_info(message):
     zero_point_index = labels.index(zero_point)
     # 获取今天的流量
 
+    total_outputIn = 0
+    total_outputOut = 0
+    total_inputIn = 0
+    total_inputOut = 0
+    total = 0
     # 对datas['outputIns']索引为zero_point_index之后的和 之后的每一个元素扣除500mb 小于0为0
-    # 主动流入
-    outputIns = round(sum(
-        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['outputIns'][zero_point_index:]])/1000/1000, 2)
-    # 主动流出
-    inputOuts = round(sum(
-        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['inputOuts'][zero_point_index:]])/1000/1000, 2)
-    # 被动流入
-    inputIns = round(sum(
-        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['inputIns'][zero_point_index:]])/1000/1000, 2)
-    # 被动流出
-    outputOuts = round(sum(
-        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['outputOuts'][zero_point_index:]])/1000/1000, 2)
-    # 总计(保留两位小数)
-    total = round((inputIns + inputOuts +
-                  outputIns + outputOuts)/1000, 2)
+    for index, label in enumerate(labels[zero_point_index:]):
+        # 当前节点的主动流入
+        outputIn = datas['outputIns'][index+zero_point_index]
+        # 当前节点的主动流出
+        outputOut = datas['outputOuts'][index+zero_point_index]
+        # 当前节点的被动流入
+        inputIn = datas['inputIns'][index+zero_point_index]
+        # 当前节点的被动流出
+        inputOut = datas['inputOuts'][index+zero_point_index]
+        total_outputIn += outputIn
+        total_outputOut += outputOut
+        total_inputIn += inputIn
+        total_inputOut += inputOut
+        total += 0 if (outputIn + outputOut + inputOut + inputIn-500*1000 *
+                       1000) <= 0 else (outputIn + outputOut + inputOut + inputIn-500*1000*1000)
     bot.reply_to(
-        message, f'总计:{total}GB\n\n被动流入:{inputIns}MB\n被动流出:{inputOuts}MB\n主动流入:{outputIns}MB\n主动流出:{outputOuts}MB')
+        message, f'总计:{round(total/1000/1000/1000,2)}GB\n\n主动流入:{round(total_outputIn/1000/1000,2)}MB\n主动流出:{round(total_outputOut/1000/1000,2)}MB\n被动流入:{round(total_inputIn/1000/1000,2)}MB\n被动流出:{round(total_inputOut/1000/1000,2)}MB')
 
 
 @bot.message_handler(commands=['receive_monthly_benefits'])
