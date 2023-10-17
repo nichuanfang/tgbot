@@ -88,33 +88,57 @@ def send_traffic_info(message):
     Args:
         message (_type_): _description_
     """
-    url = f'https://api.dogyun.com/cvm/server/{dogyun_config["DOGYUN_SERVER_ID"]}/traffic'
+    # url = f'https://api.dogyun.com/cvm/server/{dogyun_config["DOGYUN_SERVER_ID"]}/traffic'
+    url = f'https://cvm.dogyun.com/server/{dogyun_config["DOGYUN_SERVER_ID"]}/traffic/charts/last/day'
     headers = {
-        'API-KEY': dogyun_config['DOGYUN_API_KEY']
+        'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
+        'Origin': 'https://cvm.dogyun.com',
+        'Referer': 'https://console.dogyun.com/turntable',
+        'Cookie': dogyun_config['DOGYUN_COOKIE']
     }
     try:
         # GET请求
         response = requests.get(url, headers=headers, verify=True)
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(
+                dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
+            return
         # 获取返回的json数据
         data = response.json()
+        labels: list = data['labels']
+        datas: dict = data['datas']
     except Exception as e:
         bot.reply_to(message, f'获取流量详情失败: {e.args[0]}')
         return
-    # 获取流量信息
-    traffic_info = data['data'][-1]
-    # 被动流入
-    inputIn = round(traffic_info['inputIn']/1000/1000, 2)
-    # 被动流出
-    inputOut = round(traffic_info['inputOut']/1000/1000, 2)
+    # 获取今天零点的字符串 格式为 月-日 00
+    # 获取今天的月份
+    month = datetime.now().strftime("%m")
+    # 获取今天的日期
+    day = datetime.now().strftime("%d")
+    zero_point = f'{month.zfill(2)}-{day.zfill(2)} 00'
+    # 获取labels中值为zero_point的索引
+    zero_point_index = labels.index(zero_point)
+    # 获取今天的流量
+
+    # 对datas['outputIns']索引为zero_point_index之后的和 之后的每一个元素扣除500mb 小于0为0
     # 主动流入
-    outputIn = round(traffic_info['outputIn']/1000/1000, 2)
+    outputIns = round(sum(
+        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['outputIns'][zero_point_index:]])/1000/1000, 2)
     # 主动流出
-    outputOut = round(traffic_info['outputOut']/1000/1000, 2)
+    inputOuts = round(sum(
+        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['inputOuts'][zero_point_index:]])/1000/1000, 2)
+    # 被动流入
+    inputIns = round(sum(
+        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['inputIns'][zero_point_index:]])/1000/1000, 2)
+    # 被动流出
+    outputOuts = round(sum(
+        [0 if i-500*1000*1000 <= 0 else i-500*1000*1000 for i in datas['outputOuts'][zero_point_index:]])/1000/1000, 2)
     # 总计(保留两位小数)
-    total = round((traffic_info['inputIn'] + traffic_info['inputOut'] +
-                  traffic_info['outputIn'] + traffic_info['outputOut'])/1000/1000/1000, 2)
+    total = round((inputIns + inputOuts +
+                  outputIns + outputOuts)/1000, 2)
     bot.reply_to(
-        message, f'总计:{total}GB\n\n被动流入:{inputIn}MB\n被动流出:{inputOut}MB\n主动流入:{outputIn}MB\n主动流出:{outputOut}MB')
+        message, f'总计:{total}GB\n\n被动流入:{inputIns}MB\n被动流出:{inputOuts}MB\n主动流入:{outputIns}MB\n主动流出:{outputOuts}MB')
 
 
 @bot.message_handler(commands=['receive_monthly_benefits'])
