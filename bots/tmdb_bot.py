@@ -1,5 +1,5 @@
 import telebot
-from  telebot.types import Message
+from telebot.types import Message
 import requests
 from settings.config import tmdb_config
 import json
@@ -18,7 +18,8 @@ tv = TV()
 
 logger = telebot.logger
 
-bot = telebot.TeleBot(tmdb_config['BOT_TOKEN'],threaded=False)
+bot = telebot.TeleBot(tmdb_config['BOT_TOKEN'], threaded=False)
+
 
 @bot.message_handler(commands=['movie_popular'])
 def movie_popular(message):
@@ -34,8 +35,9 @@ def movie_popular(message):
             release_date = ''
         movie_name = f'{movie_res.title} {release_date}'
         movie_tmdb_url = f'https://www.themoviedb.org/movie/{movie_res.id}?language=zh-CN'
-        movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
-    bot.send_message(message.chat.id,movie_text,'MarkdownV2')
+        movie_text = movie_text + \
+            f'•  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
+    bot.send_message(message.chat.id, movie_text, 'MarkdownV2')
 
 
 @bot.message_handler(commands=['tv_popular'])
@@ -52,9 +54,10 @@ def tv_popular(message):
             first_air_date = ''
         tv_name = f'{tv_res.name} {first_air_date}'
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
-        tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
-    
-    bot.send_message(message.chat.id,tv_text,'MarkdownV2')
+        tv_text = tv_text + f'•  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
+
+    bot.send_message(message.chat.id, tv_text, 'MarkdownV2')
+
 
 @bot.message_handler(commands=['movie_search'])
 def search_movie(message):
@@ -62,9 +65,9 @@ def search_movie(message):
 
     Returns:
         _type_: _description_
-    """ 
+    """
     movie_text = '*电影结果:*\n'
-    movie_search  = movie.search(message.text[14:])
+    movie_search = movie.search(message.text[14:])
     for movie_res in movie_search.results:
         try:
             if movie_res["release_date"] == None or movie_res["release_date"] == '':
@@ -75,19 +78,21 @@ def search_movie(message):
             release_date = ''
         movie_name = f'{movie_res.title} {release_date}'
         movie_tmdb_url = f'https://www.themoviedb.org/movie/{movie_res.id}?language=zh-CN'
-        movie_text = movie_text + f'·  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
+        movie_text = movie_text + \
+            f'•  `{movie_name}`      [🔗]({movie_tmdb_url})\n'
     if len(movie_search.results) != 0:
-        return bot.send_message(message.chat.id,movie_text,'MarkdownV2')
+        return bot.send_message(message.chat.id, movie_text, 'MarkdownV2')
     else:
         return None
-    
+
+
 @bot.message_handler(commands=['tv_search'])
 def search_tv(message):
     """获取TMDB剧集信息
 
     Returns:
         _type_: _description_
-    """ 
+    """
     tv_text = '*剧集结果:*\n'
     tv_search = tv.search(message.text[11:])
     for tv_res in tv_search.results:
@@ -100,13 +105,13 @@ def search_tv(message):
             first_air_date = ''
         tv_name = f'{tv_res.name} {first_air_date}'
         tv_tmdb_url = f'https://www.themoviedb.org/tv/{tv_res.id}?language=zh-CN'
-        tv_text = tv_text + f'·  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
+        tv_text = tv_text + f'•  `{tv_name}`      [🔗]({tv_tmdb_url})\n'
     if len(tv_search.results) != 0:
-        return bot.send_message(message.chat.id,tv_text,'MarkdownV2')
+        return bot.send_message(message.chat.id, tv_text, 'MarkdownV2')
     else:
         return None
-    
-    
+
+
 @bot.message_handler(content_types=['text'])
 def common(message):
     raw_msg = message.text.strip().replace(' ', '')
@@ -116,4 +121,4 @@ def common(message):
         message.text = '/tv_search '+raw_msg
         tv_res = search_tv(message)
         if movie_res == None and tv_res == None:
-            bot.reply_to(message,'未找到任何电影剧集!')
+            bot.reply_to(message, '未找到任何电影剧集!')

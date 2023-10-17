@@ -177,6 +177,51 @@ def receive_monthly_benefits(message):
     bot.reply_to(message, result)
 
 
+@bot.message_handler(commands=['query_package'])
+def query_package(message):
+    """查询流量包
+    """
+    url = f'https://cvm.dogyun.com/traffic/package/page'
+    headers = {
+        'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
+        'Origin': 'https://cvm.dogyun.com',
+        'Referer': 'https://cvm.dogyun.com/traffic/package/list',
+        'Cookie': dogyun_config['DOGYUN_COOKIE']
+    }
+
+    body = {
+        'query[status]': 'available',
+        'pagination[page]': 1,
+        'pagination[pages]': 1,
+        'pagination[perpage]': 10,
+        'pagination[total]': 1,
+        'sort[sort]': 'desc',
+        'sort[field]': 'expireTime'
+    }
+    try:
+        # 发送post请求
+        response = requests.post(url, headers=headers,
+                                 data=body, verify=True)
+        if response.url == 'https://account.dogyun.com/login':
+            # tg通知dogyun cookie已过期
+            bot.send_message(
+                dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n')
+        data = response.json()
+    except:
+        bot.reply_to(message, '查询流量包失败')
+        return
+    if 'data' in data:
+        packages: list = data['data']
+        package_text = ''
+        for index, package in enumerate(packages):
+            package_text = f'•流量包{index+1}:\n'
+            package_text += f'  类型: {package["type"]}\n'
+            package_text += f'  总计: {package["total"]}\n'
+            package_text += f'  剩余: {package["surplus"]}\n'
+            package_text += f'  过期时间: {package["expireTime"]}\n\n'
+        bot.reply_to(message, package_text)
+
+
 @bot.message_handler(commands=['draw_lottery'])
 def draw_lottery(message):
     """抽奖
