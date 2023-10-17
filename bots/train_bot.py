@@ -1,3 +1,4 @@
+import datetime
 import json
 import re
 from time import sleep
@@ -154,7 +155,7 @@ def decrypt(string):
 
 
 def has_seat(train: Train):
-    """判断该车次是否有座位
+    """判断该车次是否有座位 如果车次规定了发车时间 则判断是否在发车时间之后
 
     Args:
         train (Train): _description_
@@ -196,7 +197,7 @@ def second_or_no_seat_nums(collect_trains: list[Train]):
     return count
 
 
-def handle(message, stations: dict, result: list[Train]):
+def handle(message, stations: dict, result: list[Train], train_time):
     """处理查询结果
 
     Args:
@@ -208,6 +209,16 @@ def handle(message, stations: dict, result: list[Train]):
         # 如果二等座或无座有票的车次总数大于10 停止查询
         if second_or_no_seat_nums(collect_trains) >= 10:
             break
+        # 如果发车时间不为空 则判断是否在发车时间之后
+        if train_time != '':
+            # 字符串转日期对象
+            time1 = datetime.datetime.strptime(
+                train.start_time+':00', '%H:%M:%S')
+            time2 = datetime.datetime.strptime(
+                train_time, '%H:%M:%S')
+            if time1 < time2:
+                continue
+
         # 查询车次号
         try:
             raw_date = f'{train.date[0:4]}-{train.date[4:6]}-{train.date[6:8]}'
@@ -316,21 +327,30 @@ def to_station_handler(message, stations, from_station):
             sent_msg, to_station_handler, stations, from_station)
         return None
 
-    text = '请输入出发日期(yyyy-mm-dd)'
+    text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
         sent_msg, query_handler, stations, from_station, to_station)
 
 
 def query_handler(message, stations, from_station, to_station):
-    train_date = message.text
-    # 校验日期格式
-    if not re.match(r'\d{4}-\d{1,2}-\d{1,2}', train_date):
+    date = message.text
+    # 校验日期格式 时分秒可省略 yyyy-MM-dd HH:mm:ss
+    # 必须完全匹配
+    if not re.fullmatch(r'(\d){4}-(\d){1,2}-(\d){1,2}(\s)*((\s)+(\d){1,2}:(\d){1,2}:(\d){1,2})*', date):
         text = '日期格式错误,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(
             sent_msg, query_handler, stations, from_station, to_station)
         return None
+
+    date = re.sub(r'\s+', ' ', date).strip()
+    # 获取日期年月日部分
+    train_date = date.split(' ')[0]
+    # 获取日期时分秒部分
+
+    train_time = date.split(' ')[1] if len(
+        date.split(' ')) == 2 else ''
 
     bot.send_message(message.chat.id, '正在查询...')
     console.log(
@@ -339,7 +359,11 @@ def query_handler(message, stations, from_station, to_station):
         train_date, stations[from_station], stations[to_station])
     headers['User-Agent'] = ua.chrome
     headers['Cookie'] = f'_jc_save_toDate={train_date}'
-    response = requests.get(request_url, headers=headers)
+    try:
+        response = requests.get(request_url, headers=headers)
+    except:
+        bot.send_message(message.chat.id, f'查询失败:{e}')
+        return None
     if response.status_code != 200:
         bot.send_message(message.chat.id, '查询失败')
         return None
@@ -347,7 +371,7 @@ def query_handler(message, stations, from_station, to_station):
         json_data = json.loads(response.text)
         result = json_data['data']['result']
         new_result = [decrypt(item) for item in result]
-        collect = handle(message, stations, new_result)
+        collect = handle(message, stations, new_result, train_time)
         collect_result = collect[0]
         reversed_stations = collect[1]
         if collect_result == None or len(collect_result) == 0:
