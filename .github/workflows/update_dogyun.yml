@@ -23,5 +23,5 @@ jobs:
             cd /root/code/tgbot
             git checkout .
             git pull
-            pip3.8 install -r ./requirements.txt
+            pip install -r ./requirements.txt
             systemctl restart tgbot
