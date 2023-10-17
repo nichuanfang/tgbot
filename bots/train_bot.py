@@ -100,7 +100,7 @@ def load_stations():
         _type_: _description_
     """
     # /root/code/tgbot/
-    with open('stations.json', 'r', encoding='utf-8') as f:
+    with open('/root/code/tgbot/stations.json', 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
