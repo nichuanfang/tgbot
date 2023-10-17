@@ -292,25 +292,49 @@ def query_left_ticket(message):
 
 def from_station_handler(message):
     from_station = message.text
+    # 判断是否在stations中
+    stations = load_stations()
+    if from_station not in stations.keys():
+        text = '站点不存在,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(sent_msg, from_station_handler)
+        return None
+
     text = '请输入目的站'
     sent_msg = bot.send_message(message.chat.id, text)
-    bot.register_next_step_handler(sent_msg, to_station_handler, from_station)
+    bot.register_next_step_handler(
+        sent_msg, to_station_handler, stations, from_station)
 
 
-def to_station_handler(message, from_station):
+def to_station_handler(message, stations, from_station):
     to_station = message.text
+    # 判断是否在stations中
+    if to_station not in stations.keys():
+        text = '站点不存在,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, to_station_handler, stations, from_station)
+        return None
+
     text = '请输入出发日期(yyyy-mm-dd)'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
-        sent_msg, query_handler, from_station, to_station)
+        sent_msg, query_handler, stations, from_station, to_station)
 
 
-def query_handler(message, from_station, to_station):
+def query_handler(message, stations, from_station, to_station):
+    train_date = message.text
+    # 校验日期格式
+    if not re.match(r'\d{4}-\d{2}-\d{2}', train_date):
+        text = '日期格式错误,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, query_handler, stations, from_station, to_station)
+        return None
+
     bot.send_message(message.chat.id, '正在查询...')
-    stations = load_stations()
     console.log(
         f'正在查询{from_station}到{to_station}的车次...')
-    train_date = message.text
     request_url = url.format(
         train_date, stations[from_station], stations[to_station])
     headers['User-Agent'] = ua.chrome
