@@ -99,7 +99,8 @@ def load_stations():
     Returns:
         _type_: _description_
     """
-    with open('/root/code/tgbot/stations.json', 'r', encoding='utf-8') as f:
+    # /root/code/tgbot/
+    with open('stations.json', 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -221,11 +222,19 @@ def handle(message, stations: dict, result: list[Train]):
             train.train_no = train_info[0]['station_train_code']
             collect_trains.append(train)
         # 以from_station为起点 逐个站点查找 至到to_station
-        station_flag = False
+        station_from_flag = False
+        station_to_flag = False
+        station_index = 0
         for train_info_item in train_info:
             to_station = train_info_item['station_name']
-            if station_flag:
+            if station_from_flag:
+                # 买短补长和买长扣短相结合
                 if stations[to_station] == train.to_station:
+                    station_to_flag = True
+                    station_index += 1
+                    continue
+                # 允许往后跳两站
+                if station_index > 2:
                     break
                 # 业务逻辑...
                 # -------------------------------------------------
@@ -258,10 +267,12 @@ def handle(message, stations: dict, result: list[Train]):
                 except Exception as e:
                     print(e)
                     continue
+                if station_to_flag:
+                    station_index += 1
                 # -------------------------------------------------------------------------------------
             else:
                 if stations[to_station] == train.from_station:
-                    station_flag = True
+                    station_from_flag = True
                 continue
         sleep(0.5)
     return (collect_trains, reversed_stations)
@@ -342,12 +353,13 @@ def query_handler(message, from_station, to_station):
             train_message = train_message + \
                 f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
             train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
-        train_message = + \
-            f'[注]: 余票查看格式为 无座|二等座|一等座|特等座'
+        train_message = train_message + f'[注]: 余票查看格式为 无座|二等座|一等座|特等座'
         bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
+        console.log('余票查询成功!')
         bot.send_message(message.chat.id, train_message)
 
     except Exception as e:
+        bot.send_message(message.chat.id, e)
         bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!')
         return None
 
