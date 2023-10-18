@@ -438,13 +438,16 @@ def assemble_bot_msg(to_station, train, stations, reversed_stations, prices_dict
     train_message = train_message + \
         f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
     # 价格
-    if train.to_station == stations[to_station] or long_buy:
-        train_message = train_message + \
-            f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else prices_dict[train.train_code]["no_seat"]}|{"无" if prices_dict[train.train_code]["second_seat"] == None else prices_dict[train.train_code]["second_seat"]}|{"无" if prices_dict[train.train_code]["first_seat"] == None else prices_dict[train.train_code]["first_seat"]}|{"无" if prices_dict[train.train_code]["special_seat"] == None else prices_dict[train.train_code]["special_seat"]}\n'
-    else:
-        # 补票加两元
-        train_message = train_message + \
-            f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
+    try:
+        if train.to_station == stations[to_station] or long_buy:
+            train_message = train_message + \
+                f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else prices_dict[train.train_code]["no_seat"]}|{"无" if prices_dict[train.train_code]["second_seat"] == None else prices_dict[train.train_code]["second_seat"]}|{"无" if prices_dict[train.train_code]["first_seat"] == None else prices_dict[train.train_code]["first_seat"]}|{"无" if prices_dict[train.train_code]["special_seat"] == None else prices_dict[train.train_code]["special_seat"]}\n'
+        else:
+            # 补票加两元
+            train_message = train_message + \
+                f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
+    except:
+        pass
     train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
     return train_message
 
@@ -532,7 +535,6 @@ def query_handler(message, stations, from_station, to_station):
                 except:
                     traceback.print_exc()
                     continue
-
         train_message = train_message + \
             f'[注]:\n1.余票格式【无座|二等座|一等座|特等座】\n2.出发站/到站格式【起点|上车点】【终点|下车点】'
         console.log('余票查询成功!')
