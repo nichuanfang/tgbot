@@ -374,12 +374,6 @@ def handle(message, stations: dict, result: list[Train], train_time):
 bot = telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
 
 
-@bot.message_handler(commands=['readme'])
-def query_left_ticket(message):
-    text = '[注]:\n\n1. 余票格式【无座|二等座|一等座|特等座】【无座|硬座|硬卧|软卧】\n2. 出发站/到站格式【起点|上车点】【终点|下车点】'
-    bot.send_message(message.chat.id, text)
-
-
 @bot.message_handler(commands=['query_left_ticket'])
 def query_left_ticket(message):
     text = '请输入起始站'
@@ -471,7 +465,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + \
             f'    座位:  无座|硬座|硬卧|软卧\n'
         train_message = train_message + \
-            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.hard_seat == "" else train.hard_seat}|{"无" if train.hard_sleep_seat=="" else train.hard_sleep_seat}|{"无" if train.soft_sleep_seat=="" else train.soft_sleep_seat}\n'
+            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}    |{"无" if train.hard_seat == "" else train.hard_seat}    |{"无" if train.hard_sleep_seat=="" else train.hard_sleep_seat}     |{"无" if train.soft_sleep_seat=="" else train.soft_sleep_seat}\n'
         # 价格
         try:
             if train.to_station == stations[to_station] or long_buy:
@@ -498,7 +492,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + \
             f'    座位:  无座|二等座|一等座|商务座\n'
         train_message = train_message + \
-            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
+            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}    |{"无" if train.second_seat == "" else train.second_seat}        |{"无" if train.first_seat=="" else train.first_seat}        |{"无" if train.special_seat=="" else train.special_seat}\n'
         # 价格
         try:
             if train.to_station == stations[to_station] or long_buy:
@@ -510,7 +504,9 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
                     f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
         except:
             pass
-        train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
+        # train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
+        # train_message = train_message + \
+        #     '注) 出发站/到站格式: [起点|上车点]/[终点|下车点]'
     return train_message
 
 
