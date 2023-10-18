@@ -504,7 +504,7 @@ def query_handler(message, stations, from_station, to_station):
                                                                  reversed_stations, prices_dict, False)
 
         train_message = train_message + \
-            f'[注]:\n  1. 余票格式 【无座|二等座|一等座|特等座】\n  2. 出发站/到站格式 【起点|上车点】/【终点|下车点】'
+            f'[注]:\n1.余票格式【无座|二等座|一等座|特等座】\n2.出发站/到站格式【起点|上车点】【终点|下车点】'
         console.log('余票查询成功!')
         bot.send_message(message.chat.id, train_message)
 
