@@ -497,11 +497,19 @@ def query_handler(message, stations, from_station, to_station):
                 new_prices = query_train_price(train_date, train.from_station,
                                                train.to_station)
                 new_prices_dict = get_price_dict(new_prices)
-                train_message = train_message + assemble_bot_msg(to_station, train, stations,
-                                                                 reversed_stations, new_prices_dict, True)
+                try:
+                    train_message = train_message + assemble_bot_msg(to_station, train, stations,
+                                                                     reversed_stations, new_prices_dict, True)
+                except:
+                    traceback.print_exc()
+                    continue
             else:
-                train_message = train_message + assemble_bot_msg(to_station, train, stations,
-                                                                 reversed_stations, prices_dict, False)
+                try:
+                    train_message = train_message + assemble_bot_msg(to_station, train, stations,
+                                                                     reversed_stations, prices_dict, False)
+                except:
+                    traceback.print_exc()
+                    continue
 
         train_message = train_message + \
             f'[注]:\n1.余票格式【无座|二等座|一等座|特等座】\n2.出发站/到站格式【起点|上车点】【终点|下车点】'
