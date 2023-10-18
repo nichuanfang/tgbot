@@ -1,7 +1,7 @@
 import re
 import telebot
 import requests
-from settings.config import dogyun_config
+from settings.config import dogyun_config, vps_config
 from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
@@ -291,10 +291,10 @@ def update_xray_route(message):
     """
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
     try:
-        ssd_fd = ssh_connect('154.202.60.190', 60893,
-                             'root', 'Ld08MAiSoL8Ag9P')
+        ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
+                             vps_config["VPS_USER"], vps_config["VPS_PASSWORD"])
     except:
-        bot.reply_to(message, '无法连接到服务器154.202.60.190')
+        bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
         return
     try:
         ssh_exec_cmd(ssd_fd, script)
@@ -314,10 +314,10 @@ def bitwarden_backup(message):
     """
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
     try:
-        ssd_fd = ssh_connect('154.202.60.190', 60893,
-                             'root', 'Ld08MAiSoL8Ag9P')
+        ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
+                             vps_config["VPS_USER"], vps_config["VPS_PASSWORD"])
     except:
-        bot.reply_to(message, '无法连接到服务器154.202.60.190')
+        bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
         return
     try:
         ssh_exec_cmd(ssd_fd, script)
@@ -342,10 +342,10 @@ def exec_cmd(message):
         bot.reply_to(message, '禁止执行该命令')
         return
     try:
-        ssd_fd = ssh_connect('154.202.60.190', 60893,
-                             'root', 'Ld08MAiSoL8Ag9P')
+        ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
+                             vps_config["VPS_USER"], vps_config["VPS_PASSWORD"])
     except:
-        bot.reply_to(message, '无法连接到服务器154.202.60.190')
+        bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
         return
     try:
         ssh_exec_cmd(ssd_fd, script)
