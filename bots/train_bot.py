@@ -180,7 +180,7 @@ def has_seat(train: Train):
     Returns:
         _type_: _description_
     """
-    if train.train_code[0] != 'G' and train.train_code[0] != 'D' and train.train_code[0] != 'C':
+    if train.train_no[0] != 'G' and train.train_no[0] != 'D' and train.train_no[0] != 'C':
         # 如果是火车
         if (train.no_seat != '无' and train.no_seat != '') |\
             (train.hard_seat != '无' and train.hard_seat != '') |\
@@ -450,7 +450,7 @@ def get_price_dict(prices):
 def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, prices_dict, long_buy: bool):
     train_message = ''
     # 判断是否是火车
-    if train.train_code[0] != 'G' and train.train_code[0] != 'D' and train.train_code[0] != 'C':
+    if train.train_no[0] != 'G' and train.train_no[0] != 'D' and train.train_no[0] != 'C':
         # 火车
         train_message = train_message + f'•  车次:  【{train.train_no}】\n'
         train_message = train_message + \
