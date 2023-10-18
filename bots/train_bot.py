@@ -279,11 +279,27 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 # -------------------------------------------------
                 console.log(
                     f'[{train.train_no}]正在查询{reversed_stations[train.from_station]}到{to_station}的车次...')
-                train_request_url = url.format(
-                    raw_date, train.from_station, stations[to_station])
-                headers['User-Agent'] = ua.chrome
                 headers['Cookie'] = f'_jc_save_toDate={train.date}'
-                response = requests.get(train_request_url, headers=headers)
+                max_retries = 3
+                while True:
+                    try:
+                        if max_retries <= 0:
+                            bot.send_message(message.chat.id, '查询失败: 重试次数过多')
+                            return None
+                        headers['User-Agent'] = ua.chrome
+                        train_request_url = url.format(
+                            raw_date, train.from_station, stations[to_station])
+                        response = requests.get(
+                            train_request_url, headers=headers)
+                        if response.status_code != 200:
+                            bot.send_message(message.chat.id, '查询失败')
+                            return None
+                        break
+                    except Exception as e:
+                        bot.send_message(
+                            message.chat.id, f'查询失败: 第{3-max_retries+1}次重试中')
+                        traceback.print_exc()
+                        max_retries -= 1
                 if response.status_code != 200:
                     continue
                 try:
