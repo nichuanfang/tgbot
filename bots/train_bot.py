@@ -465,7 +465,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + \
             f'    座位:  无座|硬座|硬卧|软卧\n'
         train_message = train_message + \
-            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}    |{"无" if train.hard_seat == "" else train.hard_seat}    |{"无" if train.hard_sleep_seat=="" else train.hard_sleep_seat}     |{"无" if train.soft_sleep_seat=="" else train.soft_sleep_seat}\n'
+            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.hard_seat == "" else train.hard_seat}|{"无" if train.hard_sleep_seat=="" else train.hard_sleep_seat}|{"无" if train.soft_sleep_seat=="" else train.soft_sleep_seat}\n'
         # 价格
         try:
             if train.to_station == stations[to_station] or long_buy:
@@ -492,7 +492,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + \
             f'    座位:  无座|二等座|一等座|商务座\n'
         train_message = train_message + \
-            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}    |{"无" if train.second_seat == "" else train.second_seat}        |{"无" if train.first_seat=="" else train.first_seat}        |{"无" if train.special_seat=="" else train.special_seat}\n'
+            f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
         # 价格
         try:
             if train.to_station == stations[to_station] or long_buy:
