@@ -309,28 +309,14 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 console.log(
                     f'[{train.train_no}]正在查询{reversed_stations[train.from_station]}到{to_station}的车次...')
                 headers['Cookie'] = f'_jc_save_toDate={train.date}'
-                max_retries = 3
-                while True:
-                    try:
-                        if max_retries <= 0:
-                            bot.send_message(message.chat.id, '查询失败: 重试次数过多')
-                            return None
-                        headers['User-Agent'] = ua.chrome
-                        train_request_url = url.format(
-                            raw_date, train.from_station, stations[to_station])
-                        response = requests.get(
-                            train_request_url, headers=headers)
-                        if response.status_code != 200:
-                            bot.send_message(message.chat.id, '查询失败')
-                            return None
-                        break
-                    except Exception as e:
-                        bot.send_message(
-                            message.chat.id, f'查询失败: 第{3-max_retries+1}次重试中')
-                        traceback.print_exc()
-                        max_retries -= 1
+                headers['User-Agent'] = ua.chrome
+                train_request_url = url.format(
+                    raw_date, train.from_station, stations[to_station])
+                response = requests.get(
+                    train_request_url, headers=headers)
                 if response.status_code != 200:
-                    continue
+                    bot.send_message(message.chat.id, '查询失败')
+                    return None
                 try:
                     train_info_json_data = json.loads(response.text)
                     train_info_item_result = train_info_json_data['data']['result']
@@ -548,15 +534,22 @@ def query_handler(message, stations, from_station, to_station):
         train_date, stations[from_station], stations[to_station])
     headers['User-Agent'] = ua.chrome
     headers['Cookie'] = f'_jc_save_toDate={train_date}'
-    try:
-        response = requests.get(request_url, headers=headers)
-    except Exception as e:
-        traceback.print_exc()
-        bot.send_message(message.chat.id, f'查询失败:{e}')
-        return None
-    if response.status_code != 200:
-        bot.send_message(message.chat.id, '查询失败')
-        return None
+    max_retries = 3
+    while True:
+        try:
+            if max_retries <= 0:
+                bot.send_message(message.chat.id, '查询失败: 重试次数过多')
+                return None
+            response = requests.get(request_url, headers=headers)
+            if response.status_code != 200:
+                bot.send_message(message.chat.id, '查询失败')
+                return None
+            break
+        except Exception as e:
+            bot.send_message(
+                message.chat.id, f'查询失败: 第{3-max_retries+1}次重试中')
+            traceback.print_exc()
+            max_retries -= 1
     try:
         json_data = json.loads(response.text)
         result = json_data['data']['result']
