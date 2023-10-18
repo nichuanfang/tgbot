@@ -40,6 +40,8 @@ headers = {
 }
 # 余票查询接口
 url: str = 'https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date={}&leftTicketDTO.from_station={}&leftTicketDTO.to_station={}&purpose_codes=ADULT'
+# 票价查询接口
+train_price_url = 'https://kyfw.12306.cn/otn/leftTicketPrice/queryAllPublicPrice?leftTicketDTO.train_date={}&leftTicketDTO.from_station={}&leftTicketDTO.to_station={}'
 # 车次详情接口
 train_info_url = 'https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no={}&from_station_telecode={}&to_station_telecode={}&depart_date={}'
 # =============================类===========================================
@@ -186,6 +188,25 @@ def query_train_info(train_code: str, from_station_code, to_station_code, date: 
         return None
     sleep(0.5)
     return json.loads(response.text)['data']['data']
+
+# 查询车次价格
+
+
+def query_train_price(train_date: str, from_station_code, to_station_code):
+    """根据车次编码查询车次信息
+
+    Args:
+        message (_type_): 车次编码
+    """
+    request_url = train_price_url.format(
+        train_date, from_station_code, to_station_code)
+    headers['User-Agent'] = ua.chrome
+    headers['Cookie'] = f'_jc_save_toDate={train_date}'
+    response = requests.get(request_url, headers=headers)
+    if response.status_code != 200:
+        return None
+    sleep(0.5)
+    return json.loads(response.text)['data']
 
 
 def second_or_no_seat_nums(collect_trains: list[Train]):
@@ -378,6 +399,7 @@ def query_handler(message, stations, from_station, to_station):
         if collect_result == None or len(collect_result) == 0:
             bot.send_message(message.chat.id, '无余票')
             return None
+        bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
         # 发送格式化的车次信息
         # •  车次: D2222
         #     起点: 六安
@@ -390,6 +412,39 @@ def query_handler(message, stations, from_station, to_station):
         # 按照发车点排序
         collect_result = sorted(
             collect_result, key=lambda x: x.start_time, reverse=False)
+        # 查询票价信息
+        prices = query_train_price(
+            train_date, stations[from_station], stations[to_station])
+        prices_dict = {}
+        for price in prices:
+            try:
+                no_seat_price = price['queryLeftNewDTO']['ze_price']
+                # 00320转换为价格
+                no_seat_price = str(float(no_seat_price) / 10)
+            except:
+                no_seat_price = None
+            try:
+                second_price = price['queryLeftNewDTO']['ze_price']
+                second_price = str(float(second_price) / 10)
+            except:
+                second_price = None
+            try:
+                first_price = price['queryLeftNewDTO']['zy_price']
+                first_price = str(float(first_price) / 10)
+            except:
+                first_price = None
+            try:
+                special_price = price['queryLeftNewDTO']['swz_price']
+                special_price = str(float(special_price) / 10)
+            except:
+                special_price = None
+
+            prices_dict[price['queryLeftNewDTO']['train_no']] = {
+                'no_seat': no_seat_price,
+                'second_seat': second_price,
+                'first_seat': first_price,
+                'special_seat': special_price
+            }
         for train in collect_result:
             train_message = train_message + f'•  车次:  {train.train_no}\n'
             train_message = train_message + \
@@ -402,15 +457,26 @@ def query_handler(message, stations, from_station, to_station):
                 f'    到点:  {train.arrive_time}\n'
             train_message = train_message + \
                 f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
+            # 价格
+            if train.to_station == stations[to_station]:
+                train_message = train_message + \
+                    f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else prices_dict[train.train_code]["no_seat"]}|{"无" if prices_dict[train.train_code]["second_seat"] == None else prices_dict[train.train_code]["second_seat"]}|{"无" if prices_dict[train.train_code]["first_seat"] == None else prices_dict[train.train_code]["first_seat"]}|{"无" if prices_dict[train.train_code]["special_seat"] == None else prices_dict[train.train_code]["special_seat"]}\n'
+            else:
+                # 补票加两元
+                train_message = train_message + \
+                    f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
             train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
         train_message = train_message + f'[注]: 余票查看格式为 无座|二等座|一等座|特等座'
-        bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
         console.log('余票查询成功!')
         bot.send_message(message.chat.id, train_message)
 
     except Exception as e:
         print(e)
-        bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!\n\n{e}')
+        try:
+            # 重试一次
+            query_handler(message, stations, from_station, to_station)
+        except:
+            bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!\n\n{e}')
         return None
 
 # ===========================test=========================================
@@ -432,3 +498,6 @@ def query_handler(message, stations, from_station, to_station):
 #     'first_seat': '6',
 #     'special_seat': '0'
 # })])
+
+# prices = query_train_price('2023-10-18', 'UAH', 'WHN')
+pass
