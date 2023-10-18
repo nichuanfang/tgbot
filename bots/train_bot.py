@@ -477,7 +477,6 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
                     f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
         except:
             pass
-        train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
     else:
         train_message = train_message + f'•  车次:  【{train.train_no}】\n'
         train_message = train_message + \
@@ -504,9 +503,9 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
                     f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
         except:
             pass
-        # train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
         # train_message = train_message + \
         #     '注) 出发站/到站格式: [起点|上车点]/[终点|下车点]'
+
     return train_message
 
 
