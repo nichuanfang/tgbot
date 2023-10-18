@@ -235,10 +235,10 @@ def query_train_price(train_date: str, from_station_code, to_station_code):
 
 
 def second_or_no_seat_nums(collect_trains: list[Train]):
-    # 计算二等座或无座有票的车次总数
+    # 计算二等座或无座或者硬座有票的车次总数
     count = 0
     for train in collect_trains:
-        if (train.second_seat != '无' and train.second_seat != '') or (train.no_seat != '无' and train.no_seat != ''):
+        if (train.second_seat != '无' and train.second_seat != '') or (train.no_seat != '无' and train.no_seat != '') or (train.hard_seat != '无' and train.hard_seat != ''):
             count += 1
     return count
 
