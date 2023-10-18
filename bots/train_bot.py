@@ -8,6 +8,7 @@ from settings.config import train_config
 import fake_useragent
 from rich.console import Console
 from rich import print
+import traceback
 
 # =====================全局变量==================================
 ua = fake_useragent.UserAgent()
@@ -81,6 +82,8 @@ class Train:
         """
         self.train_code = train_code
         self.train_no = train_no
+        self.start_station_name = ''
+        self.end_station_name = ''
         self.from_station = from_station
         self.to_station = to_station
         self.date = date
@@ -91,7 +94,6 @@ class Train:
         self.second_seat = second_seat
         self.first_seat = first_seat
         self.special_seat = special_seat
-
 
 # =================================业务处理方法=============================================
 
@@ -152,7 +154,7 @@ def decrypt(string):
         res['special_seat'] = split_list[32]
         return Train(**res)
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return None
 
 
@@ -226,6 +228,8 @@ def handle(message, stations: dict, result: list[Train], train_time):
     """
     reversed_stations = {v: k for k, v in stations.items()}
     collect_trains = []
+    # 买长的终点站
+    long_buy_trains = {}
     for train in result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
         if second_or_no_seat_nums(collect_trains) >= 10:
@@ -246,17 +250,20 @@ def handle(message, stations: dict, result: list[Train], train_time):
             train_info: list[dict] = query_train_info(
                 train.train_code, train.from_station, train.to_station, raw_date)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             if has_seat(train):
                 collect_trains.append(train)
             continue
         if has_seat(train):
+            train.start_station_name = train_info[0]['start_station_name']
+            train.end_station_name = train_info[0]['end_station_name']
             train.train_no = train_info[0]['station_train_code']
             collect_trains.append(train)
         # 以from_station为起点 逐个站点查找 至到to_station
         station_from_flag = False
         station_to_flag = False
         station_index = 0
+        train_info_long_buys = []
         for train_info_item in train_info:
             to_station = train_info_item['station_name']
             if station_from_flag:
@@ -290,14 +297,19 @@ def handle(message, stations: dict, result: list[Train], train_time):
                     if train_info_new_result == None or len(train_info_new_result) == 0:
                         continue
                     if has_seat(train_info_new_result[0]):
+                        if station_index > 0:
+                            train_info_long_buys.append(
+                                train_info_new_result[0].to_station)
                         # 更新车次号
                         train_info_new_result[0].train_no = train_info[0]['station_train_code']
+                        train_info_new_result[0].start_station_name = train_info[0]['start_station_name']
+                        train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
                         collect_trains.append(train_info_new_result[0])
                     # 防止请求过于频繁
                     sleep(0.5)
                     # handle(message, stations, new_result)
                 except Exception as e:
-                    print(e)
+                    traceback.print_exc()
                     continue
                 if station_to_flag:
                     station_index += 1
@@ -306,8 +318,10 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 if stations[to_station] == train.from_station:
                     station_from_flag = True
                 continue
+        if len(train_info_long_buys) > 0:
+            long_buy_trains[train.train_code] = train_info_long_buys
         sleep(0.5)
-    return (collect_trains, reversed_stations)
+    return (collect_trains, reversed_stations, long_buy_trains)
 
 # ================================telegram bot======================================
 
@@ -354,6 +368,65 @@ def to_station_handler(message, stations, from_station):
         sent_msg, query_handler, stations, from_station, to_station)
 
 
+def get_price_dict(prices):
+    prices_dict = {}
+    for price in prices:
+        try:
+            no_seat_price = price['queryLeftNewDTO']['ze_price']
+            # 00320转换为价格
+            no_seat_price = str(float(no_seat_price) / 10)
+        except:
+            no_seat_price = None
+        try:
+            second_price = price['queryLeftNewDTO']['ze_price']
+            second_price = str(float(second_price) / 10)
+        except:
+            second_price = None
+        try:
+            first_price = price['queryLeftNewDTO']['zy_price']
+            first_price = str(float(first_price) / 10)
+        except:
+            first_price = None
+        try:
+            special_price = price['queryLeftNewDTO']['swz_price']
+            special_price = str(float(special_price) / 10)
+        except:
+            special_price = None
+
+        prices_dict[price['queryLeftNewDTO']['train_no']] = {
+            'no_seat': no_seat_price,
+            'second_seat': second_price,
+            'first_seat': first_price,
+            'special_seat': special_price
+        }
+    return prices_dict
+
+
+def assemble_bot_msg(to_station, train, stations, reversed_stations, prices_dict, long_buy: bool):
+    train_message = ''
+    train_message = train_message + f'•  车次:  【{train.train_no}】\n'
+    train_message = train_message + \
+        f'    出发站:  {train.start_station_name}|{reversed_stations[train.from_station]}\n'
+    train_message = train_message + \
+        f'    到达站:  {train.end_station_name}|{reversed_stations[train.to_station]}\n'
+    train_message = train_message + \
+        f'    出发时间:  {train.start_time}\n'
+    train_message = train_message + \
+        f'    到达时间:  {train.arrive_time}\n'
+    train_message = train_message + \
+        f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
+    # 价格
+    if train.to_station == stations[to_station] or long_buy:
+        train_message = train_message + \
+            f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else prices_dict[train.train_code]["no_seat"]}|{"无" if prices_dict[train.train_code]["second_seat"] == None else prices_dict[train.train_code]["second_seat"]}|{"无" if prices_dict[train.train_code]["first_seat"] == None else prices_dict[train.train_code]["first_seat"]}|{"无" if prices_dict[train.train_code]["special_seat"] == None else prices_dict[train.train_code]["special_seat"]}\n'
+    else:
+        # 补票加两元
+        train_message = train_message + \
+            f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
+    train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
+    return train_message
+
+
 def query_handler(message, stations, from_station, to_station):
     date = message.text
     # 校验日期格式 时分秒可省略 yyyy-MM-dd HH:mm:ss
@@ -383,7 +456,7 @@ def query_handler(message, stations, from_station, to_station):
     try:
         response = requests.get(request_url, headers=headers)
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         bot.send_message(message.chat.id, f'查询失败:{e}')
         return None
     if response.status_code != 200:
@@ -396,16 +469,17 @@ def query_handler(message, stations, from_station, to_station):
         collect = handle(message, stations, new_result, train_time)
         collect_result = collect[0]
         reversed_stations = collect[1]
+        long_buy_trains = collect[2]
         if collect_result == None or len(collect_result) == 0:
             bot.send_message(message.chat.id, '无余票')
             return None
         bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
         # 发送格式化的车次信息
         # •  车次: D2222
-        #     起点: 六安
-        #     终点: 南京南
-        #     发车点: 08:13
-        #     到点: 12:21
+        #     出发站: 武汉|六安
+        #     到达站: 德清|南京南
+        #     出发时间: 08:13
+        #     到达时间: 12:21
         #     余票: 12|1|2|无
         #     ———————————-
         train_message = ''
@@ -415,68 +489,28 @@ def query_handler(message, stations, from_station, to_station):
         # 查询票价信息
         prices = query_train_price(
             train_date, stations[from_station], stations[to_station])
-        prices_dict = {}
-        for price in prices:
-            try:
-                no_seat_price = price['queryLeftNewDTO']['ze_price']
-                # 00320转换为价格
-                no_seat_price = str(float(no_seat_price) / 10)
-            except:
-                no_seat_price = None
-            try:
-                second_price = price['queryLeftNewDTO']['ze_price']
-                second_price = str(float(second_price) / 10)
-            except:
-                second_price = None
-            try:
-                first_price = price['queryLeftNewDTO']['zy_price']
-                first_price = str(float(first_price) / 10)
-            except:
-                first_price = None
-            try:
-                special_price = price['queryLeftNewDTO']['swz_price']
-                special_price = str(float(special_price) / 10)
-            except:
-                special_price = None
-
-            prices_dict[price['queryLeftNewDTO']['train_no']] = {
-                'no_seat': no_seat_price,
-                'second_seat': second_price,
-                'first_seat': first_price,
-                'special_seat': special_price
-            }
+        prices_dict = get_price_dict(prices)
         for train in collect_result:
-            train_message = train_message + f'•  车次:  {train.train_no}\n'
-            train_message = train_message + \
-                f'    起点:  {reversed_stations[train.from_station]}\n'
-            train_message = train_message + \
-                f'    终点:  {reversed_stations[train.to_station]}\n'
-            train_message = train_message + \
-                f'    发车点:  {train.start_time}\n'
-            train_message = train_message + \
-                f'    到点:  {train.arrive_time}\n'
-            train_message = train_message + \
-                f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.second_seat == "" else train.second_seat}|{"无" if train.first_seat=="" else train.first_seat}|{"无" if train.special_seat=="" else train.special_seat}\n'
-            # 价格
-            if train.to_station == stations[to_station]:
-                train_message = train_message + \
-                    f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else prices_dict[train.train_code]["no_seat"]}|{"无" if prices_dict[train.train_code]["second_seat"] == None else prices_dict[train.train_code]["second_seat"]}|{"无" if prices_dict[train.train_code]["first_seat"] == None else prices_dict[train.train_code]["first_seat"]}|{"无" if prices_dict[train.train_code]["special_seat"] == None else prices_dict[train.train_code]["special_seat"]}\n'
+            # 如果是买长补短 则价格需要重新查询
+            if train.train_code in long_buy_trains.keys() and len(long_buy_trains[train.train_code]) > 0 and train.to_station in long_buy_trains[train.train_code]:
+                # 重新查询价格
+                new_prices = query_train_price(train_date, train.from_station,
+                                               train.to_station)
+                new_prices_dict = get_price_dict(new_prices)
+                train_message = train_message + assemble_bot_msg(to_station, train, stations,
+                                                                 reversed_stations, new_prices_dict, True)
             else:
-                # 补票加两元
-                train_message = train_message + \
-                    f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
-            train_message = train_message + f'~~~~~~~~~~~~~~~~~~~~~~~~~~\n'
-        train_message = train_message + f'[注]: 余票查看格式为 无座|二等座|一等座|特等座'
+                train_message = train_message + assemble_bot_msg(to_station, train, stations,
+                                                                 reversed_stations, prices_dict, False)
+
+        train_message = train_message + \
+            f'[注]:\n  1. 余票格式 【无座|二等座|一等座|特等座】\n  2. 出发站/到站格式 【起点|上车点】/【终点|下车点】'
         console.log('余票查询成功!')
         bot.send_message(message.chat.id, train_message)
 
     except Exception as e:
-        print(e)
-        try:
-            # 重试一次
-            query_handler(message, stations, from_station, to_station)
-        except:
-            bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!\n\n{e}')
+        traceback.print_exc()
+        bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!\n\n{e}')
         return None
 
 # ===========================test=========================================
