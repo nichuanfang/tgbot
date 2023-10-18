@@ -361,7 +361,8 @@ def query_handler(message, stations, from_station, to_station):
     headers['Cookie'] = f'_jc_save_toDate={train_date}'
     try:
         response = requests.get(request_url, headers=headers)
-    except:
+    except Exception as e:
+        print(e)
         bot.send_message(message.chat.id, f'查询失败:{e}')
         return None
     if response.status_code != 200:
@@ -408,8 +409,8 @@ def query_handler(message, stations, from_station, to_station):
         bot.send_message(message.chat.id, train_message)
 
     except Exception as e:
-        bot.send_message(message.chat.id, e)
-        bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!')
+        print(e)
+        bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!\n\n{e}')
         return None
 
 # ===========================test=========================================
