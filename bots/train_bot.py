@@ -243,7 +243,13 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 train_time, '%H:%M:%S')
             if time1 < time2:
                 continue
-
+        else:
+            # 如果离火车开点不足半小时 跳过
+            time1 = datetime.datetime.strptime(
+                train.start_time+':00', '%H:%M:%S')
+            time2 = datetime.datetime.now()
+            if (time1 - time2).seconds < 1800:
+                continue
         # 查询车次号
         try:
             raw_date = f'{train.date[0:4]}-{train.date[4:6]}-{train.date[6:8]}'
