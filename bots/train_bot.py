@@ -180,12 +180,22 @@ def has_seat(train: Train):
     Returns:
         _type_: _description_
     """
-    if (train.no_seat != '无' and train.no_seat != '') |\
-        (train.second_seat != '无' and train.second_seat != '') |\
-        (train.first_seat != '无' and train.first_seat != '') |\
-            (train.special_seat != '无' and train.special_seat != ''):
-        return True
-    return False
+    if train.train_code[0] != 'G' and train.train_code[0] != 'D' and train.train_code[0] != 'C':
+        # 如果是火车
+        if (train.no_seat != '无' and train.no_seat != '') |\
+            (train.hard_seat != '无' and train.hard_seat != '') |\
+            (train.hard_sleep_seat != '无' and train.hard_sleep_seat != '') |\
+                (train.soft_sleep_seat != '无' and train.soft_sleep_seat != ''):
+            return True
+        return False
+    else:
+        # 如果是动车
+        if (train.no_seat != '无' and train.no_seat != '') |\
+            (train.second_seat != '无' and train.second_seat != '') |\
+            (train.first_seat != '无' and train.first_seat != '') |\
+                (train.special_seat != '无' and train.special_seat != ''):
+            return True
+        return False
 
 
 def query_train_info(train_code: str, from_station_code, to_station_code, date: str):
@@ -362,6 +372,12 @@ def handle(message, stations: dict, result: list[Train], train_time):
 
 
 bot = telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
+
+
+@bot.message_handler(commands=['readme'])
+def query_left_ticket(message):
+    text = '[注]:\n\n1. 余票格式【无座|二等座|一等座|特等座】【无座|硬座|硬卧|软卧】\n2. 出发站/到站格式【起点|上车点】【终点|下车点】'
+    bot.send_message(message.chat.id, text)
 
 
 @bot.message_handler(commands=['query_left_ticket'])
