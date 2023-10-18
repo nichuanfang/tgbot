@@ -9,7 +9,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.0
+          cache: pip
+
+      - name: Generate settings/config.py
+        env:
+          TGBOT_TOKEN: ${{secrets.TGBOT_TOKEN}}
+        run: |
+          python config_gen.py $TGBOT_TOKEN
+
       - name: 更新tgbot
         uses: cross-the-world/ssh-scp-ssh-pipelines@latest
         continue-on-error: true
@@ -23,4 +41,7 @@ jobs:
             cd /root/code/tgbot
             git checkout .
             git pull
+          scp: |
+            './settings/config.py' => /root/code/tgbot/settings/config.py
+          last_ssh: |
             systemctl restart tgbot
