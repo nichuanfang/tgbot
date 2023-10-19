@@ -557,8 +557,9 @@ def query_handler(message, stations, from_station, to_station):
             bot.send_message(
                 message.chat.id, f'查询失败: {e}')
             if max_retries <= 0:
-                bot.send_message(message.chat.id, '查询失败: 重试次数过多')
+                bot.send_message(message.chat.id, '查询失败: 重试次数过多!')
                 return None
+            bot.send_message(message.chat.id, f'1分钟后重试...')
             sleep(60)
             # 失败重试
             bot.send_message(message.chat.id, f'第{3-max_retries+1}次重试中...')
