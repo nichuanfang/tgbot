@@ -540,10 +540,12 @@ def query_handler(message, stations, from_station, to_station):
             if max_retries <= 0:
                 bot.send_message(message.chat.id, '查询失败: 重试次数过多')
                 return None
-            response = requests.get(request_url, headers=headers)
+            # 设置超时时间
+            response = requests.get(request_url, headers=headers, timeout=10)
             if response.status_code != 200:
                 bot.send_message(message.chat.id, '查询失败')
                 return None
+            console.log(f'{from_station}到{to_station}的车次查询成功!')
             break
         except Exception as e:
             bot.send_message(
