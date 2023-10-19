@@ -276,11 +276,18 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
     collect_trains = []
     # 买长的终点站
     long_buy_trains = {}
-    filtered_result = []
-    # 过滤出发车点在
+    filtered_result_dgc = []
+    filtered_result_other = []
+    # 过滤掉赶不上的车次
     for train in result:
         if has_enough_time(train, train_time):
-            filtered_result.append(train)
+            # 判断是否为高铁动车
+            if train.train_no[0] == 'G' or train.train_no[0] == 'D' or train.train_no[0] == 'C':
+                filtered_result_dgc.append(train)
+            else:
+                filtered_result_other.append(train)
+    # 优先高铁动车 火车排在后面
+    filtered_result = filtered_result_dgc+filtered_result_other
     for train in filtered_result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
         if second_or_no_seat_nums(collect_trains) >= 10 and len(collect_trains) >= 12:
