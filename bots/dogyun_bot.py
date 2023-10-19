@@ -2,7 +2,7 @@ import re
 import telebot
 import requests
 from settings.config import dogyun_config, vps_config
-from datetime import datetime
+from datetime import datetime, timedelta
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
@@ -117,7 +117,13 @@ def send_traffic_info(message):
     day = datetime.now().strftime("%d")
     zero_point = f'{month.zfill(2)}-{day.zfill(2)} 00'
     # 获取labels中值为zero_point的索引
-    zero_point_index = labels.index(zero_point)
+    try:
+        zero_point_index = labels.index(zero_point)
+    except:
+        # 获取昨天的日期 月-日
+        yesterday_zero_point = (
+            datetime.now() - timedelta(days=1)).strftime("%m-%d 00")
+        zero_point_index = labels.index(yesterday_zero_point)
     # 获取今天的流量
 
     total_outputIn = 0
