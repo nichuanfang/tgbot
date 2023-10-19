@@ -557,9 +557,11 @@ def query_handler(message, stations, from_station, to_station):
             console.log(f'{from_station}到{to_station}的车次查询成功!')
             break
         except Exception as e:
+            traceback.print_exc()
             bot.send_message(
                 message.chat.id, f'查询失败: 第{3-max_retries+1}次重试中')
-            traceback.print_exc()
+            # 失败重试
+            sleep(60)
             max_retries -= 1
     try:
         json_data = json.loads(response.text)
