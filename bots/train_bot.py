@@ -607,7 +607,7 @@ def query_handler(message, stations, from_station, to_station):
 
     except Exception as e:
         traceback.print_exc()
-        bot.send_message(message.chat.id, e.with_traceback())
+        bot.send_message(message.chat.id, e)
         return None
 
 # ===========================test=========================================
