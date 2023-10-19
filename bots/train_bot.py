@@ -208,7 +208,7 @@ def query_train_info(train_code: str, from_station_code, to_station_code, date: 
         train_code, from_station_code, to_station_code, date)
     headers['User-Agent'] = ua.chrome
     headers['Cookie'] = f'_jc_save_toDate={date}'
-    response = requests.get(request_url, headers=headers)
+    response = requests.get(request_url, headers=headers, timeout=10)
     if response.status_code != 200:
         return None
     sleep(0.5)
@@ -313,7 +313,7 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 train_request_url = url.format(
                     raw_date, train.from_station, stations[to_station])
                 response = requests.get(
-                    train_request_url, headers=headers)
+                    train_request_url, headers=headers, timeout=10)
                 if response.status_code != 200:
                     bot.send_message(message.chat.id, '查询失败')
                     return None
@@ -602,12 +602,12 @@ def query_handler(message, stations, from_station, to_station):
                     continue
         # train_message = train_message + \
         #     f'[注]:\n1.余票格式【无座|二等座|一等座|特等座】【无座|硬座|硬卧|软卧】\n2.出发站/到站格式【起点|上车点】【终点|下车点】'
-        console.log('余票查询成功!')
+        console.log(f'余票查询成功!总共爬取车次:{len(collect_result)}个')
         bot.send_message(message.chat.id, train_message)
 
     except Exception as e:
         traceback.print_exc()
-        bot.send_message(message.chat.id, f'请求过于频繁,请稍后尝试!\n\n{e}')
+        bot.send_message(message.chat.id, e.with_traceback())
         return None
 
 # ===========================test=========================================
