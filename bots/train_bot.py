@@ -544,9 +544,6 @@ def query_handler(message, stations, from_station, to_station):
     max_retries = 3
     while True:
         try:
-            if max_retries <= 0:
-                bot.send_message(message.chat.id, '查询失败: 重试次数过多')
-                return None
             console.log(
                 f'正在查询{from_station}到{to_station}的车次...')
             # 设置超时时间
@@ -559,9 +556,12 @@ def query_handler(message, stations, from_station, to_station):
             traceback.print_exc()
             bot.send_message(
                 message.chat.id, f'查询失败: {e}')
-            # 失败重试
+            if max_retries <= 0:
+                bot.send_message(message.chat.id, '查询失败: 重试次数过多')
+                return None
             sleep(60)
-            bot.send_message(message.chat.id, f'第{3-max_retries+1}次重试中')
+            # 失败重试
+            bot.send_message(message.chat.id, f'第{3-max_retries+1}次重试中...')
             max_retries -= 1
     try:
         json_data = json.loads(response.text)
