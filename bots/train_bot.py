@@ -594,9 +594,9 @@ def query_handler(message, stations, from_station, to_station):
         #     余票: 12|1|2|无
         #     ———————————-
         train_message = ''
-        # 按照发车点排序
-        collect_result = sorted(
-            collect_result, key=lambda x: x.start_time, reverse=False)
+        # # 按照发车点排序
+        # collect_result = sorted(
+        #     collect_result, key=lambda x: x.start_time, reverse=False)
         # 查询票价信息
         prices = query_train_price(
             train_date, stations[from_station], stations[to_station])
