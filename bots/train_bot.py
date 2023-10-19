@@ -44,7 +44,7 @@ url: str = 'https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date=
 # 票价查询接口
 train_price_url = 'https://kyfw.12306.cn/otn/leftTicketPrice/queryAllPublicPrice?leftTicketDTO.train_date={}&leftTicketDTO.from_station={}&leftTicketDTO.to_station={}'
 # 车次详情接口
-train_info_url = 'https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no={}&from_station_telecode={}&to_station_telecode={}&depart_date={}'
+train_info_url = 'https://kyfw.12306.cn/otn/queryTrainInfo/query?leftTicketDTO.train_no={}&leftTicketDTO.train_date={}&rand_code='
 # =============================类===========================================
 
 
@@ -198,23 +198,46 @@ def has_seat(train: Train):
         return False
 
 
-def query_train_info(train_code: str, from_station_code, to_station_code, date: str):
-    """根据车次编码查询车次信息
+def has_enough_time(train, train_time):
+    # 如果发车时间不为空 则判断是否在发车时间之后
+    if train_time != '':
+        # 发车时间
+        time1 = datetime.datetime.strptime(
+            train.start_time+':00', '%H:%M:%S')
+        # 计划出发时间
+        time2 = datetime.datetime.strptime(
+            train_time, '%H:%M:%S')
+        if time1 < time2:
+            return False
+        return True
+    else:
+        # 如果离火车开点不足半小时 跳过
+        time1 = datetime.datetime.strptime(
+            train.start_time+':00', '%H:%M:%S')
+        time2 = datetime.datetime.now()
+        if (time1 - time2).seconds < 1800:
+            return False
+        return True
+
+
+def train_schedule_info(train_code, train_date):
+    """获取车次详情
 
     Args:
-        message (_type_): 车次编码
+        train_code (_type_): 车次编码
+        train_date (_type_): 发车日期
+
+    Returns:
+        _type_: _description_
     """
-    request_url = train_info_url.format(
-        train_code, from_station_code, to_station_code, date)
     headers['User-Agent'] = ua.chrome
-    headers['Cookie'] = f'_jc_save_toDate={date}'
-    response = requests.get(request_url, headers=headers, timeout=10)
+    headers['Cookie'] = f'_jc_save_toDate={train_date}'
+    response = requests.get(train_info_url.format(
+        train_code, train_date), headers=headers, timeout=10)
     if response.status_code != 200:
         return None
-    sleep(0.5)
-    return json.loads(response.text)['data']['data']
-
-# 查询车次价格
+    response_json = json.loads(response.text)
+    return response_json['data']['data']
 
 
 def query_train_price(train_date: str, from_station_code, to_station_code):
@@ -243,7 +266,7 @@ def second_or_no_seat_nums(collect_trains: list[Train]):
     return count
 
 
-def handle(message, stations: dict, result: list[Train], train_time):
+def handle(message, stations: dict, result: list[Train], train_date, train_time):
     """处理查询结果
 
     Args:
@@ -253,47 +276,42 @@ def handle(message, stations: dict, result: list[Train], train_time):
     collect_trains = []
     # 买长的终点站
     long_buy_trains = {}
+    filtered_result = []
+    # 过滤出发车点在
+    for train in filtered_result:
+        if has_enough_time(train, train_time):
+            filtered_result.append(train)
     for train in result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
-        if second_or_no_seat_nums(collect_trains) >= 10 and len(collect_trains) > 12:
+        if second_or_no_seat_nums(collect_trains) >= 10 and len(collect_trains) >= 12:
             break
-        # 如果发车时间不为空 则判断是否在发车时间之后
-        if train_time != '':
-            # 字符串转日期对象
-            time1 = datetime.datetime.strptime(
-                train.start_time+':00', '%H:%M:%S')
-            time2 = datetime.datetime.strptime(
-                train_time, '%H:%M:%S')
-            if time1 < time2:
-                continue
-        else:
-            # 如果离火车开点不足半小时 跳过
-            time1 = datetime.datetime.strptime(
-                train.start_time+':00', '%H:%M:%S')
-            time2 = datetime.datetime.now()
-            if (time1 - time2).seconds < 1800:
-                continue
         # 查询车次号
         try:
-            raw_date = f'{train.date[0:4]}-{train.date[4:6]}-{train.date[6:8]}'
-            train_info: list[dict] = query_train_info(
-                train.train_code, train.from_station, train.to_station, raw_date)
+            # 查询时刻表
+            train_info = train_schedule_info(train.train_code, train_date)
+            # 获取每一个元素的station_train_code集合并去重
+            train_no = '/'.join(list(
+                set([item['station_train_code'] for item in train_info])))
         except Exception as e:
             traceback.print_exc()
-            if has_seat(train):
-                collect_trains.append(train)
             continue
         if has_seat(train):
             train.start_station_name = train_info[0]['start_station_name']
             train.end_station_name = train_info[0]['end_station_name']
-            train.train_no = train_info[0]['station_train_code']
+            # 更新车次号
+            train.train_no = train_no
             collect_trains.append(train)
+
         # 以from_station为起点 逐个站点查找 至到to_station
         station_from_flag = False
         station_to_flag = False
         station_index = 0
         train_info_long_buys = []
+        break_flag = False
         for train_info_item in train_info:
+            if len(collect_trains) >= 12:
+                break_flag = True
+                break
             to_station = train_info_item['station_name']
             if station_from_flag:
                 # 买短补长和买长扣短相结合
@@ -311,7 +329,7 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 headers['Cookie'] = f'_jc_save_toDate={train.date}'
                 headers['User-Agent'] = ua.chrome
                 train_request_url = url.format(
-                    raw_date, train.from_station, stations[to_station])
+                    train_date, train.from_station, stations[to_station])
                 response = requests.get(
                     train_request_url, headers=headers, timeout=10)
                 if response.status_code != 200:
@@ -332,7 +350,7 @@ def handle(message, stations: dict, result: list[Train], train_time):
                             train_info_long_buys.append(
                                 train_info_new_result[0].to_station)
                         # 更新车次号
-                        train_info_new_result[0].train_no = train_info[0]['station_train_code']
+                        train_info_new_result[0].train_no = train_no
                         train_info_new_result[0].start_station_name = train_info[0]['start_station_name']
                         train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
                         collect_trains.append(train_info_new_result[0])
@@ -351,6 +369,8 @@ def handle(message, stations: dict, result: list[Train], train_time):
                 continue
         if len(train_info_long_buys) > 0:
             long_buy_trains[train.train_code] = train_info_long_buys
+        if break_flag:
+            break
         sleep(0.5)
     return (collect_trains, reversed_stations, long_buy_trains)
 
@@ -440,9 +460,9 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         # 火车
         train_message = train_message + f'•  车次:  【{train.train_no}】\n'
         train_message = train_message + \
-            f'    出发站:  {train.start_station_name}|{reversed_stations[train.from_station]}\n'
+            f'    出发站:  {reversed_stations[train.from_station]}\n'
         train_message = train_message + \
-            f'    到达站:  {train.end_station_name}|{reversed_stations[train.to_station]}\n'
+            f'    到达站:  {reversed_stations[train.to_station]}\n'
         train_message = train_message + \
             f'    出发时间:  {train.start_time}\n'
         train_message = train_message + \
@@ -452,24 +472,13 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         #     f'    座位:  无座|硬座|硬卧|软卧\n'
         train_message = train_message + \
             f'    余票:  {"无" if  train.no_seat== "" else train.no_seat}|{"无" if train.hard_seat == "" else train.hard_seat}|{"无" if train.hard_sleep_seat=="" else train.hard_sleep_seat}|{"无" if train.soft_sleep_seat=="" else train.soft_sleep_seat}\n'
-        # 价格
-        try:
-            if train.to_station == stations[to_station] or long_buy:
-                train_message = train_message + \
-                    f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else prices_dict[train.train_code]["no_seat"]}|{"无" if prices_dict[train.train_code]["second_seat"] == None else prices_dict[train.train_code]["second_seat"]}|{"无" if prices_dict[train.train_code]["first_seat"] == None else prices_dict[train.train_code]["first_seat"]}|{"无" if prices_dict[train.train_code]["special_seat"] == None else prices_dict[train.train_code]["special_seat"]}\n'
-            else:
-                # 补票加两元
-                train_message = train_message + \
-                    f'    价格:  {"无" if prices_dict[train.train_code]["no_seat"] == None else str(float(prices_dict[train.train_code]["no_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["second_seat"] == None else str(float(prices_dict[train.train_code]["second_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["first_seat"] == None else str(float(prices_dict[train.train_code]["first_seat"]) + 2)}|{"无" if prices_dict[train.train_code]["special_seat"] == None else str(float(prices_dict[train.train_code]["special_seat"]) + 2)}\n'
-        except:
-            pass
         train_message = train_message + f'\n'
     else:
         train_message = train_message + f'•  车次:  【{train.train_no}】\n'
         train_message = train_message + \
-            f'    出发站:  {train.start_station_name}|{reversed_stations[train.from_station]}\n'
+            f'    出发站:  {reversed_stations[train.from_station]}\n'
         train_message = train_message + \
-            f'    到达站:  {train.end_station_name}|{reversed_stations[train.to_station]}\n'
+            f'    到达站:  {reversed_stations[train.to_station]}\n'
         train_message = train_message + \
             f'    出发时间:  {train.start_time}\n'
         train_message = train_message + \
@@ -556,7 +565,8 @@ def query_handler(message, stations, from_station, to_station):
         json_data = json.loads(response.text)
         result = json_data['data']['result']
         new_result = [decrypt(item) for item in result]
-        collect = handle(message, stations, new_result, train_time)
+        collect = handle(message, stations, new_result,
+                         train_date,  train_time)
         collect_result = collect[0]
         reversed_stations = collect[1]
         long_buy_trains = collect[2]
@@ -629,6 +639,5 @@ def query_handler(message, stations, from_station, to_station):
 #     'first_seat': '6',
 #     'special_seat': '0'
 # })])
-
 # prices = query_train_price('2023-10-18', 'UAH', 'WHN')
 pass
