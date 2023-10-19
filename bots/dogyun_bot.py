@@ -292,7 +292,7 @@ def update_xray_route(message):
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
     try:
         ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
-                             vps_config["VPS_USER"], vps_config["VPS_PASSWORD"])
+                             vps_config["VPS_USER"], vps_config["VPS_PASS"])
     except:
         bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
         return
@@ -315,7 +315,7 @@ def bitwarden_backup(message):
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
     try:
         ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
-                             vps_config["VPS_USER"], vps_config["VPS_PASSWORD"])
+                             vps_config["VPS_USER"], vps_config["VPS_PASS"])
     except:
         bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
         return
@@ -343,7 +343,7 @@ def exec_cmd(message):
         return
     try:
         ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
-                             vps_config["VPS_USER"], vps_config["VPS_PASSWORD"])
+                             vps_config["VPS_USER"], vps_config["VPS_PASS"])
     except:
         bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
         return
