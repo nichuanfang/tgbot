@@ -255,7 +255,7 @@ def handle(message, stations: dict, result: list[Train], train_time):
     long_buy_trains = {}
     for train in result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
-        if second_or_no_seat_nums(collect_trains) >= 10:
+        if second_or_no_seat_nums(collect_trains) >= 10 and len(collect_trains) > 12:
             break
         # 如果发车时间不为空 则判断是否在发车时间之后
         if train_time != '':
