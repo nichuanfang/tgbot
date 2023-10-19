@@ -278,10 +278,10 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
     long_buy_trains = {}
     filtered_result = []
     # 过滤出发车点在
-    for train in filtered_result:
+    for train in result:
         if has_enough_time(train, train_time):
             filtered_result.append(train)
-    for train in result:
+    for train in filtered_result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
         if second_or_no_seat_nums(collect_trains) >= 10 and len(collect_trains) >= 12:
             break
@@ -374,50 +374,6 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
         sleep(0.5)
     return (collect_trains, reversed_stations, long_buy_trains)
 
-# ================================telegram bot======================================
-
-
-bot = telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
-
-
-@bot.message_handler(commands=['query_left_ticket'])
-def query_left_ticket(message):
-    text = '请输入起始站'
-    sent_msg = bot.send_message(message.chat.id, text)
-    bot.register_next_step_handler(sent_msg, from_station_handler)
-
-
-def from_station_handler(message):
-    from_station = message.text
-    # 判断是否在stations中
-    stations = load_stations()
-    if from_station not in stations.keys():
-        text = '站点不存在,请重新输入'
-        sent_msg = bot.send_message(message.chat.id, text)
-        bot.register_next_step_handler(sent_msg, from_station_handler)
-        return None
-
-    text = '请输入目的站'
-    sent_msg = bot.send_message(message.chat.id, text)
-    bot.register_next_step_handler(
-        sent_msg, to_station_handler, stations, from_station)
-
-
-def to_station_handler(message, stations, from_station):
-    to_station = message.text
-    # 判断是否在stations中
-    if to_station not in stations.keys():
-        text = '站点不存在,请重新输入'
-        sent_msg = bot.send_message(message.chat.id, text)
-        bot.register_next_step_handler(
-            sent_msg, to_station_handler, stations, from_station)
-        return None
-
-    text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
-    sent_msg = bot.send_message(message.chat.id, text)
-    bot.register_next_step_handler(
-        sent_msg, query_handler, stations, from_station, to_station)
-
 
 def get_price_dict(prices):
     prices_dict = {}
@@ -502,6 +458,51 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + f'\n'
 
     return train_message
+
+
+# ================================telegram bot======================================
+
+
+bot = telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
+
+
+@bot.message_handler(commands=['query_left_ticket'])
+def query_left_ticket(message):
+    text = '请输入起始站'
+    sent_msg = bot.send_message(message.chat.id, text)
+    bot.register_next_step_handler(sent_msg, from_station_handler)
+
+
+def from_station_handler(message):
+    from_station = message.text
+    # 判断是否在stations中
+    stations = load_stations()
+    if from_station not in stations.keys():
+        text = '站点不存在,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(sent_msg, from_station_handler)
+        return None
+
+    text = '请输入目的站'
+    sent_msg = bot.send_message(message.chat.id, text)
+    bot.register_next_step_handler(
+        sent_msg, to_station_handler, stations, from_station)
+
+
+def to_station_handler(message, stations, from_station):
+    to_station = message.text
+    # 判断是否在stations中
+    if to_station not in stations.keys():
+        text = '站点不存在,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, to_station_handler, stations, from_station)
+        return None
+
+    text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
+    sent_msg = bot.send_message(message.chat.id, text)
+    bot.register_next_step_handler(
+        sent_msg, query_handler, stations, from_station, to_station)
 
 
 def query_handler(message, stations, from_station, to_station):
