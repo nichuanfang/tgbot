@@ -212,7 +212,7 @@ def has_enough_time(train, train_time):
         # 计划出发时间
         time2 = datetime.datetime.strptime(
             train_time, '%H:%M:%S')
-        if time1 - time2 < 1800:
+        if (time1 - time2).seconds < 1800:
             return False
         return True
     else:
