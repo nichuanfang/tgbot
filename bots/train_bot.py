@@ -873,7 +873,7 @@ def cache_transit_stations(from_station: str, to_station: str, transit_stations:
         'transit_stations': transit_stations
     }
     # 文件不存在创建
-    if not os.path.exists('transit_stations.json'):
+    if not os.path.exists('/root/code/tgbot/transit_stations.json'):
         with open('/root/code/tgbot/transit_stations.json', 'w+', encoding='utf-8') as f:
             json.dump([transit_stations], f, ensure_ascii=False)
     else:
