@@ -159,3 +159,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 settings/config.py
+# 中转站点是缓存文件 不加入版本管理
+transit_stations.json

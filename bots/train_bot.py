@@ -855,7 +855,7 @@ def load_transit_stations(from_station: str, to_station: str):
     if from_station == to_station:
         return []
     try:
-        with open('transit_stations.json', 'r+', encoding='utf-8') as f:
+        with open('/root/code/tgbot/transit_stations.json', 'r+', encoding='utf-8') as f:
             raw_transit_stations: list = json.load(f)
     except:
         return []
@@ -874,14 +874,14 @@ def cache_transit_stations(from_station: str, to_station: str, transit_stations:
     }
     # 文件不存在创建
     if not os.path.exists('transit_stations.json'):
-        with open('transit_stations.json', 'w+', encoding='utf-8') as f:
+        with open('/root/code/tgbot/transit_stations.json', 'w+', encoding='utf-8') as f:
             json.dump([transit_stations], f, ensure_ascii=False)
     else:
-        with open('transit_stations.json', 'r+', encoding='utf-8') as f:
+        with open('/root/code/tgbot/transit_stations.json', 'r+', encoding='utf-8') as f:
             raw_transit_stations: list = json.load(f)
 
         raw_transit_stations.append(transit_stations)
-        with open('transit_stations.json', 'w+', encoding='utf-8') as f:
+        with open('/root/code/tgbot/transit_stations.json', 'w+', encoding='utf-8') as f:
             json.dump(raw_transit_stations, f, ensure_ascii=False)
     return transit_stations
 
@@ -973,14 +973,6 @@ def transit_query_handler(message, stations, from_station, to_station):
     # 组装tgbot的消息
     train_message = assemble_transit_bot_msg(train_entries, reversed_station)
     bot.send_message(message.chat.id, train_message)
-    if need_git:
-        # 提交git
-        # 设置用户名和邮箱
-        os.system('git config --global user.name "jyczzz"')
-        os.system('git config --global user.email "f18326186224@gmail.com"')
-        os.system('git add .')
-        os.system('git commit -m "update transit_stations.json"')
-        os.system('git push origin main')
 
 
 # ===========================test=========================================
