@@ -2,6 +2,7 @@
 name: update dogyun
 on:
   workflow_dispatch:
+  # 排除transit_stations.json的更新
   push:
     branches:
       - main

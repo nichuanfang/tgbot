@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 import re
 from time import sleep
 import requests
@@ -74,9 +75,11 @@ class Train:
             train_no (str): 车次号
             from_station (str): 起点站
             to_station (str): 终点站
+            actual_to_station(str): 实际到站点
             date (str): 日期信息
             start_time (str): 发车时间
             arrive_time (str): 到站时间
+            actual_arrive_time (str): 实际到站时间
             duration (str): 历时
             no_seat (str): 无座
             -------------------------
@@ -94,9 +97,11 @@ class Train:
         self.end_station_name = ''
         self.from_station = from_station
         self.to_station = to_station
+        self.actual_to_station = ''
         self.date = date
         self.start_time = start_time
         self.arrive_time = arrive_time
+        self.actual_arrive_time = ''
         self.duration = duration
         self.no_seat = no_seat
         self.second_seat = second_seat
@@ -172,7 +177,7 @@ def decrypt(string):
 
 
 def has_seat(train: Train):
-    """判断该车次是否有座位 如果车次规定了发车时间 则判断是否在发车时间之后
+    """判断该车次是否有座位  优先抓取2等座 无座
 
     Args:
         train (Train): _description_
@@ -183,17 +188,17 @@ def has_seat(train: Train):
     if train.train_no[0] != 'G' and train.train_no[0] != 'D' and train.train_no[0] != 'C':
         # 如果是火车
         if (train.no_seat != '无' and train.no_seat != '') |\
-            (train.hard_seat != '无' and train.hard_seat != '') |\
-            (train.hard_sleep_seat != '无' and train.hard_sleep_seat != '') |\
-                (train.soft_sleep_seat != '无' and train.soft_sleep_seat != ''):
+            (train.hard_seat != '无' and train.hard_seat != '') /\
+                (train.hard_sleep_seat != '无' and train.hard_sleep_seat != ''):
+            #     (train.soft_sleep_seat != '无' and train.soft_sleep_seat != ''):
             return True
         return False
     else:
         # 如果是动车
         if (train.no_seat != '无' and train.no_seat != '') |\
-            (train.second_seat != '无' and train.second_seat != '') |\
-            (train.first_seat != '无' and train.first_seat != '') |\
-                (train.special_seat != '无' and train.special_seat != ''):
+                (train.second_seat != '无' and train.second_seat != ''):
+            # (train.first_seat != '无' and train.first_seat != '') |\
+            #     (train.special_seat != '无' and train.special_seat != ''):
             return True
         return False
 
@@ -288,9 +293,10 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                 filtered_result_other.append(train)
     # 优先高铁动车 火车排在后面
     filtered_result = filtered_result_dgc+filtered_result_other
+    request_count = 0
     for train in filtered_result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
-        if second_or_no_seat_nums(collect_trains) >= 10 and len(collect_trains) >= 12:
+        if request_count >= 20 or len(collect_trains) >= 8:
             break
         # 查询车次号
         try:
@@ -307,8 +313,9 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
             train.end_station_name = train_info[0]['end_station_name']
             # 更新车次号
             train.train_no = train_no
+            train.actual_arrive_time = train.arrive_time
+            train.actual_to_station = train.to_station
             collect_trains.append(train)
-
         # 以from_station为起点 逐个站点查找 至到to_station
         station_from_flag = False
         station_to_flag = False
@@ -316,7 +323,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
         train_info_long_buys = []
         break_flag = False
         for train_info_item in train_info:
-            if len(collect_trains) >= 12:
+            if request_count >= 20 or len(collect_trains) >= 8:
                 break_flag = True
                 break
             to_station = train_info_item['station_name']
@@ -337,6 +344,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                 headers['User-Agent'] = ua.chrome
                 train_request_url = url.format(
                     train_date, train.from_station, stations[to_station])
+                request_count += 1
                 response = requests.get(
                     train_request_url, headers=headers, timeout=10)
                 if response.status_code != 200:
@@ -360,6 +368,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                         train_info_new_result[0].train_no = train_no
                         train_info_new_result[0].start_station_name = train_info[0]['start_station_name']
                         train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
+                        train_info_new_result[0].actual_arrive_time = train.arrive_time
+                        train_info_new_result[0].actual_to_station = train.to_station
                         collect_trains.append(train_info_new_result[0])
                     # 防止请求过于频繁
                     sleep(0.5)
@@ -417,6 +427,19 @@ def get_price_dict(prices):
 
 
 def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, prices_dict, long_buy: bool):
+    """组装车次信息
+
+    Args:
+        to_station (_type_): 目的站
+        train (Train): 车次对象
+        stations (_type_): 站点信息
+        reversed_stations (_type_): 站点信息(反转)
+        prices_dict (_type_): 价格信息
+        long_buy (bool): 需要买长的
+
+    Returns:
+        _type_: _description_
+    """
     train_message = ''
     # 判断是否是火车
     if train.train_no[0] != 'G' and train.train_no[0] != 'D' and train.train_no[0] != 'C':
@@ -429,7 +452,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + \
             f'    出发时间:  {train.start_time}\n'
         train_message = train_message + \
-            f'    到达时间:  {train.arrive_time}\n'
+            f'    到达时间:  {train.actual_arrive_time}\n'
         # 无座|硬座|硬卧|软卧
         # train_message = train_message + \
         #     f'    座位:  无座|硬座|硬卧|软卧\n'
@@ -445,7 +468,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         train_message = train_message + \
             f'    出发时间:  {train.start_time}\n'
         train_message = train_message + \
-            f'    到达时间:  {train.arrive_time}\n'
+            f'    到达时间:  {train.actual_arrive_time}\n'
         # 无座|二等座|一等座|商务座
         # train_message = train_message + \
         #     f'    座位:  无座|二等座|一等座|商务座\n'
@@ -467,9 +490,68 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
     return train_message
 
 
+def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)], reversed_station):
+    """组装中转车次信息
+
+    Args:
+        train_entries: 车次信息  (中转站,第一程车次,第二程车次) 
+
+    Returns:
+        _type_: tg消息
+    """
+    train_message = ''
+    for train_entry in train_entries:
+        transit_station = train_entry[0]
+        first_train: Train = train_entry[1]
+        second_train: Train = train_entry[2]
+        # 生成第一程的消息
+        train_message = train_message + f'• 中转【{transit_station}】:\n\n'
+        train_message = train_message + \
+            f'    第一程:  【{first_train.train_no}】\n'
+        train_message = train_message + \
+            f'    出发站:  {reversed_station[first_train.from_station]}\n'
+        train_message = train_message + \
+            f'    到达站:  {reversed_station[first_train.to_station]}\n'
+        train_message = train_message + \
+            f'    出发时间:  {first_train.start_time}\n'
+        train_message = train_message + \
+            f'    到达时间:  {first_train.actual_arrive_time}\n'
+        # 判断第一程是否是火车
+        if first_train.train_no[0] != 'G' and first_train.train_no[0] != 'D' and first_train.train_no[0] != 'C':
+            # 火车
+            train_message = train_message + \
+                f'    余票:  {"无" if  first_train.no_seat== "" else first_train.no_seat}|{"无" if first_train.hard_seat == "" else first_train.hard_seat}|{"无" if first_train.hard_sleep_seat=="" else first_train.hard_sleep_seat}|{"无" if first_train.soft_sleep_seat=="" else first_train.soft_sleep_seat}\n'
+        else:
+            # 高铁动车
+            train_message = train_message + \
+                f'    余票:  {"无" if  first_train.no_seat== "" else first_train.no_seat}|{"无" if first_train.second_seat == "" else first_train.second_seat}|{"无" if first_train.first_seat=="" else first_train.first_seat}|{"无" if first_train.special_seat=="" else first_train.special_seat}\n'
+        train_message = train_message + f'\n'
+        # 生成第二程的消息
+        train_message = train_message + \
+            f'    第二程:  【{second_train.train_no}】\n'
+        train_message = train_message + \
+            f'    出发站:  {reversed_station[second_train.from_station]}\n'
+        train_message = train_message + \
+            f'    到达站:  {reversed_station[second_train.to_station]}\n'
+        train_message = train_message + \
+            f'    出发时间:  {second_train.start_time}\n'
+        train_message = train_message + \
+            f'    到达时间:  {second_train.actual_arrive_time}\n'
+        # 判断第二程是否是火车
+        if second_train.train_no[0] != 'G' and second_train.train_no[0] != 'D' and second_train.train_no[0] != 'C':
+            # 火车
+            train_message = train_message + \
+                f'    余票:  {"无" if  second_train.no_seat== "" else second_train.no_seat}|{"无" if second_train.hard_seat == "" else second_train.hard_seat}|{"无" if second_train.hard_sleep_seat=="" else second_train.hard_sleep_seat}|{"无" if second_train.soft_sleep_seat=="" else second_train.soft_sleep_seat}\n'
+        else:
+            # 高铁动车
+            train_message = train_message + \
+                f'    余票:  {"无" if  second_train.no_seat== "" else second_train.no_seat}|{"无" if second_train.second_seat == "" else second_train.second_seat}|{"无" if second_train.first_seat=="" else second_train.first_seat}|{"无" if second_train.special_seat=="" else second_train.special_seat}\n'
+        train_message = train_message + f'\n'
+
+    return train_message
+
+
 # ================================telegram bot======================================
-
-
 bot = telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
 
 
@@ -512,39 +594,43 @@ def to_station_handler(message, stations, from_station):
         sent_msg, query_handler, stations, from_station, to_station)
 
 
-def query_handler(message, stations, from_station, to_station):
+def query_handler(message, stations, from_station, to_station, need_send=True):
+    if from_station == to_station:
+        return None
     date = message.text
     # 校验日期格式 时分秒可省略 yyyy-MM-dd HH:mm:ss
     # 必须完全匹配
-    if not re.fullmatch(r'(\d){4}-(\d){1,2}-(\d){1,2}(\s)*((\s)+(\d){1,2}:(\d){1,2}:(\d){1,2})*', date):
-        text = '日期格式错误,请重新输入'
-        sent_msg = bot.send_message(message.chat.id, text)
-        bot.register_next_step_handler(
-            sent_msg, query_handler, stations, from_station, to_station)
-        return None
+    if need_send:
+        if not re.fullmatch(r'(\d){4}-(\d){1,2}-(\d){1,2}(\s)*((\s)+(\d){1,2}:(\d){1,2}:(\d){1,2})*', date):
+            text = '日期格式错误,请重新输入'
+            sent_msg = bot.send_message(message.chat.id, text)
+            bot.register_next_step_handler(
+                sent_msg, query_handler, stations, from_station, to_station)
+            return None
 
     date = re.sub(r'\s+', ' ', date).strip()
     # 获取日期年月日部分
     train_date = date.split(' ')[0]
-    # 如果大于15天 或者小于今天 则提示
-    if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - datetime.datetime.now()).days > 15:
-        text = '日期必须在15天之内,请重新输入'
-        sent_msg = bot.send_message(message.chat.id, text)
-        bot.register_next_step_handler(
-            sent_msg, query_handler, stations, from_station, to_station)
-        return None
-    elif datetime.datetime.strptime(train_date, '%Y-%m-%d').day - datetime.datetime.now().day < 0:
-        text = '日期必须大于今天,请重新输入'
-        sent_msg = bot.send_message(message.chat.id, text)
-        bot.register_next_step_handler(
-            sent_msg, query_handler, stations, from_station, to_station)
-        return None
+    if need_send:
+        # 如果大于15天 或者小于今天 则提示
+        if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - datetime.datetime.now()).days > 15:
+            text = '日期必须在15天之内,请重新输入'
+            sent_msg = bot.send_message(message.chat.id, text)
+            bot.register_next_step_handler(
+                sent_msg, query_handler, stations, from_station, to_station)
+            return None
+        elif datetime.datetime.strptime(train_date, '%Y-%m-%d').day - datetime.datetime.now().day < 0:
+            text = '日期必须大于今天,请重新输入'
+            sent_msg = bot.send_message(message.chat.id, text)
+            bot.register_next_step_handler(
+                sent_msg, query_handler, stations, from_station, to_station)
+            return None
 
     # 获取日期时分秒部分
     train_time = date.split(' ')[1] if len(
         date.split(' ')) == 2 else ''
-
-    bot.send_message(message.chat.id, '正在查询...')
+    if need_send:
+        bot.send_message(message.chat.id, '正在查询...')
     request_url = url.format(
         train_date, stations[from_station], stations[to_station])
     headers['User-Agent'] = ua.chrome
@@ -557,20 +643,25 @@ def query_handler(message, stations, from_station, to_station):
             # 设置超时时间
             response = requests.get(request_url, headers=headers, timeout=10)
             if response.status_code != 200:
-                bot.send_message(message.chat.id, '查询失败')
+                if need_send:
+                    bot.send_message(message.chat.id, '查询失败')
                 return None
             break
         except Exception as e:
             traceback.print_exc()
-            bot.send_message(
-                message.chat.id, f'查询失败: {e}')
+            if need_send:
+                bot.send_message(
+                    message.chat.id, f'查询失败: {e}')
             if max_retries <= 0:
-                bot.send_message(message.chat.id, '查询失败: 重试次数过多!')
+                if need_send:
+                    bot.send_message(message.chat.id, '查询失败: 重试次数过多!')
                 return None
-            bot.send_message(message.chat.id, f'1分钟后重试...')
+            if need_send:
+                bot.send_message(message.chat.id, f'1分钟后重试...')
             sleep(60)
             # 失败重试
-            bot.send_message(message.chat.id, f'第{3-max_retries+1}次重试中...')
+            if need_send:
+                bot.send_message(message.chat.id, f'第{3-max_retries+1}次重试中...')
             max_retries -= 1
     try:
         json_data = json.loads(response.text)
@@ -582,9 +673,13 @@ def query_handler(message, stations, from_station, to_station):
         reversed_stations = collect[1]
         long_buy_trains = collect[2]
         if collect_result == None or len(collect_result) == 0:
-            bot.send_message(message.chat.id, '无余票')
+            if need_send:
+                bot.send_message(message.chat.id, '无余票')
             return None
-        bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
+        if need_send:
+            bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
+        else:
+            return collect_result
         # 发送格式化的车次信息
         # •  车次: D2222
         #     出发站: 武汉|六安
@@ -624,18 +719,279 @@ def query_handler(message, stations, from_station, to_station):
         # train_message = train_message + \
         #     f'[注]:\n1.余票格式【无座|二等座|一等座|特等座】【无座|硬座|硬卧|软卧】\n2.出发站/到站格式【起点|上车点】【终点|下车点】'
         console.log(f'余票查询成功!总共爬取车次:{len(collect_result)}个')
-        bot.send_message(message.chat.id, train_message)
+        if need_send:
+            bot.send_message(message.chat.id, train_message)
+        return collect_result
 
     except Exception as e:
         traceback.print_exc()
-        bot.send_message(message.chat.id, e)
+        if need_send:
+            bot.send_message(message.chat.id, e)
         return None
 
-# ===========================test=========================================
+# 中转查询
 
+
+@bot.message_handler(commands=['transit_query_left_ticket'])
+def transit_query_left_ticket(message):
+    text = '请输入起始站'
+    sent_msg = bot.send_message(message.chat.id, text)
+    bot.register_next_step_handler(sent_msg, from_station_handler_transit)
+
+
+def from_station_handler_transit(message):
+    from_station = message.text
+    # 判断是否在stations中
+    stations = load_stations()
+    if from_station not in stations.keys():
+        text = '站点不存在,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(sent_msg, from_station_handler_transit)
+        return None
+
+    text = '请输入目的站'
+    sent_msg = bot.send_message(message.chat.id, text)
+    bot.register_next_step_handler(
+        sent_msg, to_station_handler_transit, stations, from_station)
+
+
+def to_station_handler_transit(message, stations, from_station):
+    to_station = message.text
+    # 判断是否在stations中
+    if to_station not in stations.keys():
+        text = '站点不存在,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, to_station_handler_transit, stations, from_station)
+        return None
+
+    text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
+    sent_msg = bot.send_message(message.chat.id, text)
+    bot.register_next_step_handler(
+        sent_msg, transit_query_handler, stations, from_station, to_station)
+
+
+def update_transit(from_station: str, to_station: str, stations, reversed_stations):
+    """更新中转节点
+
+    Args:
+        from_station (str): 起始站
+        to_station (str): 终点站
+
+    Returns:
+        _type_: 中转节点列表
+    """
+    train_date = (datetime.datetime.now() +
+                  datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    request_url = url.format(
+        train_date, stations[from_station], stations[to_station])
+    headers['User-Agent'] = ua.chrome
+    headers['Cookie'] = f'_jc_save_toDate={train_date}'
+    max_retries = 3
+    while True:
+        try:
+            console.log(
+                f'正在更新{from_station}到{to_station}的中转节点...')
+            # 设置超时时间
+            response = requests.get(request_url, headers=headers, timeout=10)
+            if response.status_code != 200:
+                return None
+            break
+        except Exception as e:
+            traceback.print_exc()
+            if max_retries <= 0:
+                return None
+            sleep(60)
+            # 失败重试
+            max_retries -= 1
+    try:
+        json_data = json.loads(response.text)
+        result = json_data['data']['result']
+        new_result = [decrypt(item) for item in result]
+        # 起始站列表
+        from_stations: dict = list(
+            set(list(reversed_stations[item.from_station] for item in new_result)))
+        # 终点站列表
+        to_stations = list(
+            set(list(reversed_stations[item.to_station] for item in new_result)))
+
+        transits = []
+        # 动车高铁集合
+        d_g_trains = list(
+            filter(lambda x: x.train_no[0] == 'G' or x.train_no[0] == 'D' or x.train_no[0] == 'C', new_result))
+        # 火车集合
+        h_trains = list(
+            filter(lambda x: x.train_no[0] != 'G' and x.train_no[0] != 'D' and x.train_no[0] != 'C', new_result))
+        new_result = d_g_trains+h_trains
+        for new_result_item in new_result:
+            train_code = new_result_item.train_code
+            # 查询车次详情
+            console.log(
+                f'正在查询车次{ new_result_item.train_no}沿途信息...')
+            train_info = train_schedule_info(train_code, train_date)
+            # 获取train_info集合内 from_station和to_station之间的站点
+            from_station_flag = False
+            for train_info_item in train_info:
+                if train_info_item['station_name'] in to_stations:
+                    break
+                if train_info_item['station_name'] in from_stations:
+                    from_station_flag = True
+                    continue
+                if from_station_flag and train_info_item['station_name'] not in transits:
+                    # 加入中转站列表
+                    transits.append(train_info_item['station_name'])
+
+            sleep(0.5)
+        console.log(f'更新{from_station}到{to_station}的中转节点成功!')
+        return transits
+    except:
+        traceback.print_exc()
+        return []
+
+
+def load_transit_stations(from_station: str, to_station: str):
+    """加载中转节点
+    """
+    if from_station == to_station:
+        return []
+    try:
+        with open('transit_stations.json', 'r+', encoding='utf-8') as f:
+            raw_transit_stations: list = json.load(f)
+    except:
+        return []
+    for item in raw_transit_stations:
+        if from_station in item['station_pair'] and to_station in item['station_pair']:
+            return item['transit_stations']
+    return []
+
+
+def cache_transit_stations(from_station: str, to_station: str, transit_stations: list):
+    if from_station == to_station:
+        return []
+    transit_stations = {
+        'station_pair': [from_station, to_station],
+        'transit_stations': transit_stations
+    }
+    # 文件不存在创建
+    if not os.path.exists('transit_stations.json'):
+        with open('transit_stations.json', 'w+', encoding='utf-8') as f:
+            json.dump([transit_stations], f, ensure_ascii=False)
+    else:
+        with open('transit_stations.json', 'r+', encoding='utf-8') as f:
+            raw_transit_stations: list = json.load(f)
+
+        raw_transit_stations.append(transit_stations)
+        with open('transit_stations.json', 'w+', encoding='utf-8') as f:
+            json.dump(raw_transit_stations, f, ensure_ascii=False)
+    return transit_stations
+
+
+def transit_query_handler(message, stations, from_station, to_station):
+    """中转处理器
+
+    Args:
+        from_station (str): 起点站
+        to_station (str): 终点站
+        train_date (str): _description_
+    """
+    # 1. 判断中转站点到终点站点的车次是否有票 若有则进入下一步
+    # 2.查询起始站到中转站点之间有无车次 若有判断到站时间是否为中转站点的发车时间之后 若是则加入集合
+    # 3. 整合两趟车次信息
+    date = message.text
+    # 校验日期格式 时分秒可省略 yyyy-MM-dd HH:mm:ss
+    # 必须完全匹配
+    if not re.fullmatch(r'(\d){4}-(\d){1,2}-(\d){1,2}(\s)*((\s)+(\d){1,2}:(\d){1,2}:(\d){1,2})*', date):
+        text = '日期格式错误,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, query_handler, stations, from_station, to_station)
+        return None
+
+    date = re.sub(r'\s+', ' ', date).strip()
+    # 获取日期年月日部分
+    train_date = date.split(' ')[0]
+    # 如果大于15天 或者小于今天 则提示
+    if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - datetime.datetime.now()).days > 15:
+        text = '日期必须在15天之内,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, query_handler, stations, from_station, to_station)
+        return None
+    elif datetime.datetime.strptime(train_date, '%Y-%m-%d').day - datetime.datetime.now().day < 0:
+        text = '日期必须大于今天,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, query_handler, stations, from_station, to_station)
+        return None
+    bot.send_message(message.chat.id, '正在查询...')
+    reversed_station = {v: k for k, v in stations.items()}
+    # 如果缓存中有中转点 读取;若没有 则更新中转节点
+    # 读取缓存
+    transit_stations: list = load_transit_stations(from_station, to_station)
+    need_git = False
+    if len(transit_stations) == 0:
+        # 更新中转节点
+        bot.send_message(message.chat.id, '正在更新中转节点...')
+        transit_stations = update_transit(
+            from_station, to_station, stations, reversed_station)
+        cache_transit_stations(from_station, to_station, transit_stations)
+        bot.send_message(message.chat.id, '更新中转节点成功!')
+        need_git = True
+
+    # transit_stations = ['红安西', '六安', '麻城北', '金寨']
+    bot.send_message(message.chat.id, '正在查询中转车次...')
+    train_entries: list[(str, Train, Train)] = []
+    for transit_station in transit_stations:
+        if len(train_entries) >= 8:
+            break
+        # 查询起点站点到中转站点的车次
+        start_collect_trains: list[Train] = query_handler(
+            message, stations, from_station, transit_station, False)
+        if start_collect_trains == None or len(start_collect_trains) == 0:
+            continue
+        for start_collect_train in start_collect_trains:
+            if len(train_entries) >= 8:
+                break
+            # 查询中转站点到终点站点的车次
+            message.text = f'{train_date} {start_collect_train.actual_arrive_time}:00'
+            end_collect_trains: list[Train] = query_handler(
+                message, stations, transit_station, to_station, False)
+            if end_collect_trains != None and len(end_collect_trains) != 0:
+                for end_collect_train in end_collect_trains:
+                    if len(train_entries) >= 8:
+                        break
+                    if start_collect_train.train_no != end_collect_train.train_no:
+                        train_entries.append(
+                            (transit_station, start_collect_train, end_collect_train))
+            sleep(0.5)
+        sleep(0.5)
+    if len(train_entries) == 0:
+        bot.send_message(message.chat.id, '无中转方案!')
+        return None
+    console.log(f'中转查询成功!总共爬取车次:{len(train_entries)}个')
+    bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
+    # 组装tgbot的消息
+    train_message = assemble_transit_bot_msg(train_entries, reversed_station)
+    bot.send_message(message.chat.id, train_message)
+    if need_git:
+        # 提交git
+        # 设置用户名和邮箱
+        os.system('git config --global user.name "jyczzz"')
+        os.system('git config --global user.email "f18326186224@gmail.com"')
+        os.system('git add .')
+        os.system('git commit -m "update transit_stations.json"')
+        os.system('git push origin main')
+
+
+# ===========================test=========================================
+# update_transit('合肥', '武汉')
+# transit_stations = ['六安', '麻城北', '红安西', '金寨']
+# res = update_transit('合肥', '武汉', load_stations(), {
+#                      v: k for k, v in load_stations().items()})
+# cache_transit_stations('合肥', '杭州', ['六安'])
+# pass
 
 # query_train_info('5l000D237302', 'UAH', 'HKN', '2023-10-19')
-
 # handle(None, load_stations(), [Train(**{
 #     'train_code': '5l0000G63700',
 #     'train_no': 'G637',
