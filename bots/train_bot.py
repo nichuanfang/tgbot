@@ -868,19 +868,19 @@ def load_transit_stations(from_station: str, to_station: str):
 def cache_transit_stations(from_station: str, to_station: str, transit_stations: list):
     if from_station == to_station:
         return []
-    transit_stations = {
+    transit_stations_dict = {
         'station_pair': [from_station, to_station],
         'transit_stations': transit_stations
     }
     # 文件不存在创建
     if not os.path.exists('/root/code/tgbot/transit_stations.json'):
         with open('/root/code/tgbot/transit_stations.json', 'w+', encoding='utf-8') as f:
-            json.dump([transit_stations], f, ensure_ascii=False)
+            json.dump([transit_stations_dict], f, ensure_ascii=False)
     else:
         with open('/root/code/tgbot/transit_stations.json', 'r+', encoding='utf-8') as f:
             raw_transit_stations: list = json.load(f)
 
-        raw_transit_stations.append(transit_stations)
+        raw_transit_stations.append(transit_stations_dict)
         with open('/root/code/tgbot/transit_stations.json', 'w+', encoding='utf-8') as f:
             json.dump(raw_transit_stations, f, ensure_ascii=False)
     return transit_stations
@@ -934,9 +934,9 @@ def transit_query_handler(message, stations, from_station, to_station):
         bot.send_message(message.chat.id, '正在更新中转节点...')
         transit_stations = update_transit(
             from_station, to_station, stations, reversed_station)
+        # 如果transit_stations为空 说明两站 没有可用的中转节点 仍然需要缓存!
         cache_transit_stations(from_station, to_station, transit_stations)
         bot.send_message(message.chat.id, '更新中转节点成功!')
-        need_git = True
 
     # transit_stations = ['红安西', '六安', '麻城北', '金寨']
     bot.send_message(message.chat.id, '正在查询中转车次...')
