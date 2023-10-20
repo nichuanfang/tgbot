@@ -212,7 +212,7 @@ def has_enough_time(train, train_time):
         # 计划出发时间
         time2 = datetime.datetime.strptime(
             train_time, '%H:%M:%S')
-        if (time1 - time2).seconds < 1800:
+        if time1 < time2:
             return False
         return True
     else:
@@ -953,7 +953,10 @@ def transit_query_handler(message, stations, from_station, to_station):
             if len(train_entries) >= 8:
                 break
             # 查询中转站点到终点站点的车次
-            message.text = f'{train_date} {start_collect_train.actual_arrive_time}:00'
+            transit_time = f'{train_date} {start_collect_train.actual_arrive_time}:00'
+            # transit_time再加半小时缓冲时间
+            message.text = (datetime.datetime.strptime(
+                transit_time, '%Y-%m-%d %H:%M:%S') + datetime.timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
             end_collect_trains: list[Train] = query_handler(
                 message, stations, transit_station, to_station, False)
             if end_collect_trains != None and len(end_collect_trains) != 0:
