@@ -204,7 +204,7 @@ def has_seat(train: Train):
 
 
 def has_enough_time(train, train_time):
-    # 如果发车时间不为空 则判断是否在发车时间之后
+    # 如果发车时间不为空 则判断是否离火车开点不足半小时
     if train_time != '':
         # 发车时间
         time1 = datetime.datetime.strptime(
@@ -212,7 +212,7 @@ def has_enough_time(train, train_time):
         # 计划出发时间
         time2 = datetime.datetime.strptime(
             train_time, '%H:%M:%S')
-        if time1 < time2:
+        if time1 - time2 < 1800:
             return False
         return True
     else:
