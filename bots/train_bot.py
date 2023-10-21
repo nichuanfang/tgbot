@@ -388,11 +388,25 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                 train_request_url = url.format(
                     train_date, train.from_station, stations[to_station])
                 request_count += 1
-                response = requests.get(
-                    train_request_url, headers=headers, timeout=10)
-                if response.status_code != 200:
-                    bot.send_message(message.chat.id, '查询失败')
-                    return None
+                # 最多重试3次
+                for i in range(3):
+                    try:
+                        response = requests.get(
+                            train_request_url, headers=headers, timeout=10)
+                        if response.status_code != 200:
+                            bot.send_message('请求失败 1分钟后重试...')
+                            sleep(60)
+                            bot.send_message('正在重试...')
+                            continue
+                        else:
+                            break
+                    except Exception as e:
+                        bot.send_message(f'请求失败: {e} \n 1分钟后重试...')
+                        sleep(60)
+                        bot.send_message('正在重试...')
+                        continue
+                # response = requests.get(
+                #     train_request_url, headers=headers, timeout=10)
                 try:
                     train_info_json_data = json.loads(response.text)
                     train_info_item_result = train_info_json_data['data']['result']
