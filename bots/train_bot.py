@@ -278,7 +278,6 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
         result (list[list[str]]): _description_
     """
     reversed_stations = {v: k for k, v in stations.items()}
-    collect_trains = []
     # 买长的终点站
     long_buy_trains = {}
     filtered_result_dgc = []
@@ -294,9 +293,18 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
     # 优先高铁动车 火车排在后面
     filtered_result = filtered_result_dgc+filtered_result_other
     request_count = 0
+    collect_trains = []
+    # 买长补短的车次(多花钱)
+    long_buy_train_info_items = []
     for train in filtered_result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
-        if request_count >= 20 or len(collect_trains) >= 8:
+        if len(collect_trains) >= 8 or request_count >= 30:
+            if len(collect_trains) < 8:
+                # 如果查询到的车次不足8个 则将买长补短的车次加入
+                for item in (long_buy_train_info_items):
+                    if len(collect_trains) == 8:
+                        break
+                    collect_trains.append(item)
             break
         # 查询车次号
         try:
@@ -323,10 +331,16 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
         train_info_long_buys = []
         break_flag = False
         for train_info_item in train_info:
-            if request_count >= 20 or len(collect_trains) >= 8:
+            if len(collect_trains) >= 8 or request_count >= 30:
+                if len(collect_trains) < 8:
+                    # 如果查询到的车次不足8个 则将买长补短的车次加入
+                    for item in (long_buy_train_info_items):
+                        if len(collect_trains) == 8:
+                            break
+                        collect_trains.append(item)
                 break_flag = True
                 break
-            to_station = train_info_item['station_name']
+            to_station = train_info_item['station_name'].replace(' ', '')
             if station_from_flag:
                 # 买短补长和买长扣短相结合
                 if stations[to_station] == train.to_station:
@@ -361,16 +375,19 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                     if train_info_new_result == None or len(train_info_new_result) == 0:
                         continue
                     if has_seat(train_info_new_result[0]):
-                        if station_index > 0:
-                            train_info_long_buys.append(
-                                train_info_new_result[0].to_station)
                         # 更新车次号
                         train_info_new_result[0].train_no = train_no
                         train_info_new_result[0].start_station_name = train_info[0]['start_station_name']
                         train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
                         train_info_new_result[0].actual_arrive_time = train.arrive_time
                         train_info_new_result[0].actual_to_station = train.to_station
-                        collect_trains.append(train_info_new_result[0])
+                        if station_index > 0:
+                            long_buy_train_info_items.append(
+                                train_info_new_result[0])
+                            train_info_long_buys.append(
+                                train_info_new_result[0].to_station)
+                        else:
+                            collect_trains.append(train_info_new_result[0])
                     # 防止请求过于频繁
                     sleep(0.5)
                     # handle(message, stations, new_result)
@@ -383,9 +400,11 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
             else:
                 if stations[to_station] == train.from_station:
                     station_from_flag = True
-                continue
+                    continue
+
         if len(train_info_long_buys) > 0:
             long_buy_trains[train.train_code] = train_info_long_buys
+
         if break_flag:
             break
         sleep(0.5)
