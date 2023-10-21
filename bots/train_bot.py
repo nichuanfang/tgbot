@@ -177,7 +177,7 @@ def decrypt(string):
 
 
 def has_seat(train: Train):
-    """判断该车次是否有座位  优先抓取2等座 无座
+    """判断该车次是否有座位  优先抓取2等座 无座 / 硬座 硬卧
 
     Args:
         train (Train): _description_
@@ -187,18 +187,33 @@ def has_seat(train: Train):
     """
     if train.train_no[0] != 'G' and train.train_no[0] != 'D' and train.train_no[0] != 'C':
         # 如果是火车
-        if (train.no_seat != '无' and train.no_seat != '') |\
-            (train.hard_seat != '无' and train.hard_seat != '') /\
-                (train.hard_sleep_seat != '无' and train.hard_sleep_seat != ''):
-            #     (train.soft_sleep_seat != '无' and train.soft_sleep_seat != ''):
+        if (train.no_seat != '无' and train.no_seat != '') or (train.hard_seat != '无' and train.hard_seat != '') or (train.hard_sleep_seat != '无' and train.hard_sleep_seat != ''):
             return True
         return False
     else:
         # 如果是动车
-        if (train.no_seat != '无' and train.no_seat != '') |\
-                (train.second_seat != '无' and train.second_seat != ''):
-            # (train.first_seat != '无' and train.first_seat != '') |\
-            #     (train.special_seat != '无' and train.special_seat != ''):
+        if (train.no_seat != '无' and train.no_seat != '') or (train.second_seat != '无' and train.second_seat != ''):
+            return True
+        return False
+
+
+def has_senior_seat(train: Train):
+    """判断该车次是否有座位  优先抓取一等座 商务座 / 软卧
+
+    Args:
+        train (Train): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    if train.train_no[0] != 'G' and train.train_no[0] != 'D' and train.train_no[0] != 'C':
+        # 如果是火车
+        if (train.soft_sleep_seat != '无' and train.soft_sleep_seat != ''):
+            return True
+        return False
+    else:
+        # 如果是动车
+        if (train.first_seat != '无' and train.first_seat != '') or (train.special_seat != '无' and train.special_seat != ''):
             return True
         return False
 
@@ -296,12 +311,14 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
     collect_trains = []
     # 买长补短的车次(多花钱)
     long_buy_train_info_items = []
+    # 一等座/商务座
+    first_sw_trains = []
     for train in filtered_result:
         # 如果二等座或无座有票的车次总数大于10 停止查询
         if len(collect_trains) >= 8 or request_count >= 30:
             if len(collect_trains) < 8:
-                # 如果查询到的车次不足8个 则将买长补短的车次加入
-                for item in (long_buy_train_info_items):
+                # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
+                for item in (long_buy_train_info_items+first_sw_trains):
                     if len(collect_trains) == 8:
                         break
                     collect_trains.append(item)
@@ -324,6 +341,15 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
             train.actual_arrive_time = train.arrive_time
             train.actual_to_station = train.to_station
             collect_trains.append(train)
+        # 一等座 商务座
+        elif has_senior_seat(train):
+            train.start_station_name = train_info[0]['start_station_name']
+            train.end_station_name = train_info[0]['end_station_name']
+            # 更新车次号
+            train.train_no = train_no
+            train.actual_arrive_time = train.arrive_time
+            train.actual_to_station = train.to_station
+            first_sw_trains.append(train)
         # 以from_station为起点 逐个站点查找 至到to_station
         station_from_flag = False
         station_to_flag = False
@@ -333,8 +359,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
         for train_info_item in train_info:
             if len(collect_trains) >= 8 or request_count >= 30:
                 if len(collect_trains) < 8:
-                    # 如果查询到的车次不足8个 则将买长补短的车次加入
-                    for item in (long_buy_train_info_items):
+                    # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
+                    for item in (long_buy_train_info_items+first_sw_trains):
                         if len(collect_trains) == 8:
                             break
                         collect_trains.append(item)
@@ -388,6 +414,16 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                                 train_info_new_result[0].to_station)
                         else:
                             collect_trains.append(train_info_new_result[0])
+                    # 一等座 商务座
+                    elif has_senior_seat(train):
+                        # 更新车次号
+                        train_info_new_result[0].train_no = train_no
+                        train_info_new_result[0].start_station_name = train_info[0]['start_station_name']
+                        train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
+                        train_info_new_result[0].actual_arrive_time = train.arrive_time
+                        train_info_new_result[0].actual_to_station = train.to_station
+                        if station_index == 0:
+                            first_sw_trains.append(train_info_new_result[0])
                     # 防止请求过于频繁
                     sleep(0.5)
                     # handle(message, stations, new_result)
