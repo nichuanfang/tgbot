@@ -286,7 +286,7 @@ def second_or_no_seat_nums(collect_trains: list[Train]):
     return count
 
 
-def handle(message, stations: dict, result: list[Train], train_date, train_time):
+def handle(message, stations: dict, result: list[Train], train_date, train_time, passed_queries=[]):
     """处理查询结果
 
     Args:
@@ -375,6 +375,12 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                     break
                 # 业务逻辑...
                 # -------------------------------------------------
+                if f'{train.train_no}-{train.from_station}-{stations[to_station]}' in passed_queries:
+                    # 已查询 无需再次查询
+                    continue
+                else:
+                    passed_queries.append(
+                        f'{train.train_no}-{train.from_station}-{stations[to_station]}')
                 console.log(
                     f'[{train.train_no}]正在查询{reversed_stations[train.from_station]}到{to_station}的车次...')
                 headers['Cookie'] = f'_jc_save_toDate={train.date}'
@@ -646,7 +652,7 @@ def to_station_handler(message, stations, from_station):
         sent_msg, query_handler, stations, from_station, to_station)
 
 
-def query_handler(message, stations, from_station, to_station, need_send=True):
+def query_handler(message, stations, from_station, to_station, need_send=True, passed_queries=[]):
     if from_station == to_station:
         return None
     date = message.text
@@ -720,7 +726,7 @@ def query_handler(message, stations, from_station, to_station, need_send=True):
         result = json_data['data']['result']
         new_result = [decrypt(item) for item in result]
         collect = handle(message, stations, new_result,
-                         train_date,  train_time)
+                         train_date,  train_time, passed_queries)
         collect_result = collect[0]
         reversed_stations = collect[1]
         long_buy_trains = collect[2]
@@ -996,10 +1002,12 @@ def transit_query_handler(message, stations, from_station, to_station):
     # 当前时间
     # curr_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     break_flag = False
+    # 已经请求过的 不要重复请求
+    passed_queries = []
     for transit_station in transit_stations:
         # 查询起点站点到中转站点的车次
         start_collect_trains: list[Train] = query_handler(
-            message, stations, from_station, transit_station, False)
+            message, stations, from_station, transit_station, False, passed_queries)
         if start_collect_trains == None or len(start_collect_trains) == 0:
             continue
         for start_collect_train in start_collect_trains:
@@ -1009,7 +1017,7 @@ def transit_query_handler(message, stations, from_station, to_station):
             message.text = (datetime.datetime.strptime(
                 transit_time, '%Y-%m-%d %H:%M:%S') + datetime.timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
             end_collect_trains: list[Train] = query_handler(
-                message, stations, transit_station, to_station, False)
+                message, stations, transit_station, to_station, False, passed_queries)
             if end_collect_trains != None and len(end_collect_trains) != 0:
                 for end_collect_train in end_collect_trains:
                     # 如果查询耗时超过1分钟 终止
