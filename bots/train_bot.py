@@ -1002,8 +1002,6 @@ def transit_query_handler(message, stations, from_station, to_station):
         if start_collect_trains == None or len(start_collect_trains) == 0:
             continue
         for start_collect_train in start_collect_trains:
-            if len(train_entries) >= 8:
-                break
             # 查询中转站点到终点站点的车次
             transit_time = f'{train_date} {start_collect_train.actual_arrive_time}:00'
             # transit_time再加半小时缓冲时间
@@ -1019,6 +1017,8 @@ def transit_query_handler(message, stations, from_station, to_station):
                         train_entries.append(
                             (transit_station, start_collect_train, end_collect_train))
             sleep(0.5)
+        if len(train_entries) >= 8:
+            break
         sleep(2)
     if len(train_entries) == 0:
         bot.send_message(message.chat.id, '无中转方案!')
