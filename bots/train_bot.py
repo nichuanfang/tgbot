@@ -330,14 +330,13 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
             # 获取每一个元素的station_train_code集合并去重
             train_no = '/'.join(list(
                 set([item['station_train_code'] for item in train_info])))
+            train.train_no = re.sub(r'\s+', '', train_no)
         except Exception as e:
             traceback.print_exc()
             continue
         if has_seat(train):
             train.start_station_name = train_info[0]['start_station_name']
             train.end_station_name = train_info[0]['end_station_name']
-            # 更新车次号
-            train.train_no = train_no
             train.actual_arrive_time = train.arrive_time
             train.actual_to_station = train.to_station
             collect_trains.append(train)
@@ -345,8 +344,6 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
         elif has_senior_seat(train):
             train.start_station_name = train_info[0]['start_station_name']
             train.end_station_name = train_info[0]['end_station_name']
-            # 更新车次号
-            train.train_no = train_no
             train.actual_arrive_time = train.arrive_time
             train.actual_to_station = train.to_station
             first_sw_trains.append(train)
@@ -366,7 +363,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time)
                         collect_trains.append(item)
                 break_flag = True
                 break
-            to_station = train_info_item['station_name'].replace(' ', '')
+            to_station = re.sub(r'\s+', '', train_info_item['station_name'])
             if station_from_flag:
                 # 买短补长和买长扣短相结合
                 if stations[to_station] == train.to_station:
@@ -1022,7 +1019,7 @@ def transit_query_handler(message, stations, from_station, to_station):
                         train_entries.append(
                             (transit_station, start_collect_train, end_collect_train))
             sleep(0.5)
-        sleep(0.5)
+        sleep(2)
     if len(train_entries) == 0:
         bot.send_message(message.chat.id, '无中转方案!')
         return None
