@@ -993,9 +993,10 @@ def transit_query_handler(message, stations, from_station, to_station):
     # transit_stations = ['红安西', '六安', '麻城北', '金寨']
     bot.send_message(message.chat.id, '正在查询中转车次...')
     train_entries: list[(str, Train, Train)] = []
+    # 当前时间
+    # curr_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    break_flag = False
     for transit_station in transit_stations:
-        if len(train_entries) >= 8:
-            break
         # 查询起点站点到中转站点的车次
         start_collect_trains: list[Train] = query_handler(
             message, stations, from_station, transit_station, False)
@@ -1011,15 +1012,18 @@ def transit_query_handler(message, stations, from_station, to_station):
                 message, stations, transit_station, to_station, False)
             if end_collect_trains != None and len(end_collect_trains) != 0:
                 for end_collect_train in end_collect_trains:
-                    if len(train_entries) >= 8:
+                    # 如果查询耗时超过1分钟 终止
+                    # or ((datetime.datetime.now() - datetime.datetime.strptime(curr_time, '%Y-%m-%d %H:%M:%S')).seconds > 60)
+                    if len(train_entries) >= 4:
+                        break_flag = True
                         break
                     if start_collect_train.train_no != end_collect_train.train_no:
                         train_entries.append(
                             (transit_station, start_collect_train, end_collect_train))
             sleep(0.5)
-        if len(train_entries) >= 8:
+        if break_flag:
             break
-        sleep(2)
+        sleep(1)
     if len(train_entries) == 0:
         bot.send_message(message.chat.id, '无中转方案!')
         return None
