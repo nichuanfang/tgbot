@@ -74,7 +74,9 @@ class Train:
             train_code (str): 车次编码
             train_no (str): 车次号
             from_station (str): 起点站
+            from_station_name (str): 起点站名称
             to_station (str): 终点站
+            to_station_name (str): 终点站名称
             actual_to_station(str): 实际到站点
             date (str): 日期信息
             start_time (str): 发车时间
@@ -96,7 +98,9 @@ class Train:
         self.start_station_name = ''
         self.end_station_name = ''
         self.from_station = from_station
+        self.from_station_name = ''
         self.to_station = to_station
+        self.to_station_name = ''
         self.actual_to_station = ''
         self.date = date
         self.start_time = start_time
@@ -330,6 +334,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
             train.end_station_name = train_info[0]['end_station_name']
             train.actual_arrive_time = train.arrive_time
             train.actual_to_station = train.to_station
+            train.from_station_name = reversed_stations[train.from_station]
+            train.to_station_name = reversed_stations[train.to_station]
             collect_trains.append(train)
         # 一等座 商务座
         elif has_senior_seat(train):
@@ -337,6 +343,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
             train.end_station_name = train_info[0]['end_station_name']
             train.actual_arrive_time = train.arrive_time
             train.actual_to_station = train.to_station
+            train.from_station_name = reversed_stations[train.from_station]
+            train.to_station_name = reversed_stations[train.to_station]
             first_sw_trains.append(train)
         # 以from_station为起点 逐个站点查找 至到to_station
         station_from_flag = False
@@ -379,19 +387,17 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                         response = requests.get(
                             train_request_url, headers=headers, timeout=10)
                         if response.status_code != 200:
-                            # bot.send_message('请求失败 1分钟后重试...')
-                            sleep(1)
-                            # bot.send_message('正在重试...')
+                            bot.send_message('请求太频繁 暂停1分钟')
+                            sleep(60)
+                            bot.send_message('正在重试...')
                             continue
                         else:
                             break
                     except Exception as e:
-                        # bot.send_message(message, f'请求失败: {e} \n 1分钟后重试...')
-                        sleep(1)
-                        # bot.send_message(message, '正在重试...')
+                        bot.send_message('请求太频繁 暂停1分钟')
+                        sleep(60)
+                        bot.send_message(message, '正在重试...')
                         continue
-                # response = requests.get(
-                #     train_request_url, headers=headers, timeout=10)
                 try:
                     train_info_json_data = json.loads(response.text)
                     train_info_item_result = train_info_json_data['data']['result']
@@ -409,6 +415,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                         train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
                         train_info_new_result[0].actual_arrive_time = train.arrive_time
                         train_info_new_result[0].actual_to_station = train.to_station
+                        train_info_new_result[0].from_station_name = reversed_stations[train_info_new_result[0].from_station]
+                        train_info_new_result[0].to_station_name = reversed_stations[train_info_new_result[0].to_station]
                         if station_index > 0:
                             long_buy_train_info_items.append(
                                 train_info_new_result[0])
@@ -424,6 +432,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                         train_info_new_result[0].end_station_name = train_info[0]['end_station_name']
                         train_info_new_result[0].actual_arrive_time = train.arrive_time
                         train_info_new_result[0].actual_to_station = train.to_station
+                        train_info_new_result[0].from_station_name = reversed_stations[train_info_new_result[0].from_station]
+                        train_info_new_result[0].to_station_name = reversed_stations[train_info_new_result[0].to_station]
                         if station_index == 0:
                             first_sw_trains.append(train_info_new_result[0])
                     # 防止请求过于频繁
@@ -489,7 +499,7 @@ def get_price_dict(prices):
     return prices_dict
 
 
-def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, prices_dict, long_buy: bool):
+def assemble_bot_msg(to_station, train: Train, stations, prices_dict, long_buy: bool):
     """组装车次信息
 
     Args:
@@ -509,9 +519,9 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
         # 火车
         train_message = train_message + f'•  车次:  【{train.train_no}】\n'
         train_message = train_message + \
-            f'    出发站:  {reversed_stations[train.from_station]}\n'
+            f'    出发站:  {train.from_station_name}\n'
         train_message = train_message + \
-            f'    到达站:  {reversed_stations[train.to_station]}\n'
+            f'    到达站:  {train.to_station_name}\n'
         train_message = train_message + \
             f'    出发时间:  {train.start_time}\n'
         train_message = train_message + \
@@ -525,9 +535,9 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
     else:
         train_message = train_message + f'•  车次:  【{train.train_no}】\n'
         train_message = train_message + \
-            f'    出发站:  {reversed_stations[train.from_station]}\n'
+            f'    出发站:  {train.from_station_name}\n'
         train_message = train_message + \
-            f'    到达站:  {reversed_stations[train.to_station]}\n'
+            f'    到达站:  {train.to_station_name}\n'
         train_message = train_message + \
             f'    出发时间:  {train.start_time}\n'
         train_message = train_message + \
@@ -553,7 +563,7 @@ def assemble_bot_msg(to_station, train: Train, stations, reversed_stations, pric
     return train_message
 
 
-def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)], reversed_station):
+def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)]):
     """组装中转车次信息
 
     Args:
@@ -572,9 +582,9 @@ def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)], reversed_
         train_message = train_message + \
             f'    第一程:  【{first_train.train_no}】\n'
         train_message = train_message + \
-            f'    出发站:  {reversed_station[first_train.from_station]}\n'
+            f'    出发站:  {first_train.from_station_name}\n'
         train_message = train_message + \
-            f'    到达站:  {reversed_station[first_train.to_station]}\n'
+            f'    到达站:  {first_train.to_station_name}\n'
         train_message = train_message + \
             f'    出发时间:  {first_train.start_time}\n'
         train_message = train_message + \
@@ -593,9 +603,9 @@ def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)], reversed_
         train_message = train_message + \
             f'    第二程:  【{second_train.train_no}】\n'
         train_message = train_message + \
-            f'    出发站:  {reversed_station[second_train.from_station]}\n'
+            f'    出发站:  {second_train.from_station_name}\n'
         train_message = train_message + \
-            f'    到达站:  {reversed_station[second_train.to_station]}\n'
+            f'    到达站:  {second_train.to_station_name}\n'
         train_message = train_message + \
             f'    出发时间:  {second_train.start_time}\n'
         train_message = train_message + \
@@ -767,15 +777,17 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
                                                train.to_station)
                 new_prices_dict = get_price_dict(new_prices)
                 try:
-                    train_message = train_message + assemble_bot_msg(to_station, train, stations,
-                                                                     reversed_stations, new_prices_dict, True)
+                    train_message = train_message + \
+                        assemble_bot_msg(to_station, train,
+                                         stations, new_prices_dict, True)
                 except:
                     traceback.print_exc()
                     continue
             else:
                 try:
-                    train_message = train_message + assemble_bot_msg(to_station, train, stations,
-                                                                     reversed_stations, prices_dict, False)
+                    train_message = train_message + \
+                        assemble_bot_msg(to_station, train,
+                                         stations, prices_dict, False)
                 except:
                     traceback.print_exc()
                     continue
@@ -834,7 +846,7 @@ def to_station_handler_transit(message, stations, from_station):
         sent_msg, transit_query_handler, stations, from_station, to_station)
 
 
-def update_transit(from_station: str, to_station: str, stations, reversed_stations):
+def update_transit(from_station: str, to_station: str, stations):
     """更新中转节点
 
     Args:
@@ -844,6 +856,7 @@ def update_transit(from_station: str, to_station: str, stations, reversed_statio
     Returns:
         _type_: 中转节点列表
     """
+    reversed_stations = {v: k for k, v in stations.items()}
     train_date = (datetime.datetime.now() +
                   datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     request_url = url.format(
@@ -987,16 +1000,14 @@ def transit_query_handler(message, stations, from_station, to_station):
             sent_msg, query_handler, stations, from_station, to_station)
         return None
     bot.send_message(message.chat.id, '正在查询...')
-    reversed_station = {v: k for k, v in stations.items()}
     # 如果缓存中有中转点 读取;若没有 则更新中转节点
     # 读取缓存
     transit_stations: list = load_transit_stations(from_station, to_station)
-    need_git = False
     if len(transit_stations) == 0:
         # 更新中转节点
         bot.send_message(message.chat.id, '正在更新中转节点...')
         transit_stations = update_transit(
-            from_station, to_station, stations, reversed_station)
+            from_station, to_station, stations)
         # 如果transit_stations为空 说明两站 没有可用的中转节点 仍然需要缓存!
         cache_transit_stations(from_station, to_station, transit_stations)
         bot.send_message(message.chat.id, '更新中转节点成功!')
@@ -1043,7 +1054,7 @@ def transit_query_handler(message, stations, from_station, to_station):
     console.log(f'中转查询成功!总共爬取车次:{len(train_entries)}个')
     bot.send_message(message.chat.id, '余票查询成功! 正在发送车次信息...')
     # 组装tgbot的消息
-    train_message = assemble_transit_bot_msg(train_entries, reversed_station)
+    train_message = assemble_transit_bot_msg(train_entries)
     bot.send_message(message.chat.id, train_message)
 
 
