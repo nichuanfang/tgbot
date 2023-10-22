@@ -673,6 +673,12 @@ def from_station_handler(message):
 
 def to_station_handler(message, stations, from_station):
     to_station = message.text
+    if to_station == from_station:
+        text = '起始站和目的站不能相同,请重新输入'
+        sent_msg = bot.send_message(message.chat.id, text)
+        bot.register_next_step_handler(
+            sent_msg, to_station_handler, stations, from_station)
+        return None
     # 判断是否在stations中
     if to_station not in stations.keys():
         text = '站点不存在,请重新输入'
