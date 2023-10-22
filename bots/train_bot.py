@@ -353,7 +353,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
         train_info_long_buys = []
         break_flag = False
         for train_info_item in train_info:
-            if len(collect_trains) >= 8 or request_count >= 50:
+            if len(collect_trains) >= 4 or request_count >= 20:
                 break_flag = True
                 break
             to_station = re.sub(r'\s+', '', train_info_item['station_name'])
@@ -460,10 +460,10 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
         if break_flag:
             break
         sleep(0.5)
-    if len(collect_trains) < 8:
+    if len(collect_trains) < 4:
         # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
         for item in (long_buy_train_info_items+first_sw_trains):
-            if len(collect_trains) == 8:
+            if len(collect_trains) == 4:
                 break
             collect_trains.append(item)
     return (collect_trains, reversed_stations, long_buy_trains)
@@ -728,13 +728,11 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
             traceback.print_exc()
             if need_send:
                 bot.send_message(
-                    message.chat.id, f'查询失败: {e}')
+                    message.chat.id, f'请求太频繁 5分钟后重试')
             if max_retries <= 0:
                 if need_send:
                     bot.send_message(message.chat.id, '查询失败: 重试次数过多!')
                 return None
-            if need_send:
-                bot.send_message(message.chat.id, f'5分钟后重试...')
             sleep(300)
             # 失败重试
             if need_send:
@@ -1042,7 +1040,7 @@ def transit_query_handler(message, stations, from_station, to_station):
                 for end_collect_train in end_collect_trains:
                     # 如果查询耗时超过1分钟 终止
                     # or ((datetime.datetime.now() - datetime.datetime.strptime(curr_time, '%Y-%m-%d %H:%M:%S')).seconds > 60)
-                    if len(train_entries) >= 4:
+                    if len(train_entries) >= 2:
                         break_flag = True
                         break
                     if start_collect_train.train_no != end_collect_train.train_no:
