@@ -387,16 +387,20 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                         response = requests.get(
                             train_request_url, headers=headers, timeout=10)
                         if response.status_code != 200:
-                            bot.send_message('请求太频繁 暂停1分钟')
-                            sleep(60)
-                            bot.send_message('正在重试...')
+                            bot.send_message(message.chat.id, '请求太频繁 暂停5分钟')
+                            sleep(300)
+                            bot.send_message(message.chat.id, '正在重试...')
                             continue
                         else:
                             break
                     except Exception as e:
-                        bot.send_message('请求太频繁 暂停1分钟')
-                        sleep(60)
-                        bot.send_message(message, '正在重试...')
+                        if i == 2:
+                            traceback.print_exc()
+                            bot.send_message(message.chat.id, '重试次数过多!')
+                            raise e
+                        bot.send_message(message.chat.id, '请求太频繁 暂停5分钟')
+                        sleep(300)
+                        bot.send_message(message.chat.id, '正在重试...')
                         continue
                 try:
                     train_info_json_data = json.loads(response.text)
@@ -730,8 +734,8 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
                     bot.send_message(message.chat.id, '查询失败: 重试次数过多!')
                 return None
             if need_send:
-                bot.send_message(message.chat.id, f'1分钟后重试...')
-            sleep(60)
+                bot.send_message(message.chat.id, f'5分钟后重试...')
+            sleep(300)
             # 失败重试
             if need_send:
                 bot.send_message(message.chat.id, f'第{3-max_retries+1}次重试中...')
@@ -877,7 +881,7 @@ def update_transit(from_station: str, to_station: str, stations):
             traceback.print_exc()
             if max_retries <= 0:
                 return None
-            sleep(60)
+            sleep(300)
             # 失败重试
             max_retries -= 1
     try:
