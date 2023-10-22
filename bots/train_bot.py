@@ -317,6 +317,8 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
     long_buy_train_info_items = []
     # 一等座/商务座
     first_sw_trains = []
+    # 深拷贝
+    left_filterd_result: list[Train] = filtered_result.copy()
     for train in filtered_result:
         # 查询车次号
         try:
@@ -337,6 +339,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
             train.from_station_name = reversed_stations[train.from_station]
             train.to_station_name = reversed_stations[train.to_station]
             collect_trains.append(train)
+            left_filterd_result.remove(train)
         # 一等座 商务座
         elif has_senior_seat(train):
             train.start_station_name = train_info[0]['start_station_name']
@@ -346,6 +349,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
             train.from_station_name = reversed_stations[train.from_station]
             train.to_station_name = reversed_stations[train.to_station]
             first_sw_trains.append(train)
+            left_filterd_result.remove(train)
         # 以from_station为起点 逐个站点查找 至到to_station
         station_from_flag = False
         station_to_flag = False
@@ -461,8 +465,20 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
             break
         sleep(0.5)
     if len(collect_trains) < 4:
-        # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
-        for item in (long_buy_train_info_items+first_sw_trains):
+        # 过滤出left_filterd_result有票的车次
+        left_filted_result_has_seat: list[Train] = []
+        left_filted_result_has_senior_seat: list[Train] = []
+        for left_train in left_filterd_result:
+            left_train.from_station_name = reversed_stations[left_train.from_station]
+            left_train.to_station_name = reversed_stations[left_train.to_station]
+            left_train.actual_arrive_time = left_train.arrive_time
+            left_train.actual_to_station = left_train.to_station
+            if has_seat(left_train):
+                left_filted_result_has_seat.append(left_train)
+            elif has_senior_seat(left_train):
+                left_filted_result_has_senior_seat.append(left_train)
+        # 如果查询到的车次不足4个 则将买长补短和一等座的车次加入
+        for item in (long_buy_train_info_items+left_filted_result_has_seat+left_filted_result_has_senior_seat+first_sw_trains):
             if len(collect_trains) == 4:
                 break
             collect_trains.append(item)
