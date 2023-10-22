@@ -353,7 +353,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
         train_info_long_buys = []
         break_flag = False
         for train_info_item in train_info:
-            if len(collect_trains) >= 8 or request_count >= 30:
+            if len(collect_trains) >= 8 or request_count >= 50:
                 break_flag = True
                 break
             to_station = re.sub(r'\s+', '', train_info_item['station_name'])
