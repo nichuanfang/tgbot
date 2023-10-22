@@ -379,16 +379,16 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                         response = requests.get(
                             train_request_url, headers=headers, timeout=10)
                         if response.status_code != 200:
-                            bot.send_message('请求失败 1分钟后重试...')
-                            sleep(60)
-                            bot.send_message('正在重试...')
+                            # bot.send_message('请求失败 1分钟后重试...')
+                            sleep(1)
+                            # bot.send_message('正在重试...')
                             continue
                         else:
                             break
                     except Exception as e:
-                        bot.send_message(f'请求失败: {e} \n 1分钟后重试...')
-                        sleep(60)
-                        bot.send_message('正在重试...')
+                        # bot.send_message(message, f'请求失败: {e} \n 1分钟后重试...')
+                        sleep(1)
+                        # bot.send_message(message, '正在重试...')
                         continue
                 # response = requests.get(
                 #     train_request_url, headers=headers, timeout=10)
