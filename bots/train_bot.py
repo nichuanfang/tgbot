@@ -314,15 +314,6 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
     # 一等座/商务座
     first_sw_trains = []
     for train in filtered_result:
-        # 如果二等座或无座有票的车次总数大于10 停止查询
-        if len(collect_trains) >= 8 or request_count >= 30:
-            if len(collect_trains) < 8:
-                # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
-                for item in (long_buy_train_info_items+first_sw_trains):
-                    if len(collect_trains) == 8:
-                        break
-                    collect_trains.append(item)
-            break
         # 查询车次号
         try:
             # 查询时刻表
@@ -355,12 +346,6 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
         break_flag = False
         for train_info_item in train_info:
             if len(collect_trains) >= 8 or request_count >= 30:
-                if len(collect_trains) < 8:
-                    # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
-                    for item in (long_buy_train_info_items+first_sw_trains):
-                        if len(collect_trains) == 8:
-                            break
-                        collect_trains.append(item)
                 break_flag = True
                 break
             to_station = re.sub(r'\s+', '', train_info_item['station_name'])
@@ -461,6 +446,12 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
         if break_flag:
             break
         sleep(0.5)
+    if len(collect_trains) < 8:
+        # 如果查询到的车次不足8个 则将买长补短和一等座的车次加入
+        for item in (long_buy_train_info_items+first_sw_trains):
+            if len(collect_trains) == 8:
+                break
+            collect_trains.append(item)
     return (collect_trains, reversed_stations, long_buy_trains)
 
 
@@ -663,7 +654,7 @@ def to_station_handler(message, stations, from_station):
     text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
-        sent_msg, query_handler, stations, from_station, to_station)
+        sent_msg, query_handler, stations, from_station, to_station, True, [])
 
 
 def query_handler(message, stations, from_station, to_station, need_send=True, passed_queries=[]):
@@ -677,7 +668,7 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
             text = '日期格式错误,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
-                sent_msg, query_handler, stations, from_station, to_station)
+                sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
 
     date = re.sub(r'\s+', ' ', date).strip()
@@ -689,13 +680,13 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
             text = '日期必须在15天之内,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
-                sent_msg, query_handler, stations, from_station, to_station)
+                sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
         elif datetime.datetime.strptime(train_date, '%Y-%m-%d').day - datetime.datetime.now().day < 0:
             text = '日期必须大于今天,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
-                sent_msg, query_handler, stations, from_station, to_station)
+                sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
 
     # 获取日期时分秒部分
