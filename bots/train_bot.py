@@ -706,7 +706,6 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
             bot.register_next_step_handler(
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
-    if need_send:
         date = re.sub(r'\s+', ' ', date).strip()
         # 获取日期年月日部分
         train_date = '-'.join(list(map(lambda x: x.zfill(2),
@@ -1068,6 +1067,10 @@ def transit_query_handler(message, stations, from_station, to_station):
     break_flag = False
     # 已经请求过的 不要重复请求
     passed_queries = []
+    if train_time == '':
+        message.text = f'{train_date}'
+    else:
+        message.text = f'{train_date} {train_time}'
     for transit_station in transit_stations:
         # 查询起点站点到中转站点的车次
         start_collect_trains: list[Train] = query_handler(
