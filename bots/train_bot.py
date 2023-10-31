@@ -707,10 +707,10 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
 
-    date = '-'.join(list(map(lambda x: x.zfill(2),
-                    re.sub(r'\s+', ' ', date).strip().split('-'))))
+    date = re.sub(r'\s+', ' ', date).strip()
     # 获取日期年月日部分
-    train_date = date.split(' ')[0]
+    train_date = '-'.join(list(map(lambda x: x.zfill(2),
+                          date.split(' ')[0].split('-'))))
     if need_send:
         now = datetime.datetime.now()
         date_string = now.strftime('%Y-%m-%d')
@@ -1011,10 +1011,10 @@ def transit_query_handler(message, stations, from_station, to_station):
             sent_msg, query_handler, stations, from_station, to_station)
         return None
 
-    date = '-'.join(list(map(lambda x: x.zfill(2),
-                    re.sub(r'\s+', ' ', date).strip().split('-'))))
+    date = re.sub(r'\s+', ' ', date).strip()
     # 获取日期年月日部分
-    train_date = date.split(' ')[0]
+    train_date = '-'.join(list(map(lambda x: x.zfill(2),
+                          date.split(' ')[0].split('-'))))
     now = datetime.datetime.now()
     date_string = now.strftime('%Y-%m-%d')
     now_date = datetime.datetime.strptime(date_string, '%Y-%m-%d')
