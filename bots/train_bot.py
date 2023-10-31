@@ -707,18 +707,22 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
 
-    date = re.sub(r'\s+', ' ', date).strip()
+    date = '-'.join(list(map(lambda x: x.zfill(2),
+                    re.sub(r'\s+', ' ', date).strip().split('-'))))
     # 获取日期年月日部分
     train_date = date.split(' ')[0]
     if need_send:
+        now = datetime.datetime.now()
+        date_string = now.strftime('%Y-%m-%d')
+        now_date = datetime.datetime.strptime(date_string, '%Y-%m-%d')
         # 如果大于15天 或者小于今天 则提示
-        if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - datetime.datetime.now()).days > 15:
+        if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days > 15:
             text = '日期必须在15天之内,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
-        elif datetime.datetime.strptime(train_date, '%Y-%m-%d').day - datetime.datetime.now().day < 0:
+        elif (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days < 0:
             text = '日期必须大于今天,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
@@ -1007,17 +1011,21 @@ def transit_query_handler(message, stations, from_station, to_station):
             sent_msg, query_handler, stations, from_station, to_station)
         return None
 
-    date = re.sub(r'\s+', ' ', date).strip()
+    date = '-'.join(list(map(lambda x: x.zfill(2),
+                    re.sub(r'\s+', ' ', date).strip().split('-'))))
     # 获取日期年月日部分
     train_date = date.split(' ')[0]
+    now = datetime.datetime.now()
+    date_string = now.strftime('%Y-%m-%d')
+    now_date = datetime.datetime.strptime(date_string, '%Y-%m-%d')
     # 如果大于15天 或者小于今天 则提示
-    if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - datetime.datetime.now()).days > 15:
+    if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days > 15:
         text = '日期必须在15天之内,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(
             sent_msg, query_handler, stations, from_station, to_station)
         return None
-    elif datetime.datetime.strptime(train_date, '%Y-%m-%d').day - datetime.datetime.now().day < 0:
+    elif (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days < 0:
         text = '日期必须大于今天,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(
