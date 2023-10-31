@@ -482,7 +482,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
             if len(collect_trains) == 4:
                 break
             collect_trains.append(item)
-    return (collect_trains, reversed_stations, long_buy_trains)
+    return (collect_trains, long_buy_trains)
 
 
 def get_price_dict(prices):
@@ -706,32 +706,42 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
             bot.register_next_step_handler(
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
-
-    date = re.sub(r'\s+', ' ', date).strip()
-    # 获取日期年月日部分
-    train_date = '-'.join(list(map(lambda x: x.zfill(2),
-                          date.split(' ')[0].split('-'))))
     if need_send:
-        now = datetime.datetime.now()
-        date_string = now.strftime('%Y-%m-%d')
-        now_date = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        date = re.sub(r'\s+', ' ', date).strip()
+        # 获取日期年月日部分
+        train_date = '-'.join(list(map(lambda x: x.zfill(2),
+                                       date.split(' ')[0].split('-'))))
+        # 获取日期时分秒部分
+        train_time = date.split(' ')[1] if len(
+            date.split(' ')) == 2 else ''
+        now_date = datetime.datetime.now()
+        if train_time != '':
+            target_date = datetime.datetime.strptime(
+                f'{train_date} {train_time}', '%Y-%m-%d %H:%M:%S')
+        else:
+            target_date = datetime.datetime.strptime(
+                f'{train_date} 23:59:59', '%Y-%m-%d %H:%M:%S')
+
         # 如果大于15天 或者小于今天 则提示
-        if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days > 15:
+        if (target_date - now_date).days > 15:
             text = '日期必须在15天之内,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
-        elif (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days < 0:
+        elif (target_date - now_date).days < 0:
             text = '日期必须大于今天,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
+    else:
+        # 获取日期年月日部分
+        train_date = date.split(' ')[0]
+        # 获取日期时分秒部分
+        train_time = date.split(' ')[1] if len(
+            date.split(' ')) == 2 else ''
 
-    # 获取日期时分秒部分
-    train_time = date.split(' ')[1] if len(
-        date.split(' ')) == 2 else ''
     if need_send:
         bot.send_message(message.chat.id, '正在查询...')
     request_url = url.format(
@@ -771,8 +781,7 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
         collect = handle(message, stations, new_result,
                          train_date,  train_time, passed_queries)
         collect_result = collect[0]
-        reversed_stations = collect[1]
-        long_buy_trains = collect[2]
+        long_buy_trains = collect[1]
         if collect_result == None or len(collect_result) == 0:
             if need_send:
                 bot.send_message(message.chat.id, '无余票')
@@ -1015,17 +1024,24 @@ def transit_query_handler(message, stations, from_station, to_station):
     # 获取日期年月日部分
     train_date = '-'.join(list(map(lambda x: x.zfill(2),
                           date.split(' ')[0].split('-'))))
-    now = datetime.datetime.now()
-    date_string = now.strftime('%Y-%m-%d')
-    now_date = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+    # 获取日期时分秒部分
+    train_time = date.split(' ')[1] if len(
+        date.split(' ')) == 2 else ''
+    now_date = datetime.datetime.now()
+    if train_time != '':
+        target_date = datetime.datetime.strptime(
+            f'{train_date} {train_time}', '%Y-%m-%d %H:%M:%S')
+    else:
+        target_date = datetime.datetime.strptime(
+            f'{train_date} 23:59:59', '%Y-%m-%d %H:%M:%S')
     # 如果大于15天 或者小于今天 则提示
-    if (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days > 15:
+    if (target_date - now_date).days > 15:
         text = '日期必须在15天之内,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(
             sent_msg, query_handler, stations, from_station, to_station)
         return None
-    elif (datetime.datetime.strptime(train_date, '%Y-%m-%d') - now_date).days < 0:
+    elif (target_date - now_date).days < 0:
         text = '日期必须大于今天,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(

@@ -7,7 +7,6 @@ from bots import train_bot
 import logging
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
-from datetime import datetime
 
 # 设置tg的日志
 logger = telebot.logger
