@@ -29,20 +29,20 @@ jobs:
         run: |
           python config_gen.py $TGBOT_TOKEN
 
-      - name: 更新tgbot
-        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
-        continue-on-error: true
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          user: ${{ secrets.VPS_USER }}
-          pass: ${{ secrets.VPS_PASS }}
-          port: ${{ secrets.VPS_PORT }}
-          connect_timeout: 10s
-          first_ssh: |
-            cd /root/code/tgbot
-            git checkout .
-            git pull
-          scp: |
-            './settings/config.py' => /root/code/tgbot/settings
-          last_ssh: |
-            systemctl restart tgbot
+      # - name: 更新tgbot
+      #   uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+      #   continue-on-error: true
+      #   with:
+      #     host: ${{ secrets.VPS_HOST }}
+      #     user: ${{ secrets.VPS_USER }}
+      #     pass: ${{ secrets.VPS_PASS }}
+      #     port: ${{ secrets.VPS_PORT }}
+      #     connect_timeout: 10s
+      #     first_ssh: |
+      #       cd /root/code/tgbot
+      #       git checkout .
+      #       git pull
+      #     scp: |
+      #       './settings/config.py' => /root/code/tgbot/settings
+      #     last_ssh: |
+      #       systemctl restart tgbot

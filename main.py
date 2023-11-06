@@ -1,3 +1,5 @@
+import os
+import sys
 import telebot
 from bots import dogyun_bot
 from bots.dogyun_bot import get_traffic_packet, lucky_draw_notice, balance_lack_notice
@@ -54,6 +56,11 @@ def scheduler_func():
 
 
 if __name__ == '__main__':
+    try:
+        tgbot_token = os.environ['TGBOT_TOKEN']
+    except:
+        pass
+
     thread1 = threading.Thread(target=dogyun_bot_func, daemon=True)
     thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
     thread3 = threading.Thread(target=tmdb_bot_func, daemon=True)
