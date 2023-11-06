@@ -57,11 +57,6 @@ def scheduler_func():
 
 
 if __name__ == '__main__':
-    try:
-        tgbot_token = os.environ['TGBOT_TOKEN']
-    except:
-        pass
-
     thread1 = threading.Thread(target=dogyun_bot_func, daemon=True)
     thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
     thread3 = threading.Thread(target=tmdb_bot_func, daemon=True)
