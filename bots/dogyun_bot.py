@@ -243,7 +243,8 @@ def bitwarden_backup(message):
     #     bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
     #     return
     try:
-        subprocess.call(f'nsenter -m -u -i -n -p -t 1 "{script}"', shell=True)
+        subprocess.call(f'nsenter -m -u -i -n -p -t 1', shell=True)
+        subprocess.call(script, shell=True)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
@@ -259,7 +260,7 @@ def exec_cmd(message):
     Args:
         message (_type_): _description_
     """
-    script = f'nsenter -m -u -i -n -p -t 1 "{message.text[10:]}"'
+    script = message.text[10:]
     if script in ['systemctl stop tgbot', 'systemctl restart tgbot', 'reboot']:
         bot.reply_to(message, '禁止执行该命令')
         return
@@ -270,6 +271,7 @@ def exec_cmd(message):
     #     bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
     #     return
     try:
+        subprocess.call(f'nsenter -m -u -i -n -p -t 1', shell=True)
         subprocess.call(script, shell=True)
     except:
         bot.reply_to(message, '执行命令报错')
