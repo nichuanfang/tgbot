@@ -31,6 +31,7 @@ def github_workflow_bot_func():
 def tmdb_bot_func():
     tmdb_bot.bot.remove_webhook()
     # 启动轮询
+
     tmdb_bot.bot.infinity_polling()
 
 
