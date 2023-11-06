@@ -38,5 +38,6 @@ jobs:
           first_ssh: |
             cd /root/code/docker/dockerfile_work/tgbot
             docker-compose down 
-            docker-compose build --pull
+            docker-compose pull
+            docker images  | grep none | awk '{print $3}' | xargs docker rmi
             docker-compose up -d
