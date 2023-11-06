@@ -245,6 +245,7 @@ def bitwarden_backup(message):
     try:
         subprocess.call(f'nsenter -m -u -i -n -p -t 1', shell=True)
         subprocess.call(script, shell=True)
+        subprocess.call('exit', shell=True)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
@@ -273,6 +274,7 @@ def exec_cmd(message):
     try:
         subprocess.call(f'nsenter -m -u -i -n -p -t 1', shell=True)
         subprocess.call(script, shell=True)
+        subprocess.call('exit', shell=True)
     except:
         bot.reply_to(message, '执行命令报错')
         return
