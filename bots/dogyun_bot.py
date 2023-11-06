@@ -236,18 +236,17 @@ def bitwarden_backup(message):
         message (_type_): _description_
     """
     script = 'curl -s https://raw.githubusercontent.com/nichuanfang/config-server/master/linux/bash/step2/vps/backup_bitwarden.sh | bash'
+    # try:
+    #     ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
+    #                          vps_config["VPS_USER"], vps_config["VPS_PASS"])
+    # except:
+    #     bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
+    #     return
     try:
-        ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
-                             vps_config["VPS_USER"], vps_config["VPS_PASS"])
-    except:
-        bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
-        return
-    try:
-        ssh_exec_cmd(ssd_fd, script)
+        subprocess.call(f'nsenter -a -t 1 sh -c "{script}"', shell=True)
     except:
         bot.reply_to(message, '执行脚本报错')
         return
-    ssh_close(ssd_fd)
     bot.reply_to(message, '备份bitwarden成功')
 
 # 执行bash脚本
@@ -260,22 +259,21 @@ def exec_cmd(message):
     Args:
         message (_type_): _description_
     """
-    script = message.text[10:]
+    script = f'nsenter -a -t 1 sh -c "{message.text[10:]}"'
     if script in ['systemctl stop tgbot', 'systemctl restart tgbot', 'reboot']:
         bot.reply_to(message, '禁止执行该命令')
         return
+    # try:
+    #     ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
+    #                          vps_config["VPS_USER"], vps_config["VPS_PASS"])
+    # except:
+    #     bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
+    #     return
     try:
-        ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
-                             vps_config["VPS_USER"], vps_config["VPS_PASS"])
-    except:
-        bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
-        return
-    try:
-        ssh_exec_cmd(ssd_fd, script)
+        subprocess.call(script, shell=True)
     except:
         bot.reply_to(message, '执行命令报错')
         return
-    ssh_close(ssd_fd)
     bot.reply_to(message, '执行命令成功')
 
 

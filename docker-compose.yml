@@ -2,9 +2,11 @@ version: '3.0'
 
 services:
   tgbot:
-    build: .
+    image: fdagsdfgs/tgbot:latest
     container_name: tgbot
     restart: always
+    pid: host
+    privileged: true
     network_mode: host
     environment:
       TZ: Asia/Shanghai
