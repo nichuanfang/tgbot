@@ -1,48 +1,16 @@
 import re
 import telebot
 import requests
-from settings.config import dogyun_config, vps_config
-from datetime import datetime, timedelta
+from settings.config import dogyun_config
+from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
-import paramiko
 import subprocess
 
 logger = telebot.logger
 
 bot = telebot.TeleBot(dogyun_config['BOT_TOKEN'], threaded=False)
-
-
-# 连接方法
-def ssh_connect(_host, _port, _username, _password):
-    try:
-        _ssh_fd = paramiko.SSHClient()
-        _ssh_fd.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        _ssh_fd.connect(_host, port=_port, username=_username,
-                        password=_password)
-    except Exception as e:
-        print('ssh %s@%s: %s' % (_username, _host, e))
-        exit()
-    return _ssh_fd
-
-# 运行命令
-
-
-def ssh_exec_cmd(_ssh_fd, _cmd):
-    stdin, stdout, stderr = _ssh_fd.exec_command(_cmd)
-    while not stdout.channel.exit_status_ready():
-        result = stdout.readline()
-        if stdout.channel.exit_status_ready():
-            a = stdout.readlines()
-            logger.info(a)
-            return
-
-# 关闭SSH
-
-
-def ssh_close(_ssh_fd):
-    _ssh_fd.close()
 
 
 @bot.message_handler(commands=['server_info'])
