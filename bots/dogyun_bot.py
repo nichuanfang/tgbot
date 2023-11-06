@@ -52,103 +52,43 @@ def get_server_status(message):
     Returns:
         _type_: _description_
     """
-    url = f'https://api.dogyun.com/cvm/server/{dogyun_config["DOGYUN_SERVER_ID"]}'
-    headers = {
-        'API-KEY': dogyun_config['DOGYUN_API_KEY']
-    }
-    # GET请求
-    try:
-        response = requests.get(url, headers=headers, verify=True)
-    except Exception as e:
-        bot.reply_to(message, f'获取服务器状态失败: {e.args[0]}')
-        return
-    # 获取返回的json数据
-    data = response.json()
-    # 获取服务器状态
-    if data['success']:
-        server_info = data['data']
-        # 获取服务器健康状态
-        health = server_info['health']
-        ip = server_info['ipv4']
-        # cpu
-        cpu = round(health['cpu']/health['maxcpu']*100, 2)
-        # 内存
-        memory = round(health['mem']/health['maxmem']*100, 2)
-        bot.reply_to(
-            message, f'IP:  {ip}\n状态:  {data["data"]["status"]}\nCPU:  {cpu}%\n内存:  {memory}%')
-    else:
-        bot.reply_to(message, '获取服务器状态失败')
-
-
-@bot.message_handler(commands=['traffic_info'])
-def send_traffic_info(message):
-    """流量详情
-
-    Args:
-        message (_type_): _description_
-    """
-    # url = f'https://api.dogyun.com/cvm/server/{dogyun_config["DOGYUN_SERVER_ID"]}/traffic'
-    url = f'https://cvm.dogyun.com/server/{dogyun_config["DOGYUN_SERVER_ID"]}/traffic/charts/last/day'
+    url = f'https://vm.dogyun.com/server/{dogyun_config["DOGYUN_SERVER_ID"]}'
     headers = {
         'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
         'Origin': 'https://cvm.dogyun.com',
-        'Referer': 'https://console.dogyun.com/turntable',
+        'Referer': 'https://cvm.dogyun.com',
         'Cookie': dogyun_config['DOGYUN_COOKIE']
     }
     try:
-        # GET请求
+        # 发送post请求
         response = requests.get(url, headers=headers, verify=True)
         if response.url == 'https://account.dogyun.com/login':
             # tg通知dogyun cookie已过期
             bot.send_message(
                 dogyun_config['CHAT_ID'], 'dogyun cookie已过期,请更新cookie! \n https://github.com/nichuanfang/tgbot/edit/main/settings/config.py')
             return
-        # 获取返回的json数据
-        data = response.json()
-        labels: list = data['labels']
-        datas: dict = data['datas']
     except Exception as e:
-        bot.reply_to(message, f'获取流量详情失败: {e.args[0]}')
+        logger.error(e)
         return
-    # 获取今天零点的字符串 格式为 月-日 00
-    # 获取今天的月份
-    month = datetime.now().strftime("%m")
-    # 获取今天的日期
-    day = datetime.now().strftime("%d")
-    zero_point = f'{month.zfill(2)}-{day.zfill(2)} 00'
-    # 获取labels中值为zero_point的索引
-    try:
-        zero_point_index = labels.index(zero_point)
-    except:
-        # 获取昨天的日期 月-日
-        yesterday_zero_point = (
-            datetime.now() - timedelta(days=1)).strftime("%m-%d 00")
-        zero_point_index = labels.index(yesterday_zero_point)
-    # 获取今天的流量
+    soup = BeautifulSoup(response.text, 'lxml')
+    # cpu
+    cpu = soup.find_all(
+        'div', class_='d-flex justify-content-between')[0].contents[1].contents[0]
+    # 内存
+    mem = soup.find_all(
+        'div', class_='d-flex justify-content-between')[1].contents[1].next
+    # 本日流量
+    curr_day_throughput = soup.find('span', class_='text-primary').text
+    # 剩余流量
+    rest_throughput = str(float(soup.find_all(
+        'div', class_='d-flex justify-content-between')[2].contents[3].next.split('/')[1].split(' ')[1]) - float(soup.find_all(
+            'div', class_='d-flex justify-content-between')[2].contents[3].next.split('/')[0].split(' ')[0])) + ' GB'
+    # 重置时间
+    reset_time = soup.find_all('div', class_='d-flex justify-content-between')[
+        2].contents[1].contents[1].text.split(' ')[0]
 
-    total_outputIn = 0
-    total_outputOut = 0
-    total_inputIn = 0
-    total_inputOut = 0
-    total = 0
-    # 对datas['outputIns']索引为zero_point_index之后的和 之后的每一个元素扣除500mb 小于0为0
-    for index, label in enumerate(labels[zero_point_index:]):
-        # 当前节点的主动流入
-        outputIn = datas['outputIns'][index+zero_point_index]
-        # 当前节点的主动流出
-        outputOut = datas['outputOuts'][index+zero_point_index]
-        # 当前节点的被动流入
-        inputIn = datas['inputIns'][index+zero_point_index]
-        # 当前节点的被动流出
-        inputOut = datas['inputOuts'][index+zero_point_index]
-        total_outputIn += outputIn
-        total_outputOut += outputOut
-        total_inputIn += inputIn
-        total_inputOut += inputOut
-        total += 0 if (outputIn + outputOut + inputOut + inputIn-500*1000 *
-                       1000) <= 0 else (outputIn + outputOut + inputOut + inputIn-500*1000*1000)
-    bot.reply_to(
-        message, f'总计:{round(total/1000/1000/1000,2)}GB\n\n主动流入:{round(total_outputIn/1000/1000,2)}MB\n主动流出:{round(total_outputOut/1000/1000,2)}MB\n被动流入:{round(total_inputIn/1000/1000,2)}MB\n被动流出:{round(total_inputOut/1000/1000,2)}MB')
+    status_message = f'CPU: {cpu}\n内存: {mem}\n本日流量: {curr_day_throughput}\n剩余流量: {rest_throughput}\n重置时间: {reset_time}'
+    bot.reply_to(message, status_message)
 
 
 @bot.message_handler(commands=['receive_monthly_benefits'])
@@ -286,29 +226,6 @@ def draw_lottery(message):
                 message, f'抽奖结果: 成功\n奖品: {prize_infos[0]["prizeName"]}\n状态: {prize_infos[0]["status"]}\n描述: {prize_infos[0]["descr"]}')
     else:
         bot.reply_to(message, f'抽奖失败: {data["message"]}')
-
-
-@bot.message_handler(commands=['update_xray_route'])
-def update_xray_route(message):
-    """更新xray客户端路由规则
-
-    Args:
-        message (_type_): _description_
-    """
-    script = 'curl -s https://raw.githubusercontent.com/nichuanfang/domestic-rules-generator/main/crontab.sh | bash'
-    try:
-        ssd_fd = ssh_connect(vps_config["VPS_HOST"], vps_config["VPS_PORT"],
-                             vps_config["VPS_USER"], vps_config["VPS_PASS"])
-    except:
-        bot.reply_to(message, f'无法连接到服务器{vps_config["VPS_HOST"]}')
-        return
-    try:
-        ssh_exec_cmd(ssd_fd, script)
-    except:
-        bot.reply_to(message, '执行脚本报错')
-        return
-    ssh_close(ssd_fd)
-    bot.reply_to(message, '更新xray客户端路由规则成功')
 
 
 @bot.message_handler(commands=['bitwarden_backup'])
