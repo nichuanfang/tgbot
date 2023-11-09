@@ -1,4 +1,4 @@
-FROM mirekphd/python3.11-ubuntu22.04
+FROM python:3.11-buster
 MAINTAINER ncf <f18326186224@gmail.com>
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG C.UTF-8
