@@ -6,7 +6,6 @@ COPY requirements.txt /tmp
 WORKDIR /tmp
 RUN  apt-get update \
      && apt-get autoclean \
-     && ln -s /usr/bin/pip3.11 /usr/bin/pip && ln -s /usr/bin/python3.11 /usr/bin/python \
      && pip install --upgrade pip \ 
      && pip install -r requirements.txt \
      && rm -rf /var/lib/apt/lists/* && rm /tmp/requirements.txt && mkdir -p /app
