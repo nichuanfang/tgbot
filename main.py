@@ -20,26 +20,41 @@ scheduler = BlockingScheduler()
 def dogyun_bot_func():
     dogyun_bot.bot.remove_webhook()
     # 启动轮询
-    dogyun_bot.bot.infinity_polling()
+    while (True):
+        try:
+            dogyun_bot.bot.infinity_polling()
+        except:
+            pass
 
 
 def github_workflow_bot_func():
     github_workflow_bot.bot.remove_webhook()
     # 启动轮询
-    github_workflow_bot.bot.infinity_polling()
+    while (True):
+        try:
+            github_workflow_bot.bot.infinity_polling()
+        except:
+            pass
 
 
 def tmdb_bot_func():
     tmdb_bot.bot.remove_webhook()
     # 启动轮询
-
-    tmdb_bot.bot.infinity_polling()
+    while (True):
+        try:
+            tmdb_bot.bot.infinity_polling()
+        except:
+            pass
 
 
 def train_bot_func():
     train_bot.bot.remove_webhook()
     # 启动轮询
-    train_bot.bot.infinity_polling()
+    while (True):
+        try:
+            train_bot.bot.infinity_polling()
+        except:
+            pass
 
 
 def scheduler_func():
