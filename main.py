@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import telebot
 from bots import dogyun_bot
 from bots.dogyun_bot import get_traffic_packet, lucky_draw_notice, balance_lack_notice
@@ -22,9 +23,9 @@ def dogyun_bot_func():
     # 启动轮询
     while (True):
         try:
-            dogyun_bot.bot.infinity_polling()
+            dogyun_bot.bot.polling()
         except:
-            pass
+            time.sleep(3)
 
 
 def github_workflow_bot_func():
@@ -32,9 +33,9 @@ def github_workflow_bot_func():
     # 启动轮询
     while (True):
         try:
-            github_workflow_bot.bot.infinity_polling()
+            github_workflow_bot.bot.polling()
         except:
-            pass
+            time.sleep(3)
 
 
 def tmdb_bot_func():
@@ -42,9 +43,9 @@ def tmdb_bot_func():
     # 启动轮询
     while (True):
         try:
-            tmdb_bot.bot.infinity_polling()
+            tmdb_bot.bot.polling()
         except:
-            pass
+            time.sleep(3)
 
 
 def train_bot_func():
@@ -52,9 +53,9 @@ def train_bot_func():
     # 启动轮询
     while (True):
         try:
-            train_bot.bot.infinity_polling()
+            train_bot.bot.polling()
         except:
-            pass
+            time.sleep(3)
 
 
 def scheduler_func():
