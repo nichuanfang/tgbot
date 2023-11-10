@@ -23,7 +23,8 @@ def dogyun_bot_func():
     # 启动轮询
     while (True):
         try:
-            dogyun_bot.bot.polling()
+            dogyun_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
+                'message', 'callback_query'], none_stop=True, interval=0, skip_pending=False)
         except:
             time.sleep(3)
 
@@ -33,7 +34,8 @@ def github_workflow_bot_func():
     # 启动轮询
     while (True):
         try:
-            github_workflow_bot.bot.polling()
+            github_workflow_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
+                'message', 'callback_query'], none_stop=True, interval=0, skip_pending=False)
         except:
             time.sleep(3)
 
@@ -43,7 +45,8 @@ def tmdb_bot_func():
     # 启动轮询
     while (True):
         try:
-            tmdb_bot.bot.polling()
+            tmdb_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
+                'message', 'callback_query'], none_stop=True, interval=0, skip_pending=False)
         except:
             time.sleep(3)
 
@@ -53,7 +56,8 @@ def train_bot_func():
     # 启动轮询
     while (True):
         try:
-            train_bot.bot.polling()
+            train_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
+                                  'message', 'callback_query'], none_stop=True, interval=0, skip_pending=False)
         except:
             time.sleep(3)
 
