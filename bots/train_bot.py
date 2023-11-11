@@ -20,7 +20,7 @@ logger = telebot.logger
 console = Console()
 
 # /root/code/tgbot  or  /app
-base_path = '/root/code/tgbot'
+base_path = '/app'
 
 # 通用请求头
 headers = {
