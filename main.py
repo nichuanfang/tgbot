@@ -21,45 +21,22 @@ scheduler = BlockingScheduler()
 def dogyun_bot_func():
     dogyun_bot.bot.remove_webhook()
     # 启动轮询
-    while (True):
-        try:
-            dogyun_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
-                'message', 'callback_query'], non_stop=True, interval=0, skip_pending=False)
-        except:
-            time.sleep(3)
+    dogyun_bot.bot.infinity_polling()
 
 
 def github_workflow_bot_func():
     github_workflow_bot.bot.remove_webhook()
-    # 启动轮询
-    while (True):
-        try:
-            github_workflow_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
-                'message', 'callback_query'], non_stop=True, interval=0, skip_pending=False)
-        except:
-            time.sleep(3)
+    github_workflow_bot.bot.infinity_polling()
 
 
 def tmdb_bot_func():
     tmdb_bot.bot.remove_webhook()
-    # 启动轮询
-    while (True):
-        try:
-            tmdb_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
-                'message', 'callback_query'], non_stop=True, interval=0, skip_pending=False)
-        except:
-            time.sleep(3)
+    tmdb_bot.bot.infinity_polling()
 
 
 def train_bot_func():
     train_bot.bot.remove_webhook()
-    # 启动轮询
-    while (True):
-        try:
-            train_bot.bot.polling(timeout=30, long_polling_timeout=60, allowed_updates=[
-                                  'message', 'callback_query'], non_stop=True, interval=0, skip_pending=False)
-        except:
-            time.sleep(3)
+    train_bot.bot.infinity_polling()
 
 
 def scheduler_func():
