@@ -3,8 +3,8 @@ MAINTAINER ncf <f18326186224@gmail.com>
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG C.UTF-8
 COPY requirements.txt /tmp
-# 修改默认dns
-COPY resolv.conf /etc/resolv.conf
+# 修改hosts文件
+COPY hosts /etc/hosts
 WORKDIR /tmp
 RUN  apt-get update \
      && apt-get autoclean \
