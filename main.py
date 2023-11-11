@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import telebot
+from telebot import apihelper
 from bots import dogyun_bot
 from bots.dogyun_bot import get_traffic_packet, lucky_draw_notice, balance_lack_notice
 from bots import github_workflow_bot
@@ -10,7 +11,9 @@ from bots import train_bot
 import logging
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
-
+apihelper.SESSION_TIME_TO_LIVE = None
+apihelper.MAX_RETRIES = 5
+apihelper.RETRY_DELAY = 10
 
 # 设置tg的日志
 logger = telebot.logger

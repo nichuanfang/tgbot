@@ -3,7 +3,6 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"
     },
-    "python.formatting.provider": "none",
     "yaml.schemas": {
         "https://json.schemastore.org/github-workflow.json": "file:///f%3A/workspace/python/tgbot/.github/workflows/deploy.yml"
     }
