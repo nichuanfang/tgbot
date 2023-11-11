@@ -281,7 +281,7 @@ def query_train_price(train_date: str, from_station_code, to_station_code):
     response = requests.get(request_url, headers=headers)
     if response.status_code != 200:
         return None
-    sleep(0.5)
+    sleep(0.1)
     return json.loads(response.text)['data']
 
 
@@ -449,7 +449,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
                         if station_index == 0:
                             first_sw_trains.append(train_info_new_result[0])
                     # 防止请求过于频繁
-                    sleep(0.5)
+                    sleep(0.1)
                     # handle(message, stations, new_result)
                 except Exception as e:
                     traceback.print_exc()
@@ -467,7 +467,7 @@ def handle(message, stations: dict, result: list[Train], train_date, train_time,
 
         if break_flag:
             break
-        sleep(0.5)
+        sleep(0.1)
     if len(collect_trains) < 4:
         # 过滤出left_filterd_result有票的车次
         left_filted_result_has_seat: list[Train] = []
@@ -957,7 +957,7 @@ def update_transit(from_station: str, to_station: str, stations):
                     # 加入中转站列表
                     transits.append(train_info_item['station_name'])
 
-            sleep(0.5)
+            sleep(0.1)
         console.log(f'更新{from_station}到{to_station}的中转节点成功!')
         return transits
     except:
@@ -1099,7 +1099,7 @@ def transit_query_handler(message, stations, from_station, to_station):
                     if start_collect_train.train_no != end_collect_train.train_no:
                         train_entries.append(
                             (transit_station, start_collect_train, end_collect_train))
-            sleep(0.5)
+            sleep(0.1)
         if break_flag:
             break
         sleep(1)
