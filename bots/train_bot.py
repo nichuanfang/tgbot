@@ -19,6 +19,9 @@ logger = telebot.logger
 
 console = Console()
 
+# /root/code/tgbot  or  /app
+base_path = '/app'
+
 # 通用请求头
 headers = {
     'Accept': '*/*',
@@ -125,7 +128,7 @@ def load_stations():
         _type_: _description_
     """
     # /root/code/tgbot/
-    with open('/app/stations.json', 'r', encoding='utf-8') as f:
+    with open(f'{base_path}/stations.json', 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -142,7 +145,7 @@ def update_station(url: str):
     stations = re.findall(u'([\u4e00-\u9fa5]+)\|([A-Z]+)', response.text)
     stations = dict(stations)
     # 保存为文件
-    with open('/app/stations.json', 'w', encoding='utf-8') as f:
+    with open(f'{base_path}/stations.json', 'w', encoding='utf-8') as f:
         json.dump(stations, f, ensure_ascii=False)
     return stations
 
@@ -968,7 +971,7 @@ def load_transit_stations(from_station: str, to_station: str):
     if from_station == to_station:
         return []
     try:
-        with open('/app/transit_stations.json', 'r+', encoding='utf-8') as f:
+        with open(f'{base_path}/transit_stations.json', 'r+', encoding='utf-8') as f:
             raw_transit_stations: list = json.load(f)
     except:
         return []
@@ -986,15 +989,15 @@ def cache_transit_stations(from_station: str, to_station: str, transit_stations:
         'transit_stations': transit_stations
     }
     # 文件不存在创建
-    if not os.path.exists('/app/transit_stations.json'):
-        with open('/app/transit_stations.json', 'w+', encoding='utf-8') as f:
+    if not os.path.exists(f'{base_path}/transit_stations.json'):
+        with open(f'{base_path}/transit_stations.json', 'w+', encoding='utf-8') as f:
             json.dump([transit_stations_dict], f, ensure_ascii=False)
     else:
-        with open('/app/transit_stations.json', 'r+', encoding='utf-8') as f:
+        with open(f'{base_path}/transit_stations.json', 'r+', encoding='utf-8') as f:
             raw_transit_stations: list = json.load(f)
 
         raw_transit_stations.append(transit_stations_dict)
-        with open('/app/transit_stations.json', 'w+', encoding='utf-8') as f:
+        with open(f'{base_path}/transit_stations.json', 'w+', encoding='utf-8') as f:
             json.dump(raw_transit_stations, f, ensure_ascii=False)
     return transit_stations
 
