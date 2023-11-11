@@ -26,10 +26,6 @@ jobs:
           repository: tgbot
           tag: latest
 
-      # docker-compose down
-      # docker-compose pull
-      # docker images  | grep none | awk '{print $3}' | xargs docker rmi
-      # docker-compose up -d
       - name: 更新tgbot
         uses: cross-the-world/ssh-scp-ssh-pipelines@latest
         continue-on-error: true
@@ -41,5 +37,7 @@ jobs:
           connect_timeout: 10s
           first_ssh: |
             cd /root/code/docker/dockerfile_work/tgbot
-            git checkout .
-            git pull
+            docker-compose down 
+            docker-compose pull
+            docker images  | grep none | awk '{print $3}' | xargs docker rmi
+            docker-compose up -d
