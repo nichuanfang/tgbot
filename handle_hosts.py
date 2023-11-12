@@ -2,6 +2,9 @@
 import yaml
 from dns import resolver
 
+special_hosts = ['kyfw.12306.cn', 'api.telegram.org']
+
+
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
 with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'r+', encoding='utf-8') as f:
     content = f.read()
@@ -10,12 +13,17 @@ with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'r+', encoding='utf
 
 extra_hosts = []
 
-# 通过dns模块解析特定的域名
-record = resolver.query("kyfw.12306.cn", "A")
-answers = record.rrset.items
-
-for answer in answers:
-    extra_hosts.append(f'kyfw.12306.cn:{answer.address}')
+for special_host in special_hosts:
+    # 通过dns模块解析特定的域名
+    if special_host == 'api.telegram.org':
+        type = ['A', 'AAAA']
+    else:
+        type = ['A']
+    for t in type:
+        record = resolver.query(f"{special_host}", f"{t}")
+        answers = record.rrset.items
+        for answer in answers:
+            extra_hosts.append(f'{special_host}:{answer.address}')
 # 对extra_hosts去重
 extra_hosts = list(set(extra_hosts))
 
