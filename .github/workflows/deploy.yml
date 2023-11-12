@@ -10,13 +10,6 @@ jobs:
       contents: write
       packages: write
     steps:
-      # 设置python环境
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-          cache: pip
-
       - name: Checkout Repo
         uses: actions/checkout@v2
         with:
@@ -30,6 +23,13 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           path: 'docker'
           fetch-depth: 0
+
+      # 设置python环境
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          cache: pip
 
       # 设置hosts
       - name: Set hosts
