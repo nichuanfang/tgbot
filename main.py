@@ -12,8 +12,7 @@ import logging
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
 apihelper.SESSION_TIME_TO_LIVE = None
-apihelper.MAX_RETRIES = 5
-apihelper.RETRY_DELAY = 10
+apihelper.MAX_RETRIES = 0
 
 # 设置tg的日志
 logger = telebot.logger

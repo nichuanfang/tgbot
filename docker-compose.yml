@@ -1,5 +1,4 @@
 version: '3.0'
-
 services:
   tgbot:
     image: fdagsdfgs/tgbot:latest
@@ -10,4 +9,7 @@ services:
     network_mode: host
     environment:
       TZ: Asia/Shanghai
-      TGBOT_TOKEN:
+      TGBOT_TOKEN: null
+    extra_hosts:
+      - 113.24.194.73 kyfw.12306.cn
+      - 1.1.1.1 www.baidu.com
