@@ -1,5 +1,6 @@
 # 处理hosts文件
 import yaml
+from dns import resolver
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
 with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'r+', encoding='utf-8') as f:
@@ -8,22 +9,16 @@ with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'r+', encoding='utf
         content, Loader=yaml.FullLoader)
 
 extra_hosts = []
-with open('hosts', 'r') as f:
-    lines = f.readlines()
-    for line in lines:
-        if line.startswith('#'):
-            continue
-        else:
-            line = line.strip()
-            if line:
-                host_ip_entry = line.split(' ')
-                if len(host_ip_entry) != 2:
-                    raise Exception('hosts文件格式错误')
-                else:
-                    host_ip = host_ip_entry[0]
-                    host_name = host_ip_entry[1]
-                    # 如果yaml_content['services']['tgbot']['extra_hosts']不存在，则创建
-                    extra_hosts.append(f'{host_name}:{host_ip} ')
+
+# 通过dns模块解析特定的域名
+record = resolver.query("kyfw.12306.cn", "A")
+answers = record.rrset.items
+
+for answer in answers:
+    extra_hosts.append(f'kyfw.12306.cn:{answer.address}')
+# 对extra_hosts去重
+extra_hosts = list(set(extra_hosts))
+
 yaml_content['services']['tgbot']['extra_hosts'] = extra_hosts
 # 更新docker-compose.yml
 with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'w+', encoding='utf-8') as f:
