@@ -2,12 +2,12 @@
 import yaml
 from dns import resolver
 
-special_hosts = ['kyfw.12306.cn', '', 'api.telegram.org',
-                 'cvm.dogyun.com', 'account.dogyun.com', 'api.github.com', 'api.themoviedb.org']
+special_hosts = ['kyfw.12306.cn', 'api.telegram.org', 'cvm.dogyun.com',
+                 'account.dogyun.com', 'api.github.com', 'api.themoviedb.org']
 
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
-with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'r+', encoding='utf-8') as f:
+with open('docker-compose.yml', 'r+', encoding='utf-8') as f:
     content = f.read()
     yaml_content = yaml.load(
         content, Loader=yaml.FullLoader)
@@ -21,7 +21,10 @@ for special_host in special_hosts:
     else:
         type = ['A']
     for t in type:
-        record = resolver.query(f"{special_host}", f"{t}")
+        try:
+            record = resolver.query(f"{special_host}", f"{t}")
+        except:
+            continue
         answers = record.rrset.items
         for answer in answers:
             extra_hosts.append(f'{special_host}:{answer.address}')
