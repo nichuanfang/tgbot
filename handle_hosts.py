@@ -18,6 +18,8 @@ for special_host in special_hosts:
     # 通过dns模块解析特定的域名
     if special_host in ['api.telegram.org', 'api.themoviedb.org']:
         type = ['A', 'AAAA']
+    else:
+        type = ['A']
     for t in type:
         record = resolver.query(f"{special_host}", f"{t}")
         answers = record.rrset.items
