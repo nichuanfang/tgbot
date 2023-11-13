@@ -65,7 +65,7 @@ def update_cookie(message):
     # 更新cookie
     dogyun_cookie = message.text
     if len(dogyun_cookie) != 48:
-        message.reply_to(message, 'cookie格式错误')
+        bot.reply_to(message, 'cookie格式错误')
         return
 
     # 更新tgbot的dogyun cookie
