@@ -80,6 +80,10 @@ def update_cookie(message):
     config_file.close()
     config_content = re.sub(
         r'SESSION=.{48}', f'SESSION={dogyun_cookie}', config_content)
+    # 保存
+    config_file = open('settings/config.py', 'w', encoding='utf-8')
+    config_file.write(config_content)
+    config_file.close()
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
 
@@ -110,6 +114,10 @@ def update_server_id(message):
     config_file.close()
     config_content = re.sub(
         r"'DOGYUN_SERVER_ID':\s*'\d+'", f'"DOGYUN_SERVER_ID": "{server_id}"', config_content)
+    # 保存
+    config_file = open('settings/config.py', 'w', encoding='utf-8')
+    config_file.write(config_content)
+    config_file.close()
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
 
