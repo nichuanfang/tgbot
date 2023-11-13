@@ -64,7 +64,7 @@ def get_server_status(message):
 def update_cookie(message):
     # 更新cookie
     dogyun_cookie = message.text
-    if not dogyun_cookie.startswith('SESSION=') or len(dogyun_cookie) != 48:
+    if len(dogyun_cookie) != 48:
         message.reply_to(message, 'cookie格式错误')
         return
 
