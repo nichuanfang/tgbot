@@ -2,7 +2,8 @@
 import yaml
 from dns import resolver
 
-special_hosts = ['kyfw.12306.cn', 'api.telegram.org']
+special_hosts = ['kyfw.12306.cn', '', 'api.telegram.org',
+                 'cvm.dogyun.com', 'account.dogyun.com', 'api.github.com', 'api.themoviedb.org']
 
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
@@ -15,10 +16,8 @@ extra_hosts = []
 
 for special_host in special_hosts:
     # 通过dns模块解析特定的域名
-    if special_host == 'api.telegram.org':
+    if special_host in ['api.telegram.org', 'api.themoviedb.org']:
         type = ['A', 'AAAA']
-    else:
-        type = ['A']
     for t in type:
         record = resolver.query(f"{special_host}", f"{t}")
         answers = record.rrset.items
