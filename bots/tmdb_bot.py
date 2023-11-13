@@ -66,6 +66,8 @@ def search_movie(message):
     Returns:
         _type_: _description_
     """
+    if message.text.strip() == '/movie_search':
+        return bot.reply_to(message, '请输入电影名称!')
     movie_text = '*电影结果:*\n'
     movie_search = movie.search(message.text[14:])
     for movie_res in movie_search.results:
@@ -93,6 +95,8 @@ def search_tv(message):
     Returns:
         _type_: _description_
     """
+    if message.text.strip() == '/tv_search':
+        return bot.reply_to(message, '请输入剧集名称!')
     tv_text = '*剧集结果:*\n'
     tv_search = tv.search(message.text[11:])
     for tv_res in tv_search.results:
