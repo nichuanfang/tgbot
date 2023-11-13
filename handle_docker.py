@@ -5,8 +5,7 @@ from dns import resolver
 
 TGBOT_TOKEN = sys.argv[1]
 
-special_hosts = ['kyfw.12306.cn', 'api.telegram.org', 'cvm.dogyun.com',
-                 'account.dogyun.com', 'api.github.com', 'api.themoviedb.org']
+special_hosts = ['kyfw.12306.cn', 'api.telegram.org']
 
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
@@ -19,7 +18,7 @@ extra_hosts = []
 
 for special_host in special_hosts:
     # 通过dns模块解析特定的域名
-    if special_host in ['api.telegram.org', 'api.themoviedb.org']:
+    if special_host in ['api.telegram.org']:
         type = ['A', 'AAAA']
     else:
         type = ['A']
