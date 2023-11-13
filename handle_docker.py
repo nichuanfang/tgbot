@@ -5,7 +5,8 @@ from dns import resolver
 
 TGBOT_TOKEN = sys.argv[1]
 
-special_hosts = ['kyfw.12306.cn', 'api.telegram.org']
+special_hosts = ['kyfw.12306.cn', 'api.telegram.org',
+                 'console.dogyun.com', 'vm.dogyun.com']
 
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml

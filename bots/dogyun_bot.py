@@ -25,8 +25,8 @@ def get_server_status(message):
     url = f'https://vm.dogyun.com/server/{dogyun_config["DOGYUN_SERVER_ID"]}'
     headers = {
         'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
-        'Origin': 'https://cvm.dogyun.com',
-        'Referer': 'https://cvm.dogyun.com',
+        'Origin': 'https://vm.dogyun.com',
+        'Referer': 'https://vm.dogyun.com',
         'Cookie': dogyun_config['DOGYUN_COOKIE']
     }
     try:
@@ -137,7 +137,7 @@ def receive_monthly_benefits(message):
     Args:
         message (_type_): _description_
     """
-    url = f'https://cvm.dogyun.com/traffic/package/level'
+    url = f'https://vm.dogyun.com/traffic/package/level'
     headers = {
         'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
         'Origin': 'https://cvm.dogyun.com',
@@ -165,7 +165,7 @@ def receive_monthly_benefits(message):
 def query_package(message):
     """查询流量包
     """
-    url = f'https://cvm.dogyun.com/traffic/package/page'
+    url = f'https://vm.dogyun.com/traffic/package/page'
     headers = {
         'X-Csrf-Token': dogyun_config['DOGYUN_CSRF_TOKEN'],
         'Origin': 'https://cvm.dogyun.com',
