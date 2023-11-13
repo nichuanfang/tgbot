@@ -7,7 +7,7 @@ special_hosts = ['kyfw.12306.cn', 'api.telegram.org', 'cvm.dogyun.com',
 
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
-with open('docker-compose.yml', 'r+', encoding='utf-8') as f:
+with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'r+', encoding='utf-8') as f:
     content = f.read()
     yaml_content = yaml.load(
         content, Loader=yaml.FullLoader)
