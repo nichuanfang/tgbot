@@ -22,7 +22,7 @@ for special_host in special_hosts:
         type = ['A']
     for t in type:
         try:
-            record = resolver.query(f"{special_host}", f"{t}")
+            record = resolver.resolve(f"{special_host}", f"{t}")
         except:
             continue
         answers = record.rrset.items
