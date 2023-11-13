@@ -40,25 +40,28 @@ def get_server_status(message):
     except Exception as e:
         logger.error(e)
         return
-    soup = BeautifulSoup(response.text, 'lxml')
-    # cpu
-    cpu = soup.find_all(
-        'div', class_='d-flex justify-content-between')[0].contents[1].contents[0]
-    # 内存
-    mem = soup.find_all(
-        'div', class_='d-flex justify-content-between')[1].contents[1].next
-    # 本日流量
-    curr_day_throughput = soup.find('span', class_='text-primary').text
-    # 剩余流量
-    rest_throughput = str(float(soup.find_all(
-        'div', class_='d-flex justify-content-between')[2].contents[3].next.split('/')[1].split(' ')[1]) - float(soup.find_all(
-            'div', class_='d-flex justify-content-between')[2].contents[3].next.split('/')[0].split(' ')[0])) + ' GB'
-    # 重置时间
-    reset_time = soup.find_all('div', class_='d-flex justify-content-between')[
-        2].contents[1].contents[1].text.split(' ')[0]
+    try:
+        soup = BeautifulSoup(response.text, 'lxml')
+        # cpu
+        cpu = soup.find_all(
+            'div', class_='d-flex justify-content-between')[0].contents[1].contents[0]
+        # 内存
+        mem = soup.find_all(
+            'div', class_='d-flex justify-content-between')[1].contents[1].next
+        # 本日流量
+        curr_day_throughput = soup.find('span', class_='text-primary').text
+        # 剩余流量
+        rest_throughput = str(float(soup.find_all(
+            'div', class_='d-flex justify-content-between')[2].contents[3].next.split('/')[1].split(' ')[1]) - float(soup.find_all(
+                'div', class_='d-flex justify-content-between')[2].contents[3].next.split('/')[0].split(' ')[0])) + ' GB'
+        # 重置时间
+        reset_time = soup.find_all('div', class_='d-flex justify-content-between')[
+            2].contents[1].contents[1].text.split(' ')[0]
 
-    status_message = f'CPU: {cpu}\n内存: {mem}\n本日流量: {curr_day_throughput}\n剩余流量: {rest_throughput}\n重置时间: {reset_time}'
-    bot.reply_to(message, status_message)
+        status_message = f'CPU: {cpu}\n内存: {mem}\n本日流量: {curr_day_throughput}\n剩余流量: {rest_throughput}\n重置时间: {reset_time}'
+        bot.reply_to(message, status_message)
+    except:
+        bot.reply_to(message, '获取服务器状态失败')
 
 
 @bot.message_handler(commands=['update_cookie'])
@@ -87,6 +90,36 @@ def update_cookie(message):
     requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
                   data=json.dumps({"event_type": "update_cookie", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
     bot.reply_to(message, '已触发工作流: 更新cookie')
+
+
+@bot.message_handler(commands=['update_server_id'])
+def update_server_id(message):
+    """更新dogyun server_id
+
+    Args:
+        message (_type_): _description_
+    """
+    if message.text.strip() == '/update_server_id':
+        bot.reply_to(message, 'server_id不能为空!')
+        return
+    # 更新cookie
+    server_id = message.text[15:].strip()
+    dogyun_config['DOGYUN_SERVER_ID'] = server_id
+    config_file = open('settings/config.py', 'r+', encoding='utf-8')
+    config_content = config_file.read()
+    config_file.close()
+    config_content = re.sub(
+        r"'DOGYUN_SERVER_ID':\s*'\d+'", f'"DOGYUN_SERVER_ID": "{server_id}"', config_content)
+    # 将config.py进行base64编码
+    tgbot_token = base64.b64encode(config_content.encode()).decode()
+
+    header = {
+        'Accept': 'application/vnd.github.everest-preview+json',
+        'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
+    }
+    requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
+                  data=json.dumps({"event_type": "update_cookie", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
+    bot.reply_to(message, '已触发工作流: 更新server_id')
 
 
 @bot.message_handler(commands=['receive_monthly_benefits'])
