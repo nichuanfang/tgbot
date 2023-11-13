@@ -189,7 +189,11 @@ def draw_lottery(message):
         logger.error(e)
         return
     # 获取抽奖结果
-    result = data['success']
+    try:
+        result = data['success']
+    except:
+        bot.reply_to(message, '目前没有抽奖活动')
+        return
     if result:
         # 查看奖品
         prize_url = f'https://console.dogyun.com/turntable/prize/page'
