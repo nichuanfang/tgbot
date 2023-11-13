@@ -86,7 +86,7 @@ def update_cookie(message):
     config_file.close()
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
-    bot.reply_to(message, f'修改后的tgbot_token为:\n\n{tgbot_token}')
+    # bot.reply_to(message, f'修改后的tgbot_token为:\n\n{tgbot_token}')
 
     header = {
         'Accept': 'application/vnd.github.everest-preview+json',
@@ -121,7 +121,7 @@ def update_server_id(message):
     config_file.close()
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
-    bot.reply_to(message, f'修改后的tgbot_token为:\n\n{tgbot_token}')
+    # bot.reply_to(message, f'修改后的tgbot_token为:\n\n{tgbot_token}')
 
     header = {
         'Accept': 'application/vnd.github.everest-preview+json',
