@@ -67,21 +67,16 @@ def update_cookie(message):
         bot.reply_to(message, 'cookie不能为空!')
         return
     # 更新cookie
-    dogyun_cookie = message.text[14:].strip()
+    dogyun_cookie = message.text[15:].strip()
     if len(dogyun_cookie) != 48:
         bot.reply_to(message, 'cookie格式错误')
         return
-    dogyun_config['DOGYUN_COOKIE'] = dogyun_cookie
-    # 将dogyun_config, github_config, tmdb_config, train_config 写入config.py 将config.py进行base64编码 获取编码后的内容
+    dogyun_config['DOGYUN_COOKIE'] = f'SESSION={dogyun_cookie}'
     config_file = open('settings/config.py', 'r+', encoding='utf-8')
     config_content = config_file.read()
     config_file.close()
     config_content = re.sub(
         r'SESSION=.{48}', f'SESSION={dogyun_cookie}', config_content)
-    # 更新settings/config.py
-    config_file = open('settings/config.py', 'w+', encoding='utf-8')
-    config_file.write(config_content)
-    config_file.close()
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
 
@@ -265,7 +260,10 @@ def exec_cmd(message):
     Args:
         message (_type_): _description_
     """
-    script = message.text[10:]
+    if message.text.strip() == '/exec_cmd':
+        bot.reply_to(message, '请输入命令!')
+        return
+    script = message.text[10:].strip()
     if script in ['systemctl stop tgbot', 'systemctl restart tgbot', 'reboot']:
         bot.reply_to(message, '禁止执行该命令')
         return
