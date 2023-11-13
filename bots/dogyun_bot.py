@@ -63,7 +63,7 @@ def get_server_status(message):
 @bot.message_handler(commands=['update_cookie'])
 def update_cookie(message):
     # 更新cookie
-    dogyun_cookie = message.text
+    dogyun_cookie = message.text[14:]
     if len(dogyun_cookie) != 48:
         bot.reply_to(message, 'cookie格式错误')
         return
