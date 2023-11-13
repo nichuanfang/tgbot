@@ -126,7 +126,7 @@ def update_server_id(message):
         'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
     }
     requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
-                  data=json.dumps({"event_type": "update_cookie", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
+                  data=json.dumps({"event_type": "update_server_id", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
     bot.reply_to(message, '已触发工作流: 更新server_id')
 
 
