@@ -59,8 +59,17 @@ jobs:
 
       # 同步tgbot_token设置hosts
       - name: Convert docker-compose file
+        if: github.event_name != 'repository_dispatch'
         env:
           TGBOT_TOKEN: ${{ secrets.TGBOT_TOKEN }}
+        run: |
+          python handle_docker.py $TGBOT_TOKEN
+
+      # 同步tgbot_token设置hosts(更新cookie专用)   TGBOT_TOKEN密钥虽然更新 但 ${{ secrets.TGBOT_TOKEN }}取的还是旧值
+      - name: Convert docker-compose file
+        if: github.event_name == 'repository_dispatch'
+        env:
+          TGBOT_TOKEN: ${{ github.event.client_payload.tgbot_token }}
         run: |
           python handle_docker.py $TGBOT_TOKEN
 
