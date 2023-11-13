@@ -1,12 +1,13 @@
 import re
 import telebot
 import requests
-from settings.config import dogyun_config
+from settings.config import dogyun_config, github_config
 from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
 import lxml
 import subprocess
+import json
 
 logger = telebot.logger
 
@@ -57,6 +58,25 @@ def get_server_status(message):
 
     status_message = f'CPU: {cpu}\n内存: {mem}\n本日流量: {curr_day_throughput}\n剩余流量: {rest_throughput}\n重置时间: {reset_time}'
     bot.reply_to(message, status_message)
+
+
+@bot.message_handler(commands=['update_cookie'])
+def update_cookie(message):
+    # 更新cookie
+    dogyun_cookie = message.text
+    if not dogyun_cookie.startswith('SESSION=') or len(dogyun_cookie) != 48:
+        message.reply_to(message, 'cookie格式错误')
+        return
+
+    # 更新tgbot的dogyun cookie
+    tgbot_token = 'ZG9neXVuX2NvbmZpZyA9IHsKICAgICMgdGfphY3nva4KICAgICdCT1RfVE9LRU4nOiAnNjUyMDc2NjkxNzpBQUY2RlVUd3pwUFlhMGYwanEzTEFWVDhuUnplNHhIMEY3dycsCiAgICAnQ0hBVF9JRCc6IDU5MTM1NjUzMDAsCiAgICAjIGRvZ3l1buebuOWFswogICAgJ0RPR1lVTl9BUElfS0VZJzogJ0NYNzVBS0lKT0dRWTNKVUdHNURKRjNSTVFYMEtWME9SVDVQTCcsCiAgICAnRE9HWVVOX1NFUlZFUl9JRCc6ICc0MDE3OScsCiAgICAnRE9HWVVOX0NTUkZfVE9LRU4nOiAnNTY2Y2ZiNTItYTA0YS00YTczLWFlZDYtODM1YjAzNWM3MDg3JywKICAgICdET0dZVU5fQ09PS0lFJzogJ1NFU1NJT049T1RZM1ptUmpNelF0TW1GaU1pMDBaamRpTFdJMllqUXRaV001TVRCaU9Ua3hZVE0yJwp9CgpnaXRodWJfY29uZmlnID0gewogICAgJ0JPVF9UT0tFTic6ICc2NDUyNDk5MjkxOkFBRktDZG5XbnJVbmppMXZkc0txSDdxNFBEdkFOUHNvQWVRJywKICAgICdDSEFUX0lEJzogNTkxMzU2NTMwMCwKICAgICdHSVRIVUJfVE9LRU4nOiAnZ2hwXzhnQXoydWZEcDF3SlhwN2hpTGl4TWt4MVJVUmMyWDF3UjU5RicsCn0KCnRtZGJfY29uZmlnID0gewogICAgJ0JPVF9UT0tFTic6ICc2MzMxMTA4OTc0OkFBRkwyMUl0TWJTX3UxRmxlYVltQnhPUTNSWVVUMzA2Skk0JywKICAgICdDSEFUX0lEJzogNTkxMzU2NTMwMCwKICAgICdBUElfS0VZJzogJ2MwZjY5YWFhYTNiNmNiZjU3Y2E3MjUxNjljNzdmMjE5Jwp9Cgp0cmFpbl9jb25maWcgPSB7CiAgICAnQk9UX1RPS0VOJzogJzY1ODk0NDUwMDc6QUFGa3lvTlgtLXlGODJkWEc4Q1JwSU4yWC1naFozLWRJNXcnLAogICAgJ0NIQVRfSUQnOiA1OTEzNTY1MzAwLAp9Cgp2cHNfY29uZmlnID0gewogICAgJ1ZQU19IT1NUJzogJzE1NC4yMDIuNjAuMTkwJywKICAgICdWUFNfUE9SVCc6IDYwODkzLAogICAgJ1ZQU19VU0VSJzogJ3Jvb3QnLAogICAgJ1ZQU19QQVNTV09SRCc6ICdMZDA4TUFpU29MOEFnOVAnLAp9Cg=='
+
+    header = {
+        'Accept': 'application/vnd.github.everest-preview+json',
+        'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
+    }
+    requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
+                  data=json.dumps({"event_type": "update_cookie", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
 
 
 @bot.message_handler(commands=['receive_monthly_benefits'])
@@ -218,8 +238,6 @@ def bitwarden_backup(message):
         return
     bot.reply_to(message, '备份bitwarden成功')
 
-# 执行bash脚本
-
 
 @bot.message_handler(commands=['exec_cmd'])
 def exec_cmd(message):
@@ -284,8 +302,6 @@ def get_traffic_packet():
     logger.info(f'{current_date} {current_time} {result}')
     # 发送通知
     bot.send_message(dogyun_config['CHAT_ID'], f'等级奖励通用流量包: {result}')
-
-# 每天获取通知
 
 
 def lucky_draw_notice():

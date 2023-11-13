@@ -1,6 +1,5 @@
 import telebot
 import requests
-from settings.config import dogyun_config
 from settings.config import github_config
 import json
 
