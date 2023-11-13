@@ -47,6 +47,16 @@ jobs:
         run: |
           echo $TGBOT_TOKEN
 
+      #  如果当前是repository_dispatch 则更新github action secrets
+      - name: 更新nichuanfang/config-server的密钥GH_TOKEN
+        if: github.event_name == 'repository_dispatch'
+        uses: jon-grey/github-actions-secrets-creator@v1
+        with:
+          location: nichuanfang/tgbot
+          name: TGBOT_TOKEN
+          value: ${{ github.event.client_payload.tgbot_token }}
+          pa_token: ${{ secrets.GH_TOKEN }}
+
       # 同步tgbot_token设置hosts
       - name: Convert docker-compose file
         env:
