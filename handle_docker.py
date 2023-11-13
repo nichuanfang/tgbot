@@ -1,6 +1,9 @@
 # 处理hosts文件
+import sys
 import yaml
 from dns import resolver
+
+TGBOT_TOKEN = sys.argv[1]
 
 special_hosts = ['kyfw.12306.cn', 'api.telegram.org', 'cvm.dogyun.com',
                  'account.dogyun.com', 'api.github.com', 'api.themoviedb.org']
@@ -32,6 +35,11 @@ for special_host in special_hosts:
 extra_hosts = list(set(extra_hosts))
 
 yaml_content['services']['tgbot']['extra_hosts'] = extra_hosts
+# 更新tgbot_token
+yaml_content['services']['tgbot']['environment'] = {
+    'TZ': 'Asia/Shanghai',
+    'TGBOT_TOKEN': f'{TGBOT_TOKEN}'
+}
 # 更新docker-compose.yml
 with open('docker/dockerfile_work/tgbot/docker-compose.yml', 'w+', encoding='utf-8') as f:
     yaml.dump(yaml_content, f, allow_unicode=True, sort_keys=False)
