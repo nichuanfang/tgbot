@@ -114,7 +114,7 @@ def update_server_id(message):
     config_content = config_file.read()
     config_file.close()
     config_content = re.sub(
-        r"'DOGYUN_SERVER_ID':\s*'\d+'", f'"DOGYUN_SERVER_ID": "{server_id}"', config_content)
+        r'.{1}DOGYUN_SERVER_ID.{1}:\s*.{1}\d+.{1}', f'"DOGYUN_SERVER_ID": "{server_id}"', config_content)
     # 保存
     config_file = open('settings/config.py', 'w', encoding='utf-8')
     config_file.write(config_content)
