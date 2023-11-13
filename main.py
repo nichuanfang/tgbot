@@ -44,8 +44,8 @@ def train_bot_func():
 
 def scheduler_func():
     # 每月7号获取流量包
-    scheduler.add_job(get_traffic_packet, 'cron', id='get_traffic_packet',
-                      month='*', day='7', hour='9', minute='0', second='0')
+    # scheduler.add_job(get_traffic_packet, 'cron', id='get_traffic_packet',
+    #                   month='*', day='7', hour='9', minute='0', second='0')
     # 每天9点通知抽奖活动
     scheduler.add_job(lucky_draw_notice, 'cron', id='lucky_draw_notice',
                       month='*', day='*', hour='9', minute='0', second='0')
