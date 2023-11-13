@@ -103,7 +103,7 @@ def update_server_id(message):
         bot.reply_to(message, 'server_id不能为空!')
         return
     # 更新cookie
-    server_id = message.text[15:].strip()
+    server_id = message.text[18:].strip()
     dogyun_config['DOGYUN_SERVER_ID'] = server_id
     config_file = open('settings/config.py', 'r+', encoding='utf-8')
     config_content = config_file.read()
