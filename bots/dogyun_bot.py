@@ -63,7 +63,7 @@ def get_server_status(message):
 @bot.message_handler(commands=['update_cookie'])
 def update_cookie(message):
     # 更新cookie
-    dogyun_cookie = message.text[15:]
+    dogyun_cookie = message.text[14:].strip()
     if len(dogyun_cookie) != 48:
         bot.reply_to(message, 'cookie格式错误')
         return
@@ -77,6 +77,7 @@ def update_cookie(message):
     }
     requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
                   data=json.dumps({"event_type": "update_cookie", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
+    bot.reply_to(message, '已触发工作流: 更新cookie')
 
 
 @bot.message_handler(commands=['receive_monthly_benefits'])
