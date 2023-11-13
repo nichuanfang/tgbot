@@ -1,7 +1,8 @@
+import base64
 import re
 import telebot
 import requests
-from settings.config import dogyun_config, github_config
+from settings.config import dogyun_config, github_config, tmdb_config, train_config
 from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
@@ -67,9 +68,14 @@ def update_cookie(message):
     if len(dogyun_cookie) != 48:
         bot.reply_to(message, 'cookie格式错误')
         return
-
-    # 更新tgbot的dogyun cookie
-    tgbot_token = 'ZG9neXVuX2NvbmZpZyA9IHsKICAgICMgdGfphY3nva4KICAgICdCT1RfVE9LRU4nOiAnNjUyMDc2NjkxNzpBQUY2RlVUd3pwUFlhMGYwanEzTEFWVDhuUnplNHhIMEY3dycsCiAgICAnQ0hBVF9JRCc6IDU5MTM1NjUzMDAsCiAgICAjIGRvZ3l1buebuOWFswogICAgJ0RPR1lVTl9BUElfS0VZJzogJ0NYNzVBS0lKT0dRWTNKVUdHNURKRjNSTVFYMEtWME9SVDVQTCcsCiAgICAnRE9HWVVOX1NFUlZFUl9JRCc6ICc0MDE3OScsCiAgICAnRE9HWVVOX0NTUkZfVE9LRU4nOiAnNTY2Y2ZiNTItYTA0YS00YTczLWFlZDYtODM1YjAzNWM3MDg3JywKICAgICdET0dZVU5fQ09PS0lFJzogJ1NFU1NJT049T1RZM1ptUmpNelF0TW1GaU1pMDBaamRpTFdJMllqUXRaV001TVRCaU9Ua3hZVE0yJwp9CgpnaXRodWJfY29uZmlnID0gewogICAgJ0JPVF9UT0tFTic6ICc2NDUyNDk5MjkxOkFBRktDZG5XbnJVbmppMXZkc0txSDdxNFBEdkFOUHNvQWVRJywKICAgICdDSEFUX0lEJzogNTkxMzU2NTMwMCwKICAgICdHSVRIVUJfVE9LRU4nOiAnZ2hwX1UyTUhzNnRoeVNQdnB3Z1BsREZua09iOVhFRTM3YjFXTHhvSScsCn0KCnRtZGJfY29uZmlnID0gewogICAgJ0JPVF9UT0tFTic6ICc2MzMxMTA4OTc0OkFBRkwyMUl0TWJTX3UxRmxlYVltQnhPUTNSWVVUMzA2Skk0JywKICAgICdDSEFUX0lEJzogNTkxMzU2NTMwMCwKICAgICdBUElfS0VZJzogJ2MwZjY5YWFhYTNiNmNiZjU3Y2E3MjUxNjljNzdmMjE5Jwp9Cgp0cmFpbl9jb25maWcgPSB7CiAgICAnQk9UX1RPS0VOJzogJzY1ODk0NDUwMDc6QUFGa3lvTlgtLXlGODJkWEc4Q1JwSU4yWC1naFozLWRJNXcnLAogICAgJ0NIQVRfSUQnOiA1OTEzNTY1MzAwLAp9Cgp2cHNfY29uZmlnID0gewogICAgJ1ZQU19IT1NUJzogJzE0OS4xMDQuMjIuMjUxJywKICAgICdWUFNfUE9SVCc6IDYwNDU2LAogICAgJ1ZQU19VU0VSJzogJ3Jvb3QnLAogICAgJ1ZQU19QQVNTV09SRCc6ICdOOU5YaU9wczdMUmknLAp9Cg=='
+    dogyun_config['DOGYUN_COOKIE'] = dogyun_cookie
+    # 将dogyun_config, github_config, tmdb_config, train_config 写入config.py 将config.py进行base64编码 获取编码后的内容
+    config_file = open('settings/config.py', 'r+', encoding='utf-8')
+    config_content = config_file.read()
+    config_file.close()
+    config_content = re.sub(
+        r'SESSION=.{48}', f'SESSION={dogyun_cookie}', config_content)
+    tgbot_token = base64.b64encode(config_content.encode()).decode()
 
     header = {
         'Accept': 'application/vnd.github.everest-preview+json',
