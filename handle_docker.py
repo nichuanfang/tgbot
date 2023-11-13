@@ -5,6 +5,8 @@ from dns import resolver
 
 TGBOT_TOKEN = sys.argv[1]
 
+print(f'token:{TGBOT_TOKEN}')
+
 special_hosts = ['kyfw.12306.cn', 'api.telegram.org',
                  'console.dogyun.com', 'vm.dogyun.com']
 
