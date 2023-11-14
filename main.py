@@ -13,6 +13,8 @@ import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
 apihelper.SESSION_TIME_TO_LIVE = None
 apihelper.MAX_RETRIES = 0
+apihelper.READ_TIMEOUT = 123
+apihelper.CONNECT_TIMEOUT = 123
 
 
 # 设置tg的日志
@@ -24,23 +26,23 @@ scheduler = BlockingScheduler()
 def dogyun_bot_func():
     dogyun_bot.bot.remove_webhook()
     # 启动轮询
-    dogyun_bot.bot.infinity_polling(readtimeout=123, long_polling_timeout=123)
+    dogyun_bot.bot.infinity_polling(timeout=123, long_polling_timeout=123)
 
 
 def github_workflow_bot_func():
     github_workflow_bot.bot.remove_webhook()
     github_workflow_bot.bot.infinity_polling(
-        readtimeout=123, long_polling_timeout=123)
+        timeout=123, long_polling_timeout=123)
 
 
 def tmdb_bot_func():
     tmdb_bot.bot.remove_webhook()
-    tmdb_bot.bot.infinity_polling(readtimeout=123, long_polling_timeout=123)
+    tmdb_bot.bot.infinity_polling(timeout=123, long_polling_timeout=123)
 
 
 def train_bot_func():
     train_bot.bot.remove_webhook()
-    train_bot.bot.infinity_polling(readtimeout=123, long_polling_timeout=123)
+    train_bot.bot.infinity_polling(timeout=123, long_polling_timeout=123)
 
 
 def scheduler_func():
