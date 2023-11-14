@@ -4,5 +4,9 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"yaml.schemas": {
+			"https://json.schemastore.org/github-workflow.json": "file:///f%3A/workspace/python/tgbot/.github/workflows/deploy.yml"
+		}
+	}
 }
