@@ -3,7 +3,7 @@ import requests
 from settings.config import github_config
 
 
-def trigger_github_workflow(repo: str, event_type: str, client_payload: dict):
+def trigger_github_workflow(repo: str, event_type: str, client_payload: dict = {}):
     """触发github workflow
 
     Args:

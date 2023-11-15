@@ -1,7 +1,6 @@
 import telebot
-import requests
 from settings.config import github_config
-import json
+from util.github_util import trigger_github_workflow
 
 logger = telebot.logger
 
@@ -15,12 +14,8 @@ def scrape_metadata(message):
     Returns:
         _type_: _description_
     """
-    header = {
-        'Accept': 'application/vnd.github.everest-preview+json',
-        'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
-    }
-    requests.post('https://api.github.com/repos/nichuanfang/movie-tvshow-spider/dispatches',
-                  data=json.dumps({"event_type": "crawl movies and shows"}), headers=header)
+    trigger_github_workflow('movie-tvshow-spider',
+                            'crawl movies and shows')
     bot.reply_to(
         message, '已触发工作流: 刮削影视元信息,查看刮削日志: https://github.com/nichuanfang/movie-tvshow-spider/actions')
 
@@ -32,12 +27,7 @@ def update_proxy(message):
     Returns:
         _type_: _description_
     """
-    header = {
-        'Accept': 'application/vnd.github.everest-preview+json',
-        'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
-    }
-    requests.post('https://api.github.com/repos/nichuanfang/nogfw/dispatches',
-                  data=json.dumps({"event_type": "更新备用代理池"}), headers=header)
+    trigger_github_workflow('nogfw', '更新备用代理池')
     bot.reply_to(
         message, '已触发工作流: 更新备用代理池,查看工作流日志: https://github.com/nichuanfang/nogfw/actions')
 
