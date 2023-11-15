@@ -1,6 +1,3 @@
-import os
-import sys
-import time
 import telebot
 from telebot import apihelper
 from bots import dogyun_bot
