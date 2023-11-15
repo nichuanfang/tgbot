@@ -1,6 +1,4 @@
 import telebot
-from telebot.util import quick_markup
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, Message
 import requests
 from settings.config import github_config
 import json

@@ -1,7 +1,7 @@
 import telebot
 from telebot import apihelper
 from bots import dogyun_bot
-from bots.dogyun_bot import get_traffic_packet, lucky_draw_notice, balance_lack_notice
+from bots.dogyun_bot import lucky_draw_notice, balance_lack_notice
 from bots import github_workflow_bot
 from bots import tmdb_bot
 from bots import train_bot

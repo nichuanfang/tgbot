@@ -1,8 +1,5 @@
 import telebot
-from telebot.types import Message
-import requests
 from settings.config import tmdb_config
-import json
 from tmdbv3api import TMDb
 from tmdbv3api import Movie
 from tmdbv3api import TV

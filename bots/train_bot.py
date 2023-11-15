@@ -5,7 +5,6 @@ import re
 from time import sleep
 import requests
 import telebot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from settings.config import train_config
 import fake_useragent
 from rich.console import Console

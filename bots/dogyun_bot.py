@@ -2,13 +2,12 @@ import base64
 import re
 import telebot
 import requests
-from settings.config import dogyun_config, github_config, tmdb_config, train_config
+from settings.config import dogyun_config
 from datetime import datetime
 from datetime import date
 from bs4 import BeautifulSoup
-import lxml
 import subprocess
-import json
+from util.github_util import trigger_github_workflow
 
 logger = telebot.logger
 
@@ -87,13 +86,9 @@ def update_cookie(message):
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
     # bot.reply_to(message, f'修改后的tgbot_token为:\n\n{tgbot_token}')
-
-    header = {
-        'Accept': 'application/vnd.github.everest-preview+json',
-        'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
-    }
-    requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
-                  data=json.dumps({"event_type": "update_cookie", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
+    trigger_github_workflow('tgbot', 'update_cookie', {
+        'tgbot_token': tgbot_token
+    })
     bot.reply_to(message, '已触发工作流: 更新cookie')
 
 
@@ -122,13 +117,9 @@ def update_server_id(message):
     # 将config.py进行base64编码
     tgbot_token = base64.b64encode(config_content.encode()).decode()
     # bot.reply_to(message, f'修改后的tgbot_token为:\n\n{tgbot_token}')
-
-    header = {
-        'Accept': 'application/vnd.github.everest-preview+json',
-        'Authorization': f'token {github_config["GITHUB_TOKEN"]}'
-    }
-    requests.post('https://api.github.com/repos/nichuanfang/tgbot/dispatches',
-                  data=json.dumps({"event_type": "update_server_id", "client_payload": {"tgbot_token": f"{tgbot_token}"}}), headers=header)
+    trigger_github_workflow('tgbot', 'update_server_id', {
+        'tgbot_token': tgbot_token
+    })
     bot.reply_to(message, '已触发工作流: 更新server_id')
 
 
