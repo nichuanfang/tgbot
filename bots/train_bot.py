@@ -9,13 +9,11 @@ import my_telebot
 from settings.config import train_config
 import fake_useragent
 from rich.console import Console
-from rich import print
 import traceback
+from util.logging import logger
 
 # =====================全局变量==================================
 ua = fake_useragent.UserAgent()
-
-logger = my_telebot.logger
 
 console = Console()
 

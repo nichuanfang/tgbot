@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter
+from telebot.handler_backends import (
+    HandlerBackend, MemoryHandlerBackend, FileHandlerBackend, BaseMiddleware,
+    CancelUpdate, SkipHandler, State, ContinueHandling
+)
+from telebot import apihelper, util, types
+import inspect
 from datetime import datetime
 
 import logging
@@ -22,33 +29,11 @@ import random
 import string
 
 import ssl
-
-logger = logging.getLogger('TeleBot')
-
-formatter = logging.Formatter(
-    '%(asctime)s (%(filename)s:%(lineno)d %(threadName)s) %(levelname)s - %(name)s: "%(message)s"'
-)
-
-import inspect
-
-console_output_handler = logging.StreamHandler(sys.stderr)
-console_output_handler.setFormatter(formatter)
-logger.addHandler(console_output_handler)
-
-logger.setLevel(logging.ERROR)
-
-from telebot import apihelper, util, types
-from telebot.handler_backends import (
-    HandlerBackend, MemoryHandlerBackend, FileHandlerBackend, BaseMiddleware,
-    CancelUpdate, SkipHandler, State, ContinueHandling
-)
-from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter
-
+from util.logging import logger
 
 REPLY_MARKUP_TYPES = Union[
-    types.InlineKeyboardMarkup, types.ReplyKeyboardMarkup, 
+    types.InlineKeyboardMarkup, types.ReplyKeyboardMarkup,
     types.ReplyKeyboardRemove, types.ForceReply]
-
 
 
 """
@@ -139,7 +124,7 @@ class TeleBot:
 
     :param use_class_middlewares: Use class middlewares, defaults to False
     :type use_class_middlewares: :obj:`bool`, optional
-    
+
     :param disable_web_page_preview: Default value for disable_web_page_preview, defaults to None
     :type disable_web_page_preview: :obj:`bool`, optional
 
@@ -151,31 +136,31 @@ class TeleBot:
 
     :param allow_sending_without_reply: Default value for allow_sending_without_reply, defaults to None
     :type allow_sending_without_reply: :obj:`bool`, optional
-    
+
 
     :param colorful_logs: Outputs colorful logs
     :type colorful_logs: :obj:`bool`, optional
     """
 
     def __init__(
-            self, token: str, parse_mode: Optional[str]=None, threaded: Optional[bool]=True,
-            skip_pending: Optional[bool]=False, num_threads: Optional[int]=2,
-            next_step_backend: Optional[HandlerBackend]=None, reply_backend: Optional[HandlerBackend]=None,
-            exception_handler: Optional[ExceptionHandler]=None, last_update_id: Optional[int]=0,
-            suppress_middleware_excepions: Optional[bool]=False, state_storage: Optional[StateStorageBase]=StateMemoryStorage(),
-            use_class_middlewares: Optional[bool]=False, 
-            disable_web_page_preview: Optional[bool]=None,
-            disable_notification: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            colorful_logs: Optional[bool]=False
+            self, token: str, parse_mode: Optional[str] = None, threaded: Optional[bool] = True,
+            skip_pending: Optional[bool] = False, num_threads: Optional[int] = 2,
+            next_step_backend: Optional[HandlerBackend] = None, reply_backend: Optional[HandlerBackend] = None,
+            exception_handler: Optional[ExceptionHandler] = None, last_update_id: Optional[int] = 0,
+            suppress_middleware_excepions: Optional[bool] = False, state_storage: Optional[StateStorageBase] = StateMemoryStorage(),
+            use_class_middlewares: Optional[bool] = False,
+            disable_web_page_preview: Optional[bool] = None,
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            colorful_logs: Optional[bool] = False
     ):
 
         # update-related
         self.token = token
-        self.skip_pending = skip_pending # backward compatibility
+        self.skip_pending = skip_pending  # backward compatibility
         self.last_update_id = last_update_id
-        
+
         # propertys
         self.suppress_middleware_excepions = suppress_middleware_excepions
         self.parse_mode = parse_mode
@@ -259,7 +244,7 @@ class TeleBot:
         self.threaded = threaded
         if self.threaded:
             self.worker_pool = util.ThreadPool(self, num_threads=num_threads)
-    
+
     @property
     def user(self) -> types.User:
         """
@@ -273,7 +258,7 @@ class TeleBot:
             self._user = self.get_me()
         return self._user
 
-    def enable_save_next_step_handlers(self, delay: Optional[int]=120, filename: Optional[str]="./.handler-saves/step.save"):
+    def enable_save_next_step_handlers(self, delay: Optional[int] = 120, filename: Optional[str] = "./.handler-saves/step.save"):
         """
         Enable saving next step handlers (by default saving disabled)
 
@@ -289,10 +274,10 @@ class TeleBot:
 
         :return: None
         """
-        self.next_step_backend = FileHandlerBackend(self.next_step_backend.handlers, filename, delay)
+        self.next_step_backend = FileHandlerBackend(
+            self.next_step_backend.handlers, filename, delay)
 
-
-    def enable_saving_states(self, filename: Optional[str]="./.state-save/states.pkl"):
+    def enable_saving_states(self, filename: Optional[str] = "./.state-save/states.pkl"):
         """
         Enable saving states (by default saving disabled)
 
@@ -305,7 +290,6 @@ class TeleBot:
         """
         self.current_states = StatePickleStorage(file_path=filename)
         self.current_states.create_dir()
-
 
     def enable_save_reply_handlers(self, delay=120, filename="./.handler-saves/reply.save"):
         """
@@ -321,8 +305,8 @@ class TeleBot:
         :param filename: Filename of save file, defaults to "./.handler-saves/reply.save"
         :type filename: :obj:`str`, optional
         """
-        self.reply_backend = FileHandlerBackend(self.reply_backend.handlers, filename, delay)
-
+        self.reply_backend = FileHandlerBackend(
+            self.reply_backend.handlers, filename, delay)
 
     def disable_save_next_step_handlers(self):
         """
@@ -332,8 +316,8 @@ class TeleBot:
         for handlers. For the same purpose, MemoryHandlerBackend is reassigned as a new next_step_backend backend
         instead of FileHandlerBackend.
         """
-        self.next_step_backend = MemoryHandlerBackend(self.next_step_backend.handlers)
-
+        self.next_step_backend = MemoryHandlerBackend(
+            self.next_step_backend.handlers)
 
     def disable_save_reply_handlers(self):
         """
@@ -344,7 +328,6 @@ class TeleBot:
         instead of FileHandlerBackend.
         """
         self.reply_backend = MemoryHandlerBackend(self.reply_backend.handlers)
-
 
     def load_next_step_handlers(self, filename="./.handler-saves/step.save", del_file_after_loading=True):
         """
@@ -363,7 +346,6 @@ class TeleBot:
         """
         self.next_step_backend.load_handlers(filename, del_file_after_loading)
 
-
     def load_reply_handlers(self, filename="./.handler-saves/reply.save", del_file_after_loading=True):
         """
         Load reply handlers from save file
@@ -380,10 +362,9 @@ class TeleBot:
         """
         self.reply_backend.load_handlers(filename, del_file_after_loading)
 
-
-    def set_webhook(self, url: Optional[str]=None, certificate: Optional[Union[str, Any]]=None, max_connections: Optional[int]=None,
-                    allowed_updates: Optional[List[str]]=None, ip_address: Optional[str]=None,
-                    drop_pending_updates: Optional[bool] = None, timeout: Optional[int]=None, secret_token: Optional[str]=None) -> bool:
+    def set_webhook(self, url: Optional[str] = None, certificate: Optional[Union[str, Any]] = None, max_connections: Optional[int] = None,
+                    allowed_updates: Optional[List[str]] = None, ip_address: Optional[str] = None,
+                    drop_pending_updates: Optional[bool] = None, timeout: Optional[int] = None, secret_token: Optional[str] = None) -> bool:
         """
         Use this method to specify a URL and receive incoming updates via an outgoing webhook.
         Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL,
@@ -405,15 +386,15 @@ class TeleBot:
             Defaults to 40. Use lower values to limit the load on your bot's server, and higher values to increase your bot's throughput,
             defaults to None
         :type max_connections: :obj:`int`, optional
-        
+
         :param allowed_updates: A JSON-serialized list of the update types you want your bot to receive. For example,
             specify [“message”, “edited_channel_post”, “callback_query”] to only receive updates of these types. See Update
             for a complete list of available update types. Specify an empty list to receive all update types except chat_member (default).
             If not specified, the previous setting will be used.
-            
+
             Please note that this parameter doesn't affect updates created before the call to the setWebhook, so unwanted updates may be received
             for a short period of time. Defaults to None
-        
+
         :type allowed_updates: :obj:`list`, optional
 
         :param ip_address: The fixed IP address which will be used to send webhook requests instead of the IP address
@@ -437,21 +418,20 @@ class TeleBot:
         return apihelper.set_webhook(self.token, url, certificate, max_connections, allowed_updates, ip_address,
                                      drop_pending_updates, timeout, secret_token)
 
-
     def run_webhooks(self,
-                    listen: Optional[str]="127.0.0.1",
-                    port: Optional[int]=443,
-                    url_path: Optional[str]=None,
-                    certificate: Optional[str]=None,
-                    certificate_key: Optional[str]=None,
-                    webhook_url: Optional[str]=None,
-                    max_connections: Optional[int]=None,
-                    allowed_updates: Optional[List]=None,
-                    ip_address: Optional[str]=None,
-                    drop_pending_updates: Optional[bool] = None,
-                    timeout: Optional[int]=None,
-                    secret_token: Optional[str]=None,
-                    secret_token_length: Optional[int]=20):
+                     listen: Optional[str] = "127.0.0.1",
+                     port: Optional[int] = 443,
+                     url_path: Optional[str] = None,
+                     certificate: Optional[str] = None,
+                     certificate_key: Optional[str] = None,
+                     webhook_url: Optional[str] = None,
+                     max_connections: Optional[int] = None,
+                     allowed_updates: Optional[List] = None,
+                     ip_address: Optional[str] = None,
+                     drop_pending_updates: Optional[bool] = None,
+                     timeout: Optional[int] = None,
+                     secret_token: Optional[str] = None,
+                     secret_token_length: Optional[int] = 20):
         """
         This class sets webhooks and listens to a given url and port.
 
@@ -505,15 +485,18 @@ class TeleBot:
 
         # generate secret token if not set
         if not secret_token:
-            secret_token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=secret_token_length))
+            secret_token = ''.join(random.choices(
+                string.ascii_uppercase + string.digits, k=secret_token_length))
 
         if not url_path:
             url_path = self.token + '/'
-        if url_path[-1] != '/': url_path += '/'
-        
+        if url_path[-1] != '/':
+            url_path += '/'
+
         protocol = "https" if certificate else "http"
         if not webhook_url:
-            webhook_url = "{}://{}:{}/{}".format(protocol, listen, port, url_path)
+            webhook_url = "{}://{}:{}/{}".format(protocol,
+                                                 listen, port, url_path)
 
         if certificate and certificate_key:
             # noinspection PyTypeChecker
@@ -532,19 +515,22 @@ class TeleBot:
             timeout=timeout,
             secret_token=secret_token
         )
-        if cert_file: cert_file.close()
+        if cert_file:
+            cert_file.close()
 
-        ssl_context = (certificate, certificate_key) if certificate else (None, None)
+        ssl_context = (
+            certificate, certificate_key) if certificate else (None, None)
         # webhooks module
         try:
             from telebot.ext.sync import SyncWebhookListener
         except (NameError, ImportError):
-            raise ImportError("Please install uvicorn and fastapi in order to use `run_webhooks` method.")
-        self.webhook_listener = SyncWebhookListener(bot=self, secret_token=secret_token, host=listen, port=port, ssl_context=ssl_context, url_path='/'+url_path)
+            raise ImportError(
+                "Please install uvicorn and fastapi in order to use `run_webhooks` method.")
+        self.webhook_listener = SyncWebhookListener(
+            bot=self, secret_token=secret_token, host=listen, port=port, ssl_context=ssl_context, url_path='/'+url_path)
         self.webhook_listener.run_app()
 
-
-    def delete_webhook(self, drop_pending_updates: Optional[bool]=None, timeout: Optional[int]=None) -> bool:
+    def delete_webhook(self, drop_pending_updates: Optional[bool] = None, timeout: Optional[int] = None) -> bool:
         """
         Use this method to remove webhook integration if you decide to switch back to getUpdates.
         Returns True on success.
@@ -562,8 +548,7 @@ class TeleBot:
         """
         return apihelper.delete_webhook(self.token, drop_pending_updates, timeout)
 
-
-    def get_webhook_info(self, timeout: Optional[int]=None) -> types.WebhookInfo:
+    def get_webhook_info(self, timeout: Optional[int] = None) -> types.WebhookInfo:
         """
         Use this method to get current webhook status. Requires no parameters.
         On success, returns a WebhookInfo object. If the bot is using getUpdates, will return an object with the url field empty.
@@ -579,7 +564,6 @@ class TeleBot:
         result = apihelper.get_webhook_info(self.token, timeout)
         return types.WebhookInfo.de_json(result)
 
-
     def remove_webhook(self) -> bool:
         """
         Deletes webhooks using set_webhook() function.
@@ -589,10 +573,9 @@ class TeleBot:
         """
         return self.set_webhook()  # No params resets webhook
 
-
-    def get_updates(self, offset: Optional[int]=None, limit: Optional[int]=None, 
-            timeout: Optional[int]=20, allowed_updates: Optional[List[str]]=None, 
-            long_polling_timeout: int=20) -> List[types.Update]:
+    def get_updates(self, offset: Optional[int] = None, limit: Optional[int] = None,
+                    timeout: Optional[int] = 20, allowed_updates: Optional[List[str]] = None,
+                    long_polling_timeout: int = 20) -> List[types.Update]:
         """
         Use this method to receive incoming updates using long polling (wiki). An Array of Update objects is returned.
 
@@ -620,7 +603,8 @@ class TeleBot:
         :return: An Array of Update objects is returned.
         :rtype: :obj:`list` of :class:`telebot.types.Update`
         """
-        json_updates = apihelper.get_updates(self.token, offset, limit, timeout, allowed_updates, long_polling_timeout)
+        json_updates = apihelper.get_updates(
+            self.token, offset, limit, timeout, allowed_updates, long_polling_timeout)
         return [types.Update.de_json(ju) for ju in json_updates]
 
     def __skip_updates(self):
@@ -639,14 +623,14 @@ class TeleBot:
         Registered listeners and applicable message handlers will be notified when a new message arrives.
 
         :meta private:
-        
+
         :raises ApiException when a call has failed.
         """
         if self.skip_pending:
             self.__skip_updates()
             logger.debug('Skipped all pending messages')
             self.skip_pending = False
-        updates = self.get_updates(offset=(self.last_update_id + 1), 
+        updates = self.get_updates(offset=(self.last_update_id + 1),
                                    allowed_updates=allowed_updates,
                                    timeout=timeout, long_polling_timeout=long_polling_timeout)
         self.process_new_updates(updates)
@@ -662,7 +646,8 @@ class TeleBot:
         """
         upd_count = len(updates)
         logger.debug('Received {0} new updates'.format(upd_count))
-        if upd_count == 0: return
+        if upd_count == 0:
+            return
 
         new_messages = None
         new_edited_messages = None
@@ -678,7 +663,7 @@ class TeleBot:
         new_my_chat_members = None
         new_chat_members = None
         new_chat_join_request = None
-        
+
         for update in updates:
             if apihelper.ENABLE_MIDDLEWARE and not self.use_class_middlewares:
                 try:
@@ -688,52 +673,67 @@ class TeleBot:
                     if not self.suppress_middleware_excepions:
                         raise
                     else:
-                        if update.update_id > self.last_update_id: self.last_update_id = update.update_id
+                        if update.update_id > self.last_update_id:
+                            self.last_update_id = update.update_id
                         continue
 
             if update.update_id > self.last_update_id:
                 self.last_update_id = update.update_id
             if update.message:
-                if new_messages is None: new_messages = []
+                if new_messages is None:
+                    new_messages = []
                 new_messages.append(update.message)
             if update.edited_message:
-                if new_edited_messages is None: new_edited_messages = []
+                if new_edited_messages is None:
+                    new_edited_messages = []
                 new_edited_messages.append(update.edited_message)
             if update.channel_post:
-                if new_channel_posts is None: new_channel_posts = []
+                if new_channel_posts is None:
+                    new_channel_posts = []
                 new_channel_posts.append(update.channel_post)
             if update.edited_channel_post:
-                if new_edited_channel_posts is None: new_edited_channel_posts = []
+                if new_edited_channel_posts is None:
+                    new_edited_channel_posts = []
                 new_edited_channel_posts.append(update.edited_channel_post)
             if update.inline_query:
-                if new_inline_queries is None: new_inline_queries = []
+                if new_inline_queries is None:
+                    new_inline_queries = []
                 new_inline_queries.append(update.inline_query)
             if update.chosen_inline_result:
-                if new_chosen_inline_results is None: new_chosen_inline_results = []
+                if new_chosen_inline_results is None:
+                    new_chosen_inline_results = []
                 new_chosen_inline_results.append(update.chosen_inline_result)
             if update.callback_query:
-                if new_callback_queries is None: new_callback_queries = []
+                if new_callback_queries is None:
+                    new_callback_queries = []
                 new_callback_queries.append(update.callback_query)
             if update.shipping_query:
-                if new_shipping_queries is None: new_shipping_queries = []
+                if new_shipping_queries is None:
+                    new_shipping_queries = []
                 new_shipping_queries.append(update.shipping_query)
             if update.pre_checkout_query:
-                if new_pre_checkout_queries is None: new_pre_checkout_queries = []
+                if new_pre_checkout_queries is None:
+                    new_pre_checkout_queries = []
                 new_pre_checkout_queries.append(update.pre_checkout_query)
             if update.poll:
-                if new_polls is None: new_polls = []
+                if new_polls is None:
+                    new_polls = []
                 new_polls.append(update.poll)
             if update.poll_answer:
-                if new_poll_answers is None: new_poll_answers = []
+                if new_poll_answers is None:
+                    new_poll_answers = []
                 new_poll_answers.append(update.poll_answer)
             if update.my_chat_member:
-                if new_my_chat_members is None: new_my_chat_members = []
+                if new_my_chat_members is None:
+                    new_my_chat_members = []
                 new_my_chat_members.append(update.my_chat_member)
             if update.chat_member:
-                if new_chat_members is None: new_chat_members = []
+                if new_chat_members is None:
+                    new_chat_members = []
                 new_chat_members.append(update.chat_member)
             if update.chat_join_request:
-                if new_chat_join_request is None: new_chat_join_request = []
+                if new_chat_join_request is None:
+                    new_chat_join_request = []
                 new_chat_join_request.append(update.chat_join_request)
 
         if new_messages:
@@ -772,55 +772,64 @@ class TeleBot:
         self._notify_next_handlers(new_messages)
         self._notify_reply_handlers(new_messages)
         self.__notify_update(new_messages)
-        self._notify_command_handlers(self.message_handlers, new_messages, 'message')
+        self._notify_command_handlers(
+            self.message_handlers, new_messages, 'message')
 
     def process_new_edited_messages(self, edited_message):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.edited_message_handlers, edited_message, 'edited_message')
+        self._notify_command_handlers(
+            self.edited_message_handlers, edited_message, 'edited_message')
 
     def process_new_channel_posts(self, channel_post):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.channel_post_handlers, channel_post, 'channel_post')
+        self._notify_command_handlers(
+            self.channel_post_handlers, channel_post, 'channel_post')
 
     def process_new_edited_channel_posts(self, edited_channel_post):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.edited_channel_post_handlers, edited_channel_post, 'edited_channel_post')
+        self._notify_command_handlers(
+            self.edited_channel_post_handlers, edited_channel_post, 'edited_channel_post')
 
     def process_new_inline_query(self, new_inline_queries):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.inline_handlers, new_inline_queries, 'inline_query')
+        self._notify_command_handlers(
+            self.inline_handlers, new_inline_queries, 'inline_query')
 
     def process_new_chosen_inline_query(self, new_chosen_inline_queries):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.chosen_inline_handlers, new_chosen_inline_queries, 'chosen_inline_query')
+        self._notify_command_handlers(
+            self.chosen_inline_handlers, new_chosen_inline_queries, 'chosen_inline_query')
 
     def process_new_callback_query(self, new_callback_queries):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.callback_query_handlers, new_callback_queries, 'callback_query')
+        self._notify_command_handlers(
+            self.callback_query_handlers, new_callback_queries, 'callback_query')
 
     def process_new_shipping_query(self, new_shipping_queries):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.shipping_query_handlers, new_shipping_queries, 'shipping_query')
+        self._notify_command_handlers(
+            self.shipping_query_handlers, new_shipping_queries, 'shipping_query')
 
     def process_new_pre_checkout_query(self, pre_checkout_queries):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.pre_checkout_query_handlers, pre_checkout_queries, 'pre_checkout_query')
+        self._notify_command_handlers(
+            self.pre_checkout_query_handlers, pre_checkout_queries, 'pre_checkout_query')
 
     def process_new_poll(self, polls):
         """
@@ -832,25 +841,29 @@ class TeleBot:
         """
         :meta private:
         """
-        self._notify_command_handlers(self.poll_answer_handlers, poll_answers, 'poll_answer')
-    
+        self._notify_command_handlers(
+            self.poll_answer_handlers, poll_answers, 'poll_answer')
+
     def process_new_my_chat_member(self, my_chat_members):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.my_chat_member_handlers, my_chat_members, 'my_chat_member')
+        self._notify_command_handlers(
+            self.my_chat_member_handlers, my_chat_members, 'my_chat_member')
 
     def process_new_chat_member(self, chat_members):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.chat_member_handlers, chat_members, 'chat_member')
+        self._notify_command_handlers(
+            self.chat_member_handlers, chat_members, 'chat_member')
 
     def process_new_chat_join_request(self, chat_join_request):
         """
         :meta private:
         """
-        self._notify_command_handlers(self.chat_join_request_handlers, chat_join_request, 'chat_join_request')
+        self._notify_command_handlers(
+            self.chat_join_request_handlers, chat_join_request, 'chat_join_request')
 
     def process_middlewares(self, update):
         """
@@ -861,9 +874,11 @@ class TeleBot:
                 if getattr(update, update_type) is not None:
                     for typed_middleware_handler in middlewares:
                         try:
-                            typed_middleware_handler(self, getattr(update, update_type))
+                            typed_middleware_handler(
+                                self, getattr(update, update_type))
                         except Exception as e:
-                            e.args = e.args + (f'Typed middleware handler "{typed_middleware_handler.__qualname__}"',)
+                            e.args = e.args + \
+                                (f'Typed middleware handler "{typed_middleware_handler.__qualname__}"',)
                             raise
 
         if self.default_middleware_handlers:
@@ -871,9 +886,9 @@ class TeleBot:
                 try:
                     default_middleware_handler(self, update)
                 except Exception as e:
-                    e.args = e.args + (f'Default middleware handler "{default_middleware_handler.__qualname__}"',)
+                    e.args = e.args + \
+                        (f'Default middleware handler "{default_middleware_handler.__qualname__}"',)
                     raise
-
 
     def __notify_update(self, new_messages):
         """
@@ -897,21 +912,21 @@ class TeleBot:
         path = path_to_watch if path_to_watch else None
         if path is None:
             # Make it possible to specify --path argument to the script
-            path = sys.argv[sys.argv.index('--path') + 1] if '--path' in sys.argv else '.'
+            path = sys.argv[sys.argv.index(
+                '--path') + 1] if '--path' in sys.argv else '.'
 
-            
         self.event_observer = Observer()
         self.event_observer.schedule(self.event_handler, path, recursive=True)
         self.event_observer.start()
 
-    def infinity_polling(self, timeout: Optional[int]=20, skip_pending: Optional[bool]=False, long_polling_timeout: Optional[int]=20,
-                         logger_level: Optional[int]=logging.ERROR, allowed_updates: Optional[List[str]]=None,
-                         restart_on_change: Optional[bool]=False, path_to_watch: Optional[str]=None, *args, **kwargs):
+    def infinity_polling(self, timeout: Optional[int] = 20, skip_pending: Optional[bool] = False, long_polling_timeout: Optional[int] = 20,
+                         logger_level: Optional[int] = logging.ERROR, allowed_updates: Optional[List[str]] = None,
+                         restart_on_change: Optional[bool] = False, path_to_watch: Optional[str] = None, *args, **kwargs):
         """
         Wrap polling with infinite loop and exception handling to avoid bot stops polling.
 
         .. note::
-        
+
             Install watchdog and psutil before using restart_on_change option.
 
         :param timeout: Request connection timeout.
@@ -959,7 +974,8 @@ class TeleBot:
                 if logger_level and logger_level >= logging.ERROR:
                     logger.error("Infinity polling exception: %s", str(e))
                 if logger_level and logger_level >= logging.DEBUG:
-                    logger.error("Exception traceback:\n%s", traceback.format_exc())
+                    logger.error("Exception traceback:\n%s",
+                                 traceback.format_exc())
                 time.sleep(3)
                 continue
             if logger_level and logger_level >= logging.INFO:
@@ -967,24 +983,23 @@ class TeleBot:
         if logger_level and logger_level >= logging.INFO:
             logger.error("Break infinity polling")
 
-
-    def polling(self, non_stop: Optional[bool]=False, skip_pending: Optional[bool]=False, interval: Optional[int]=0,
-                timeout: Optional[int]=20, long_polling_timeout: Optional[int]=20,
-                logger_level: Optional[int]=logging.ERROR, allowed_updates: Optional[List[str]]=None,
-                none_stop: Optional[bool]=None, restart_on_change: Optional[bool]=False, path_to_watch: Optional[str]=None):
+    def polling(self, non_stop: Optional[bool] = False, skip_pending: Optional[bool] = False, interval: Optional[int] = 0,
+                timeout: Optional[int] = 20, long_polling_timeout: Optional[int] = 20,
+                logger_level: Optional[int] = logging.ERROR, allowed_updates: Optional[List[str]] = None,
+                none_stop: Optional[bool] = None, restart_on_change: Optional[bool] = False, path_to_watch: Optional[str] = None):
         """
         This function creates a new Thread that calls an internal __retrieve_updates function.
         This allows the bot to retrieve Updates automatically and notify listeners and message handlers accordingly.
 
         Warning: Do not call this function more than once!
-        
+
         Always gets updates.
 
         .. deprecated:: 4.1.1
             Use :meth:`infinity_polling` instead.
 
         .. note::
-        
+
             Install watchdog and psutil before using restart_on_change option.
 
         :param interval: Delay between two update retrivals
@@ -998,7 +1013,7 @@ class TeleBot:
 
         :param skip_pending: skip old updates
         :type skip_pending: :obj:`bool`
-        
+
         :param long_polling_timeout: Timeout in seconds for long polling (see API docs)
         :type long_polling_timeout: :obj:`int`
 
@@ -1011,7 +1026,7 @@ class TeleBot:
             See util.update_types for a complete list of available update types. 
             Specify an empty list to receive all update types except chat_member (default). 
             If not specified, the previous setting will be used.
-            
+
             Please note that this parameter doesn't affect updates created before the call to the get_updates, 
             so unwanted updates may be received for a short period of time.
         :type allowed_updates: :obj:`list` of :obj:`str`
@@ -1024,11 +1039,12 @@ class TeleBot:
 
         :param path_to_watch: Path to watch for changes. Defaults to None
         :type path_to_watch: :obj:`str`
-        
+
         :return:
         """
         if none_stop is not None:
-            logger.warning('The parameter "none_stop" is deprecated. Use "non_stop" instead.')
+            logger.warning(
+                'The parameter "none_stop" is deprecated. Use "non_stop" instead.')
             non_stop = none_stop
 
         if skip_pending:
@@ -1037,8 +1053,9 @@ class TeleBot:
         if restart_on_change:
             self._setup_change_detector(path_to_watch)
 
-        logger.info('Starting your bot with username: [@%s]', self.user.username)
-            
+        logger.info(
+            'Starting your bot with username: [@%s]', self.user.username)
+
         if self.threaded:
             self.__threaded_polling(non_stop=non_stop, interval=interval, timeout=timeout, long_polling_timeout=long_polling_timeout,
                                     logger_level=logger_level, allowed_updates=allowed_updates)
@@ -1046,14 +1063,13 @@ class TeleBot:
             self.__non_threaded_polling(non_stop=non_stop, interval=interval, timeout=timeout, long_polling_timeout=long_polling_timeout,
                                         logger_level=logger_level, allowed_updates=allowed_updates)
 
-
-    def __threaded_polling(self, non_stop = False, interval = 0, timeout = None, long_polling_timeout = None,
+    def __threaded_polling(self, non_stop=False, interval=0, timeout=None, long_polling_timeout=None,
                            logger_level=logging.ERROR, allowed_updates=None):
-        if not(logger_level) or (logger_level < logging.INFO):
+        if not (logger_level) or (logger_level < logging.INFO):
             warning = "\n  Warning: this message appearance will be changed. Set logger_level=logging.INFO to continue seeing it."
         else:
             warning = ""
-        #if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
+        # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
         logger.info('Started polling.' + warning)
         self.__stop_polling.clear()
         error_interval = 0.25
@@ -1068,7 +1084,8 @@ class TeleBot:
         while not self.__stop_polling.wait(interval):
             or_event.clear()
             try:
-                polling_thread.put(self.__retrieve_updates, timeout, long_polling_timeout, allowed_updates=allowed_updates)
+                polling_thread.put(self.__retrieve_updates, timeout,
+                                   long_polling_timeout, allowed_updates=allowed_updates)
                 or_event.wait()  # wait for polling thread finish, polling thread error or thread pool error
                 polling_thread.raise_exceptions()
                 self.worker_pool.raise_exceptions()
@@ -1082,14 +1099,16 @@ class TeleBot:
                     if logger_level and logger_level >= logging.ERROR:
                         logger.error("Threaded polling exception: %s", str(e))
                     if logger_level and logger_level >= logging.DEBUG:
-                        logger.error("Exception traceback:\n%s", traceback.format_exc())
+                        logger.error("Exception traceback:\n%s",
+                                     traceback.format_exc())
                     if not non_stop:
                         self.__stop_polling.set()
                         # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
                         logger.info("Exception occurred. Stopping." + warning)
                     else:
                         # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
-                        logger.info("Waiting for {0} seconds until retry".format(error_interval) + warning)
+                        logger.info("Waiting for {0} seconds until retry".format(
+                            error_interval) + warning)
                         time.sleep(error_interval)
                         if error_interval * 2 < 60:
                             error_interval *= 2
@@ -1099,8 +1118,8 @@ class TeleBot:
                     # polling_thread.clear_exceptions()
                     # self.worker_pool.clear_exceptions()
                     time.sleep(error_interval)
-                polling_thread.clear_exceptions()   #*
-                self.worker_pool.clear_exceptions() #*
+                polling_thread.clear_exceptions()  # *
+                self.worker_pool.clear_exceptions()  # *
             except KeyboardInterrupt:
                 # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
                 logger.info("KeyboardInterrupt received." + warning)
@@ -1113,8 +1132,8 @@ class TeleBot:
                     handled = False
                 if not handled:
                     polling_thread.stop()
-                    polling_thread.clear_exceptions()   #*
-                    self.worker_pool.clear_exceptions() #*
+                    polling_thread.clear_exceptions()  # *
+                    self.worker_pool.clear_exceptions()  # *
                     raise e
                 else:
                     polling_thread.clear_exceptions()
@@ -1124,24 +1143,24 @@ class TeleBot:
         polling_thread.stop()
         polling_thread.clear_exceptions()
         self.worker_pool.clear_exceptions()
-        #if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
+        # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
         logger.info('Stopped polling.' + warning)
-
 
     def __non_threaded_polling(self, non_stop=False, interval=0, timeout=None, long_polling_timeout=None,
                                logger_level=logging.ERROR, allowed_updates=None):
-        if not(logger_level) or (logger_level < logging.INFO):
+        if not (logger_level) or (logger_level < logging.INFO):
             warning = "\n  Warning: this message appearance will be changed. Set logger_level=logging.INFO to continue seeing it."
         else:
             warning = ""
-        #if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
+        # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
         logger.info('Started polling.' + warning)
         self.__stop_polling.clear()
         error_interval = 0.25
 
         while not self.__stop_polling.wait(interval):
             try:
-                self.__retrieve_updates(timeout, long_polling_timeout, allowed_updates=allowed_updates)
+                self.__retrieve_updates(
+                    timeout, long_polling_timeout, allowed_updates=allowed_updates)
                 error_interval = 0.25
             except apihelper.ApiException as e:
                 if self.exception_handler is not None:
@@ -1152,9 +1171,9 @@ class TeleBot:
                 if not handled:
                     # ApiException不打印日志
                     # if logger_level and logger_level >= logging.ERROR:
-                        # logger.error("Polling exception: %s", str(e))
+                    # logger.error("Polling exception: %s", str(e))
                     # if logger_level and logger_level >= logging.DEBUG:
-                        # logger.error("Exception traceback:\n%s", traceback.format_exc())
+                    # logger.error("Exception traceback:\n%s", traceback.format_exc())
                     if not non_stop:
                         self.__stop_polling.set()
                         # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
@@ -1181,9 +1200,8 @@ class TeleBot:
                     raise e
                 else:
                     time.sleep(error_interval)
-        #if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
+        # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
         logger.info('Stopped polling.' + warning)
-
 
     def _exec_task(self, task, *args, **kwargs):
         if self.threaded:
@@ -1199,7 +1217,6 @@ class TeleBot:
                 if not handled:
                     raise e
 
-
     def stop_polling(self):
         """
         Stops polling.
@@ -1208,7 +1225,6 @@ class TeleBot:
         """
         self.__stop_polling.set()
 
-
     def stop_bot(self):
         """
         Stops bot by stopping polling and closing the worker pool.
@@ -1216,7 +1232,6 @@ class TeleBot:
         self.stop_polling()
         if self.threaded and self.worker_pool:
             self.worker_pool.close()
-
 
     def set_update_listener(self, listener: Callable):
         """
@@ -1227,7 +1242,6 @@ class TeleBot:
         """
         self.update_listener.append(listener)
 
-
     def get_me(self) -> types.User:
         """
         A simple method for testing your bot's authentication token. Requires no parameters.
@@ -1237,7 +1251,6 @@ class TeleBot:
         """
         result = apihelper.get_me(self.token)
         return types.User.de_json(result)
-
 
     def get_file(self, file_id: Optional[str]) -> types.File:
         """
@@ -1256,7 +1269,6 @@ class TeleBot:
         """
         return types.File.de_json(apihelper.get_file(self.token, file_id))
 
-
     def get_file_url(self, file_id: Optional[str]) -> str:
         """
         Get a valid URL for downloading a file.
@@ -1269,7 +1281,6 @@ class TeleBot:
         """
         return apihelper.get_file_url(self.token, file_id)
 
-
     def download_file(self, file_path: str) -> bytes:
         """
         Downloads file.
@@ -1281,7 +1292,6 @@ class TeleBot:
         :rtype: :obj:`bytes`
         """
         return apihelper.download_file(self.token, file_path)
-
 
     def log_out(self) -> bool:
         """
@@ -1298,8 +1308,7 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.log_out(self.token)
-    
-    
+
     def close(self) -> bool:
         """
         Use this method to close the bot instance before moving it from one local server to another. 
@@ -1314,9 +1323,8 @@ class TeleBot:
         """
         return apihelper.close(self.token)
 
-
-    def get_user_profile_photos(self, user_id: int, offset: Optional[int]=None, 
-            limit: Optional[int]=None) -> types.UserProfilePhotos:
+    def get_user_profile_photos(self, user_id: int, offset: Optional[int] = None,
+                                limit: Optional[int] = None) -> types.UserProfilePhotos:
         """
         Use this method to get a list of profile pictures for a user.
         Returns a :class:`telebot.types.UserProfilePhotos` object.
@@ -1336,9 +1344,9 @@ class TeleBot:
         :rtype: :class:`telebot.types.UserProfilePhotos`
 
         """
-        result = apihelper.get_user_profile_photos(self.token, user_id, offset, limit)
+        result = apihelper.get_user_profile_photos(
+            self.token, user_id, offset, limit)
         return types.UserProfilePhotos.de_json(result)
-
 
     def get_chat(self, chat_id: Union[int, str]) -> types.Chat:
         """
@@ -1356,7 +1364,6 @@ class TeleBot:
         result = apihelper.get_chat(self.token, chat_id)
         return types.Chat.de_json(result)
 
-
     def leave_chat(self, chat_id: Union[int, str]) -> bool:
         """
         Use this method for your bot to leave a group, supergroup or channel. Returns True on success.
@@ -1370,7 +1377,6 @@ class TeleBot:
         """
         result = apihelper.leave_chat(self.token, chat_id)
         return result
-
 
     def get_chat_administrators(self, chat_id: Union[int, str]) -> List[types.ChatMember]:
         """
@@ -1387,7 +1393,6 @@ class TeleBot:
         """
         result = apihelper.get_chat_administrators(self.token, chat_id)
         return [types.ChatMember.de_json(r) for r in result]
-
 
     @util.deprecated(deprecation_text="Use get_chat_member_count instead")
     def get_chat_members_count(self, chat_id: Union[int, str]) -> int:
@@ -1409,7 +1414,7 @@ class TeleBot:
         """
         result = apihelper.get_chat_member_count(self.token, chat_id)
         return result
-    
+
     def get_chat_member_count(self, chat_id: Union[int, str]) -> int:
         """
         Use this method to get the number of members in a chat.
@@ -1430,7 +1435,7 @@ class TeleBot:
         Use this method to set a new group sticker set for a supergroup. The bot must be an administrator in the chat
         for this to work and must have the appropriate administrator rights. Use the field can_set_sticker_set optionally returned
         in getChat requests to check if the bot can use this method. Returns True on success.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#setchatstickerset
 
         :param chat_id: Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1442,7 +1447,8 @@ class TeleBot:
         :return: StickerSet object
         :rtype: :class:`telebot.types.StickerSet`
         """
-        result = apihelper.set_chat_sticker_set(self.token, chat_id, sticker_set_name)
+        result = apihelper.set_chat_sticker_set(
+            self.token, chat_id, sticker_set_name)
         return result
 
     def delete_chat_sticker_set(self, chat_id: Union[int, str]) -> bool:
@@ -1450,7 +1456,7 @@ class TeleBot:
         Use this method to delete a group sticker set from a supergroup. The bot must be an administrator in the chat
         for this to work and must have the appropriate admin rights. Use the field can_set_sticker_set
         optionally returned in getChat requests to check if the bot can use this method. Returns True on success.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#deletechatstickerset
 
         :param chat_id:	Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1465,7 +1471,7 @@ class TeleBot:
     def get_chat_member(self, chat_id: Union[int, str], user_id: int) -> types.ChatMember:
         """
         Use this method to get information about a member of a chat. Returns a ChatMember object on success.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#getchatmember
 
         :param chat_id: Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
@@ -1481,17 +1487,17 @@ class TeleBot:
         return types.ChatMember.de_json(result)
 
     def send_message(
-            self, chat_id: Union[int, str], text: str, 
-            parse_mode: Optional[str]=None, 
-            entities: Optional[List[types.MessageEntity]]=None,
-            disable_web_page_preview: Optional[bool]=None, 
-            disable_notification: Optional[bool]=None, 
-            protect_content: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None, 
-            allow_sending_without_reply: Optional[bool]=None,
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            timeout: Optional[int]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str], text: str,
+            parse_mode: Optional[str] = None,
+            entities: Optional[List[types.MessageEntity]] = None,
+            disable_web_page_preview: Optional[bool] = None,
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send text messages.
 
@@ -1542,10 +1548,14 @@ class TeleBot:
         :rtype: :class:`telebot.types.Message`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_web_page_preview = self.disable_web_page_preview if (disable_web_page_preview is None) else disable_web_page_preview
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_web_page_preview = self.disable_web_page_preview if (
+            disable_web_page_preview is None) else disable_web_page_preview
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_message(
@@ -1554,11 +1564,11 @@ class TeleBot:
                 entities, allow_sending_without_reply, protect_content=protect_content, message_thread_id=message_thread_id))
 
     def forward_message(
-            self, chat_id: Union[int, str], from_chat_id: Union[int, str], 
-            message_id: int, disable_notification: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            timeout: Optional[int]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str], from_chat_id: Union[int, str],
+            message_id: int, disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to forward messages of any kind.
 
@@ -1588,28 +1598,29 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
 
         return types.Message.de_json(
             apihelper.forward_message(self.token, chat_id, from_chat_id, message_id, disable_notification, timeout, protect_content,
                                       message_thread_id))
 
-
     def copy_message(
-            self, chat_id: Union[int, str], 
-            from_chat_id: Union[int, str], 
-            message_id: int, 
-            caption: Optional[str]=None, 
-            parse_mode: Optional[str]=None, 
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            disable_notification: Optional[bool]=None, 
-            protect_content: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None, 
-            allow_sending_without_reply: Optional[bool]=None,
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            timeout: Optional[int]=None,
-            message_thread_id: Optional[int]=None) -> types.MessageID:
+            self, chat_id: Union[int, str],
+            from_chat_id: Union[int, str],
+            message_id: int,
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            message_thread_id: Optional[int] = None) -> types.MessageID:
         """
         Use this method to copy messages of any kind.
 
@@ -1654,22 +1665,25 @@ class TeleBot:
 
         :param message_thread_id: Identifier of a message thread, in which the message will be sent
         :type message_thread_id: :obj:`int`
-        
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.MessageID.de_json(
             apihelper.copy_message(self.token, chat_id, from_chat_id, message_id, caption, parse_mode, caption_entities,
                                    disable_notification, reply_to_message_id, allow_sending_without_reply, reply_markup,
                                    timeout, protect_content, message_thread_id))
 
-    def delete_message(self, chat_id: Union[int, str], message_id: int, 
-            timeout: Optional[int]=None) -> bool:
+    def delete_message(self, chat_id: Union[int, str], message_id: int,
+                       timeout: Optional[int] = None) -> bool:
         """
         Use this method to delete a message, including service messages, with the following limitations:
         - A message can only be deleted if it was sent less than 48 hours ago.
@@ -1699,13 +1713,13 @@ class TeleBot:
 
     def send_dice(
             self, chat_id: Union[int, str],
-            emoji: Optional[str]=None, disable_notification: Optional[bool]=None, 
-            reply_to_message_id: Optional[int]=None,
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            emoji: Optional[str] = None, disable_notification: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send an animated emoji that will display a random value. On success, the sent Message is returned.
 
@@ -1744,9 +1758,12 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_dice(
@@ -1754,24 +1771,23 @@ class TeleBot:
                 reply_markup, timeout, allow_sending_without_reply, protect_content, message_thread_id)
         )
 
-
     def send_photo(
-            self, chat_id: Union[int, str], photo: Union[Any, str], 
-            caption: Optional[str]=None, parse_mode: Optional[str]=None,
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            disable_notification: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None, 
-            allow_sending_without_reply: Optional[bool]=None,
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            timeout: Optional[int]=None,
-            message_thread_id: Optional[int]=None,
-            has_spoiler: Optional[bool]=None) -> types.Message:
+            self, chat_id: Union[int, str], photo: Union[Any, str],
+            caption: Optional[str] = None, parse_mode: Optional[str] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            message_thread_id: Optional[int] = None,
+            has_spoiler: Optional[bool] = None) -> types.Message:
         """
         Use this method to send photos. On success, the sent Message is returned.
 
         Telegram documentation: https://core.telegram.org/bots/api#sendphoto
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
 
@@ -1814,14 +1830,17 @@ class TeleBot:
 
         :param has_spoiler: Pass True, if the photo should be sent as a spoiler
         :type has_spoiler: :obj:`bool`
-        
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_photo(
@@ -1831,20 +1850,20 @@ class TeleBot:
 
     # TODO: Rewrite this method like in API.
     def send_audio(
-            self, chat_id: Union[int, str], audio: Union[Any, str], 
-            caption: Optional[str]=None, duration: Optional[int]=None, 
-            performer: Optional[str]=None, title: Optional[str]=None,
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            parse_mode: Optional[str]=None, 
-            disable_notification: Optional[bool]=None,
-            timeout: Optional[int]=None, 
-            thumbnail: Optional[Union[Any, str]]=None,
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None,
-            thumb: Optional[Union[Any, str]]=None,) -> types.Message:
+            self, chat_id: Union[int, str], audio: Union[Any, str],
+            caption: Optional[str] = None, duration: Optional[int] = None,
+            performer: Optional[str] = None, title: Optional[str] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            parse_mode: Optional[str] = None,
+            disable_notification: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            thumbnail: Optional[Union[Any, str]] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None,
+            thumb: Optional[Union[Any, str]] = None,) -> types.Message:
         """
         Use this method to send audio files, if you want Telegram clients to display them in the music player.
         Your audio must be in the .MP3 or .M4A format. On success, the sent Message is returned. Bots can currently send audio files of up to 50 MB in size,
@@ -1853,7 +1872,7 @@ class TeleBot:
         For sending voice messages, use the send_voice method instead.
 
         Telegram documentation: https://core.telegram.org/bots/api#sendaudio
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
 
@@ -1915,13 +1934,17 @@ class TeleBot:
         :rtype: :class:`telebot.types.Message`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         if thumb is not None and thumbnail is None:
             thumbnail = thumb
-            logger.warning('The parameter "thumb" is deprecated. Use "thumbnail" instead.')
+            logger.warning(
+                'The parameter "thumb" is deprecated. Use "thumbnail" instead.')
 
         return types.Message.de_json(
             apihelper.send_audio(
@@ -1931,24 +1954,24 @@ class TeleBot:
 
     # TODO: Rewrite this method like in API.
     def send_voice(
-            self, chat_id: Union[int, str], voice: Union[Any, str], 
-            caption: Optional[str]=None, duration: Optional[int]=None, 
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            parse_mode: Optional[str]=None, 
-            disable_notification: Optional[bool]=None, 
-            timeout: Optional[int]=None,
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str], voice: Union[Any, str],
+            caption: Optional[str] = None, duration: Optional[int] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            parse_mode: Optional[str] = None,
+            disable_notification: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send audio files, if you want Telegram clients to display the file as a playable voice message.
         For this to work, your audio must be in an .OGG file encoded with OPUS (other formats may be sent as Audio or Document).
         On success, the sent Message is returned. Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
 
         Telegram documentation: https://core.telegram.org/bots/api#sendvoice
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
 
@@ -1994,9 +2017,12 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_voice(
@@ -2007,25 +2033,25 @@ class TeleBot:
     # TODO: Rewrite this method like in API.
     def send_document(
             self, chat_id: Union[int, str], document: Union[Any, str],
-            reply_to_message_id: Optional[int]=None, 
-            caption: Optional[str]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            parse_mode: Optional[str]=None, 
-            disable_notification: Optional[bool]=None, 
-            timeout: Optional[int]=None, 
-            thumbnail: Optional[Union[Any, str]]=None,
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            visible_file_name: Optional[str]=None,
-            disable_content_type_detection: Optional[bool]=None,
-            data: Optional[Union[Any, str]]=None,
-            protect_content: Optional[bool]=None, message_thread_id: Optional[int]=None,
-            thumb: Optional[Union[Any, str]]=None,) -> types.Message:
+            reply_to_message_id: Optional[int] = None,
+            caption: Optional[str] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            parse_mode: Optional[str] = None,
+            disable_notification: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            thumbnail: Optional[Union[Any, str]] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            visible_file_name: Optional[str] = None,
+            disable_content_type_detection: Optional[bool] = None,
+            data: Optional[Union[Any, str]] = None,
+            protect_content: Optional[bool] = None, message_thread_id: Optional[int] = None,
+            thumb: Optional[Union[Any, str]] = None,) -> types.Message:
         """
         Use this method to send general files.
 
         Telegram documentation: https://core.telegram.org/bots/api#senddocument
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
 
@@ -2084,42 +2110,47 @@ class TeleBot:
         :rtype: :class:`telebot.types.Message`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
-        if data and not(document):
+        if data and not (document):
             # function typo miss compatibility
-            logger.warning('The parameter "data" is deprecated. Use "document" instead.')
+            logger.warning(
+                'The parameter "data" is deprecated. Use "document" instead.')
             document = data
 
         if thumb is not None and thumbnail is None:
             thumbnail = thumb
-            logger.warning('The parameter "thumb" is deprecated. Use "thumbnail" instead.')
+            logger.warning(
+                'The parameter "thumb" is deprecated. Use "thumbnail" instead.')
 
         return types.Message.de_json(
             apihelper.send_data(
                 self.token, chat_id, document, 'document',
-                reply_to_message_id = reply_to_message_id, reply_markup = reply_markup, parse_mode = parse_mode,
-                disable_notification = disable_notification, timeout = timeout, caption = caption, thumbnail= thumbnail,
-                caption_entities = caption_entities, allow_sending_without_reply = allow_sending_without_reply,
-                disable_content_type_detection = disable_content_type_detection, visible_file_name = visible_file_name,
-                protect_content = protect_content, message_thread_id = message_thread_id))
-
+                reply_to_message_id=reply_to_message_id, reply_markup=reply_markup, parse_mode=parse_mode,
+                disable_notification=disable_notification, timeout=timeout, caption=caption, thumbnail=thumbnail,
+                caption_entities=caption_entities, allow_sending_without_reply=allow_sending_without_reply,
+                disable_content_type_detection=disable_content_type_detection, visible_file_name=visible_file_name,
+                protect_content=protect_content, message_thread_id=message_thread_id))
 
     # TODO: Rewrite this method like in API.
+
     def send_sticker(
             self, chat_id: Union[int, str],
             sticker: Union[Any, str],
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            disable_notification: Optional[bool]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content:Optional[bool]=None,
-            data: Union[Any, str]=None,
-            message_thread_id: Optional[int]=None,
-            emoji: Optional[str]=None) -> types.Message:
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            disable_notification: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            data: Union[Any, str] = None,
+            message_thread_id: Optional[int] = None,
+            emoji: Optional[str] = None) -> types.Message:
         """
         Use this method to send static .WEBP, animated .TGS, or video .WEBM stickers.
         On success, the sent Message is returned.
@@ -2165,46 +2196,50 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
-        if data and not(sticker):
+        if data and not (sticker):
             # function typo miss compatibility
-            logger.warning('The parameter "data" is deprecated. Use "sticker" instead.')
+            logger.warning(
+                'The parameter "data" is deprecated. Use "sticker" instead.')
             sticker = data
 
         return types.Message.de_json(
             apihelper.send_data(
                 self.token, chat_id, sticker, 'sticker',
                 reply_to_message_id=reply_to_message_id, reply_markup=reply_markup,
-                disable_notification=disable_notification, timeout=timeout, 
+                disable_notification=disable_notification, timeout=timeout,
                 allow_sending_without_reply=allow_sending_without_reply,
                 protect_content=protect_content, message_thread_id=message_thread_id, emoji=emoji))
 
     def send_video(
-            self, chat_id: Union[int, str], video: Union[Any, str], 
-            duration: Optional[int]=None,
-            width: Optional[int]=None,
-            height: Optional[int]=None,
-            thumbnail: Optional[Union[Any, str]]=None, 
-            caption: Optional[str]=None, 
-            parse_mode: Optional[str]=None, 
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            supports_streaming: Optional[bool]=None, 
-            disable_notification: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None, 
-            allow_sending_without_reply: Optional[bool]=None,
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            timeout: Optional[int]=None,
-            data: Optional[Union[Any, str]]=None,
-            message_thread_id: Optional[int]=None,
-            has_spoiler: Optional[bool]=None,
-            thumb: Optional[Union[Any, str]]=None,) -> types.Message:
+            self, chat_id: Union[int, str], video: Union[Any, str],
+            duration: Optional[int] = None,
+            width: Optional[int] = None,
+            height: Optional[int] = None,
+            thumbnail: Optional[Union[Any, str]] = None,
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            supports_streaming: Optional[bool] = None,
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            data: Optional[Union[Any, str]] = None,
+            message_thread_id: Optional[int] = None,
+            has_spoiler: Optional[bool] = None,
+            thumb: Optional[Union[Any, str]] = None,) -> types.Message:
         """
         Use this method to send video files, Telegram clients support mp4 videos (other formats may be sent as Document).
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#sendvideo
 
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2224,7 +2259,7 @@ class TeleBot:
 
         :param thumbnail: Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>.
         :type thumbnail: :obj:`str` or :class:`telebot.types.InputFile`
-        
+
         :param caption: Video caption (may also be used when resending videos by file_id), 0-1024 characters after entities parsing
         :type caption: :obj:`str`
 
@@ -2273,18 +2308,23 @@ class TeleBot:
         :rtype: :class:`telebot.types.Message`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
-        if data and not(video):
+        if data and not (video):
             # function typo miss compatibility
-            logger.warning('The parameter "data" is deprecated. Use "video" instead.')
+            logger.warning(
+                'The parameter "data" is deprecated. Use "video" instead.')
             video = data
 
         if thumb is not None and thumbnail is None:
             thumbnail = thumb
-            logger.warning('The parameter "thumb" is deprecated. Use "thumbnail" instead.')
+            logger.warning(
+                'The parameter "thumb" is deprecated. Use "thumbnail" instead.')
 
         return types.Message.de_json(
             apihelper.send_video(
@@ -2293,27 +2333,27 @@ class TeleBot:
                 caption_entities, allow_sending_without_reply, protect_content, message_thread_id, has_spoiler))
 
     def send_animation(
-            self, chat_id: Union[int, str], animation: Union[Any, str], 
-            duration: Optional[int]=None,
-            width: Optional[int]=None,
-            height: Optional[int]=None,
-            thumbnail: Optional[Union[Any, str]]=None,
-            caption: Optional[str]=None, 
-            parse_mode: Optional[str]=None,
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            disable_notification: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            timeout: Optional[int]=None,
-            message_thread_id: Optional[int]=None,
-            has_spoiler: Optional[bool]=None,
-            thumb: Optional[Union[Any, str]]=None,) -> types.Message:
+            self, chat_id: Union[int, str], animation: Union[Any, str],
+            duration: Optional[int] = None,
+            width: Optional[int] = None,
+            height: Optional[int] = None,
+            thumbnail: Optional[Union[Any, str]] = None,
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            message_thread_id: Optional[int] = None,
+            has_spoiler: Optional[bool] = None,
+            thumb: Optional[Union[Any, str]] = None,) -> types.Message:
         """
         Use this method to send animation files (GIF or H.264/MPEG-4 AVC video without sound).
         On success, the sent Message is returned. Bots can currently send animation files of up to 50 MB in size, this limit may be changed in the future.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#sendanimation
 
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2331,7 +2371,7 @@ class TeleBot:
 
         :param height: Animation height
         :type height: :obj:`int`
-        
+
         :param thumbnail: Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
             The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320.
             Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file,
@@ -2380,13 +2420,17 @@ class TeleBot:
         :rtype: :class:`telebot.types.Message`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         if thumbnail is None and thumb is not None:
             thumbnail = thumb
-            logger.warning('The parameter "thumb" is deprecated. Use "thumbnail" instead.')
+            logger.warning(
+                'The parameter "thumb" is deprecated. Use "thumbnail" instead.')
         return types.Message.de_json(
             apihelper.send_animation(
                 self.token, chat_id, animation, duration, caption, reply_to_message_id,
@@ -2395,27 +2439,27 @@ class TeleBot:
 
     # TODO: Rewrite this method like in API.
     def send_video_note(
-            self, chat_id: Union[int, str], data: Union[Any, str], 
-            duration: Optional[int]=None, 
-            length: Optional[int]=None,
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None,
-            disable_notification: Optional[bool]=None, 
-            timeout: Optional[int]=None, 
-            thumbnail: Optional[Union[Any, str]]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None,
-            thumb: Optional[Union[Any, str]]=None) -> types.Message:
+            self, chat_id: Union[int, str], data: Union[Any, str],
+            duration: Optional[int] = None,
+            length: Optional[int] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            disable_notification: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            thumbnail: Optional[Union[Any, str]] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None,
+            thumb: Optional[Union[Any, str]] = None) -> types.Message:
         """
         As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 minute long.
         Use this method to send video messages. On success, the sent Message is returned.
 
         Telegram documentation: https://core.telegram.org/bots/api#sendvideonote
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
-        
+
         :param data: Video note to send. Pass a file_id as String to send a video note that exists on the Telegram servers (recommended)
             or upload a new video using multipart/form-data. Sending video notes by a URL is currently unsupported
         :type data: :obj:`str` or :class:`telebot.types.InputFile`
@@ -2460,35 +2504,38 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         if thumbnail is None and thumb is not None:
             thumbnail = thumb
-            logger.warning('The parameter "thumb" is deprecated. Use "thumbnail" instead.')
+            logger.warning(
+                'The parameter "thumb" is deprecated. Use "thumbnail" instead.')
 
         return types.Message.de_json(
             apihelper.send_video_note(
                 self.token, chat_id, data, duration, length, reply_to_message_id, reply_markup,
                 disable_notification, timeout, thumbnail, allow_sending_without_reply, protect_content, message_thread_id))
 
-
     def send_media_group(
-            self, chat_id: Union[int, str], 
+            self, chat_id: Union[int, str],
             media: List[Union[
-                types.InputMediaAudio, types.InputMediaDocument, 
+                types.InputMediaAudio, types.InputMediaDocument,
                 types.InputMediaPhoto, types.InputMediaVideo]],
-            disable_notification: Optional[bool]=None, 
-            protect_content: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> List[types.Message]:
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> List[types.Message]:
         """
         Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files
         can be only grouped in an album with messages of the same type. On success, an array of Messages that were sent is returned.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#sendmediagroup
 
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -2518,30 +2565,33 @@ class TeleBot:
         :return: On success, an array of Messages that were sent is returned.
         :rtype: List[types.Message]
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         result = apihelper.send_media_group(
-            self.token, chat_id, media, disable_notification, reply_to_message_id, timeout, 
+            self.token, chat_id, media, disable_notification, reply_to_message_id, timeout,
             allow_sending_without_reply, protect_content, message_thread_id)
         return [types.Message.de_json(msg) for msg in result]
 
     # TODO: Rewrite this method like in API.
     def send_location(
-            self, chat_id: Union[int, str], 
-            latitude: float, longitude: float, 
-            live_period: Optional[int]=None, 
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            disable_notification: Optional[bool]=None, 
-            timeout: Optional[int]=None,
-            horizontal_accuracy: Optional[float]=None, 
-            heading: Optional[int]=None, 
-            proximity_alert_radius: Optional[int]=None, 
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str],
+            latitude: float, longitude: float,
+            live_period: Optional[int] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            disable_notification: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            horizontal_accuracy: Optional[float] = None,
+            heading: Optional[int] = None,
+            proximity_alert_radius: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send point on the map. On success, the sent Message is returned.
 
@@ -2584,7 +2634,7 @@ class TeleBot:
 
         :param allow_sending_without_reply: Pass True, if the message should be sent even if the specified replied-to message is not found
         :type allow_sending_without_reply: :obj:`bool`
-        
+
         :param protect_content: Protects the contents of the sent message from forwarding and saving
         :type protect_content: :obj:`bool`
 
@@ -2594,27 +2644,30 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_location(
-                self.token, chat_id, latitude, longitude, live_period, 
-                reply_to_message_id, reply_markup, disable_notification, timeout, 
-                horizontal_accuracy, heading, proximity_alert_radius, 
+                self.token, chat_id, latitude, longitude, live_period,
+                reply_to_message_id, reply_markup, disable_notification, timeout,
+                horizontal_accuracy, heading, proximity_alert_radius,
                 allow_sending_without_reply, protect_content, message_thread_id))
 
     def edit_message_live_location(
-            self, latitude: float, longitude: float, 
-            chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None,
-            inline_message_id: Optional[str]=None, 
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
-            timeout: Optional[int]=None,
-            horizontal_accuracy: Optional[float]=None, 
-            heading: Optional[int]=None, 
-            proximity_alert_radius: Optional[int]=None) -> types.Message or bool:
+            self, latitude: float, longitude: float,
+            chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None,
+            timeout: Optional[int] = None,
+            horizontal_accuracy: Optional[float] = None,
+            heading: Optional[int] = None,
+            proximity_alert_radius: Optional[int] = None) -> types.Message or bool:
         """
         Use this method to edit live location messages. A location can be edited until its live_period expires or editing is explicitly
             disabled by a call to stopMessageLiveLocation. On success, if the edited message is not an inline message, the edited Message
@@ -2663,17 +2716,17 @@ class TeleBot:
                 horizontal_accuracy, heading, proximity_alert_radius))
 
     def stop_message_live_location(
-            self, chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None,
-            inline_message_id: Optional[str]=None, 
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
-            timeout: Optional[int]=None) -> types.Message or bool:
+            self, chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None,
+            timeout: Optional[int] = None) -> types.Message or bool:
         """
         Use this method to stop updating a live location message before live_period expires.
         On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
 
         Telegram documentation: https://core.telegram.org/bots/api#stopmessagelivelocation
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
 
@@ -2699,28 +2752,28 @@ class TeleBot:
 
     # TODO: Rewrite this method like in API.
     def send_venue(
-            self, chat_id: Union[int, str], 
-            latitude: Optional[float], longitude: Optional[float], 
-            title: str, address: str, 
-            foursquare_id: Optional[str]=None, 
-            foursquare_type: Optional[str]=None,
-            disable_notification: Optional[bool]=None, 
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            google_place_id: Optional[str]=None,
-            google_place_type: Optional[str]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str],
+            latitude: Optional[float], longitude: Optional[float],
+            title: str, address: str,
+            foursquare_id: Optional[str] = None,
+            foursquare_type: Optional[str] = None,
+            disable_notification: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            google_place_id: Optional[str] = None,
+            google_place_type: Optional[str] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send information about a venue. On success, the sent Message is returned.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#sendvenue
 
         :param chat_id: Unique identifier for the target chat or username of the target channel
         :type chat_id: :obj:`int` or :obj:`str`
-        
+
         :param latitude: Latitude of the venue
         :type latitude: :obj:`float`
 
@@ -2773,9 +2826,12 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_venue(
@@ -2783,18 +2839,18 @@ class TeleBot:
                 disable_notification, reply_to_message_id, reply_markup, timeout,
                 allow_sending_without_reply, google_place_id, google_place_type, protect_content, message_thread_id))
 
-
     # TODO: Rewrite this method like in API.
+
     def send_contact(
-            self, chat_id: Union[int, str], phone_number: str, 
-            first_name: str, last_name: Optional[str]=None, 
-            vcard: Optional[str]=None,
-            disable_notification: Optional[bool]=None, 
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None, message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str], phone_number: str,
+            first_name: str, last_name: Optional[str] = None,
+            vcard: Optional[str] = None,
+            disable_notification: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None, message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send phone contacts. On success, the sent Message is returned.
 
@@ -2842,9 +2898,12 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         return types.Message.de_json(
             apihelper.send_contact(
@@ -2853,7 +2912,7 @@ class TeleBot:
                 allow_sending_without_reply, protect_content, message_thread_id))
 
     def send_chat_action(
-            self, chat_id: Union[int, str], action: str, timeout: Optional[int]=None, message_thread_id: Optional[int]=None) -> bool:
+            self, chat_id: Union[int, str], action: str, timeout: Optional[int] = None, message_thread_id: Optional[int] = None) -> bool:
         """
         Use this method when you need to tell the user that something is happening on the bot's side.
         The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status).
@@ -2866,7 +2925,7 @@ class TeleBot:
 
         :param chat_id: Unique identifier for the target chat or username of the target channel
         :type chat_id: :obj:`int` or :obj:`str`
-        
+
         :param action: Type of action to broadcast. Choose one, depending on what the user is about
             to receive: typing for text messages, upload_photo for photos, record_video or upload_video
             for videos, record_voice or upload_voice for voice notes, upload_document for general files,
@@ -2883,21 +2942,21 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.send_chat_action(self.token, chat_id, action, timeout, message_thread_id)
-    
+
     @util.deprecated(deprecation_text="Use ban_chat_member instead")
     def kick_chat_member(
-            self, chat_id: Union[int, str], user_id: int, 
-            until_date:Optional[Union[int, datetime]]=None, 
-            revoke_messages: Optional[bool]=None) -> bool:
+            self, chat_id: Union[int, str], user_id: int,
+            until_date: Optional[Union[int, datetime]] = None,
+            revoke_messages: Optional[bool] = None) -> bool:
         """
         This function is deprecated. Use `ban_chat_member` instead.
         """
         return apihelper.ban_chat_member(self.token, chat_id, user_id, until_date, revoke_messages)
 
     def ban_chat_member(
-            self, chat_id: Union[int, str], user_id: int, 
-            until_date: Optional[Union[int, datetime]]=None, 
-            revoke_messages: Optional[bool]=None) -> bool:
+            self, chat_id: Union[int, str], user_id: int,
+            until_date: Optional[Union[int, datetime]] = None,
+            revoke_messages: Optional[bool] = None) -> bool:
         """
         Use this method to ban a user in a group, a supergroup or a channel. 
         In the case of supergroups and channels, the user will not be able to return to the chat on their 
@@ -2921,15 +2980,15 @@ class TeleBot:
             If False, the user will be able to see messages in the group that were sent before the user was removed. 
             Always True for supergroups and channels.
         :type revoke_messages: :obj:`bool`
-        
+
         :return: Returns True on success.
         :rtype: :obj:`bool`
         """
         return apihelper.ban_chat_member(self.token, chat_id, user_id, until_date, revoke_messages)
 
     def unban_chat_member(
-            self, chat_id: Union[int, str], user_id: int, 
-            only_if_banned: Optional[bool]=False) -> bool:
+            self, chat_id: Union[int, str], user_id: int,
+            only_if_banned: Optional[bool] = False) -> bool:
         """
         Use this method to unban a previously kicked user in a supergroup or channel.
         The user will not return to the group or channel automatically, but will be able to join via link, etc.
@@ -2955,18 +3014,18 @@ class TeleBot:
         return apihelper.unban_chat_member(self.token, chat_id, user_id, only_if_banned)
 
     def restrict_chat_member(
-            self, chat_id: Union[int, str], user_id: int, 
-            until_date: Optional[Union[int, datetime]]=None,
-            can_send_messages: Optional[bool]=None, 
-            can_send_media_messages: Optional[bool]=None,
-            can_send_polls: Optional[bool]=None, 
-            can_send_other_messages: Optional[bool]=None,
-            can_add_web_page_previews: Optional[bool]=None, 
-            can_change_info: Optional[bool]=None,
-            can_invite_users: Optional[bool]=None, 
-            can_pin_messages: Optional[bool]=None,
-            permissions: Optional[types.ChatPermissions]=None,
-            use_independent_chat_permissions: Optional[bool]=None) -> bool:
+            self, chat_id: Union[int, str], user_id: int,
+            until_date: Optional[Union[int, datetime]] = None,
+            can_send_messages: Optional[bool] = None,
+            can_send_media_messages: Optional[bool] = None,
+            can_send_polls: Optional[bool] = None,
+            can_send_other_messages: Optional[bool] = None,
+            can_add_web_page_previews: Optional[bool] = None,
+            can_change_info: Optional[bool] = None,
+            can_invite_users: Optional[bool] = None,
+            can_pin_messages: Optional[bool] = None,
+            permissions: Optional[types.ChatPermissions] = None,
+            use_independent_chat_permissions: Optional[bool] = None) -> bool:
         """
         Use this method to restrict a user in a supergroup.
         The bot must be an administrator in the supergroup for this to work and must have
@@ -2991,11 +3050,11 @@ class TeleBot:
 
         :param can_send_messages: Pass True, if the user can send text messages, contacts, locations and venues
         :type can_send_messages: :obj:`bool`
-        
+
         :param can_send_media_messages: Pass True, if the user can send audios, documents, photos, videos, video notes
             and voice notes, implies can_send_messages
         :type can_send_media_messages: :obj:`bool`
-        
+
         :param can_send_polls: Pass True, if the user is allowed to send polls, implies can_send_messages
         :type can_send_polls: :obj:`bool`
 
@@ -3042,28 +3101,29 @@ class TeleBot:
                 can_invite_users=can_invite_users,
                 can_pin_messages=can_pin_messages
             )
-            logger.warning('The parameters "can_..." are deprecated, use "permissions" instead.')
+            logger.warning(
+                'The parameters "can_..." are deprecated, use "permissions" instead.')
         return apihelper.restrict_chat_member(
             self.token, chat_id, user_id, permissions, until_date, use_independent_chat_permissions)
 
     def promote_chat_member(
             self, chat_id: Union[int, str], user_id: int,
-            can_change_info: Optional[bool]=None, 
-            can_post_messages: Optional[bool]=None,
-            can_edit_messages: Optional[bool]=None, 
-            can_delete_messages: Optional[bool]=None, 
-            can_invite_users: Optional[bool]=None,
-            can_restrict_members: Optional[bool]=None, 
-            can_pin_messages: Optional[bool]=None, 
-            can_promote_members: Optional[bool]=None,
-            is_anonymous: Optional[bool]=None, 
-            can_manage_chat: Optional[bool]=None, 
-            can_manage_video_chats: Optional[bool]=None,
-            can_manage_voice_chats: Optional[bool]=None,
-            can_manage_topics: Optional[bool]=None,
-            can_post_stories: Optional[bool]=None,
-            can_edit_stories: Optional[bool]=None,
-            can_delete_stories: Optional[bool]=None) -> bool:
+            can_change_info: Optional[bool] = None,
+            can_post_messages: Optional[bool] = None,
+            can_edit_messages: Optional[bool] = None,
+            can_delete_messages: Optional[bool] = None,
+            can_invite_users: Optional[bool] = None,
+            can_restrict_members: Optional[bool] = None,
+            can_pin_messages: Optional[bool] = None,
+            can_promote_members: Optional[bool] = None,
+            is_anonymous: Optional[bool] = None,
+            can_manage_chat: Optional[bool] = None,
+            can_manage_video_chats: Optional[bool] = None,
+            can_manage_voice_chats: Optional[bool] = None,
+            can_manage_topics: Optional[bool] = None,
+            can_post_stories: Optional[bool] = None,
+            can_edit_stories: Optional[bool] = None,
+            can_delete_stories: Optional[bool] = None) -> bool:
         """
         Use this method to promote or demote a user in a supergroup or a channel. The bot must be an administrator
         in the chat for this to work and must have the appropriate admin rights.
@@ -3137,7 +3197,8 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         if can_manage_voice_chats is not None:
-            logger.warning('The parameter "can_manage_voice_chats" is deprecated. Use "can_manage_video_chats" instead.')
+            logger.warning(
+                'The parameter "can_manage_voice_chats" is deprecated. Use "can_manage_video_chats" instead.')
             if can_manage_video_chats is None:
                 can_manage_video_chats = can_manage_voice_chats
 
@@ -3171,7 +3232,7 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.set_chat_administrator_custom_title(self.token, chat_id, user_id, custom_title)
-    
+
     def ban_chat_sender_chat(self, chat_id: Union[int, str], sender_chat_id: Union[int, str]) -> bool:
         """
         Use this method to ban a channel chat in a supergroup or a channel.
@@ -3216,7 +3277,7 @@ class TeleBot:
 
     def set_chat_permissions(
             self, chat_id: Union[int, str], permissions: types.ChatPermissions,
-            use_independent_chat_permissions: Optional[bool]=None) -> bool:
+            use_independent_chat_permissions: Optional[bool] = None) -> bool:
         """
         Use this method to set default chat permissions for all members.
         The bot must be an administrator in the group or a supergroup for this to work
@@ -3244,10 +3305,10 @@ class TeleBot:
 
     def create_chat_invite_link(
             self, chat_id: Union[int, str],
-            name: Optional[str]=None,
-            expire_date: Optional[Union[int, datetime]]=None, 
-            member_limit: Optional[int]=None,
-            creates_join_request: Optional[bool]=None) -> types.ChatInviteLink:
+            name: Optional[str] = None,
+            expire_date: Optional[Union[int, datetime]] = None,
+            member_limit: Optional[int] = None,
+            creates_join_request: Optional[bool] = None) -> types.ChatInviteLink:
         """
         Use this method to create an additional invite link for a chat. The bot must be an administrator in the chat for this to work and
         must have the appropriate administrator rights.
@@ -3276,16 +3337,17 @@ class TeleBot:
         :rtype: :class:`telebot.types.ChatInviteLink`
         """
         return types.ChatInviteLink.de_json(
-            apihelper.create_chat_invite_link(self.token, chat_id, name, expire_date, member_limit, creates_join_request)
+            apihelper.create_chat_invite_link(
+                self.token, chat_id, name, expire_date, member_limit, creates_join_request)
         )
 
     def edit_chat_invite_link(
             self, chat_id: Union[int, str],
             invite_link: Optional[str] = None,
-            name: Optional[str]=None,
-            expire_date: Optional[Union[int, datetime]]=None,
-            member_limit: Optional[int]=None,
-            creates_join_request: Optional[bool]=None) -> types.ChatInviteLink:
+            name: Optional[str] = None,
+            expire_date: Optional[Union[int, datetime]] = None,
+            member_limit: Optional[int] = None,
+            creates_join_request: Optional[bool] = None) -> types.ChatInviteLink:
         """
         Use this method to edit a non-primary invite link created by the bot.
         The bot must be an administrator in the chat for this to work and must have the appropriate admin rights.
@@ -3315,7 +3377,8 @@ class TeleBot:
         :rtype: :class:`telebot.types.ChatInviteLink`
         """
         return types.ChatInviteLink.de_json(
-            apihelper.edit_chat_invite_link(self.token, chat_id, invite_link, name, expire_date, member_limit, creates_join_request)
+            apihelper.edit_chat_invite_link(
+                self.token, chat_id, invite_link, name, expire_date, member_limit, creates_join_request)
         )
 
     def revoke_chat_invite_link(
@@ -3435,9 +3498,9 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.delete_chat_photo(self.token, chat_id)
-    
-    def get_my_commands(self, scope: Optional[types.BotCommandScope]=None, 
-            language_code: Optional[str]=None) -> List[types.BotCommand]:
+
+    def get_my_commands(self, scope: Optional[types.BotCommandScope] = None,
+                        language_code: Optional[str] = None) -> List[types.BotCommand]:
         """
         Use this method to get the current list of the bot's commands. 
         Returns List of BotCommand on success.
@@ -3459,7 +3522,7 @@ class TeleBot:
         result = apihelper.get_my_commands(self.token, scope, language_code)
         return [types.BotCommand.de_json(cmd) for cmd in result]
 
-    def set_my_name(self, name: Optional[str]=None, language_code: Optional[str]=None):
+    def set_my_name(self, name: Optional[str] = None, language_code: Optional[str] = None):
         """
         Use this method to change the bot's name. Returns True on success.
 
@@ -3476,8 +3539,8 @@ class TeleBot:
         """
 
         return apihelper.set_my_name(self.token, name, language_code)
-    
-    def get_my_name(self, language_code: Optional[str]=None):
+
+    def get_my_name(self, language_code: Optional[str] = None):
         """
         Use this method to get the current bot name for the given user language.
         Returns BotName on success.
@@ -3492,8 +3555,8 @@ class TeleBot:
 
         result = apihelper.get_my_name(self.token, language_code)
         return types.BotName.de_json(result)
-    
-    def set_my_description(self, description: Optional[str]=None, language_code: Optional[str]=None):
+
+    def set_my_description(self, description: Optional[str] = None, language_code: Optional[str] = None):
         """
         Use this method to change the bot's description, which is shown in
         the chat with the bot if the chat is empty.
@@ -3512,8 +3575,8 @@ class TeleBot:
         """
 
         return apihelper.set_my_description(self.token, description, language_code)
-    
-    def get_my_description(self, language_code: Optional[str]=None):
+
+    def get_my_description(self, language_code: Optional[str] = None):
         """
         Use this method to get the current bot description for the given user language.
         Returns BotDescription on success.
@@ -3525,10 +3588,10 @@ class TeleBot:
 
         :return: :class:`telebot.types.BotDescription`
         """
-            
+
         return types.BotDescription.de_json(apihelper.get_my_description(self.token, language_code))
-    
-    def set_my_short_description(self, short_description:Optional[str]=None, language_code:Optional[str]=None):
+
+    def set_my_short_description(self, short_description: Optional[str] = None, language_code: Optional[str] = None):
         """
         Use this method to change the bot's short description, which is shown on the bot's profile page and
         is sent together with the link when users share the bot. 
@@ -3547,8 +3610,8 @@ class TeleBot:
         """
 
         return apihelper.set_my_short_description(self.token, short_description, language_code)
-    
-    def get_my_short_description(self, language_code: Optional[str]=None):
+
+    def get_my_short_description(self, language_code: Optional[str] = None):
         """
         Use this method to get the current bot short description for the given user language.
         Returns BotShortDescription on success.
@@ -3560,11 +3623,11 @@ class TeleBot:
 
         :return: :class:`telebot.types.BotShortDescription`
         """
-            
+
         return types.BotShortDescription.de_json(apihelper.get_my_short_description(self.token, language_code))
 
-    def set_chat_menu_button(self, chat_id: Union[int, str]=None, 
-                menu_button: types.MenuButton=None) -> bool:
+    def set_chat_menu_button(self, chat_id: Union[int, str] = None,
+                             menu_button: types.MenuButton = None) -> bool:
         """
         Use this method to change the bot's menu button in a private chat, 
         or the default menu button. 
@@ -3584,7 +3647,7 @@ class TeleBot:
         """
         return apihelper.set_chat_menu_button(self.token, chat_id, menu_button)
 
-    def get_chat_menu_button(self, chat_id: Union[int, str]=None) -> types.MenuButton:
+    def get_chat_menu_button(self, chat_id: Union[int, str] = None) -> types.MenuButton:
         """
         Use this method to get the current value of the bot's menu button
         in a private chat, or the default menu button.
@@ -3601,8 +3664,8 @@ class TeleBot:
         """
         return types.MenuButton.de_json(apihelper.get_chat_menu_button(self.token, chat_id))
 
-    def set_my_default_administrator_rights(self, rights: types.ChatAdministratorRights=None, 
-                                    for_channels: Optional[bool]=None) -> bool:
+    def set_my_default_administrator_rights(self, rights: types.ChatAdministratorRights = None,
+                                            for_channels: Optional[bool] = None) -> bool:
         """
         Use this method to change the default administrator rights requested by the bot
         when it's added as an administrator to groups or channels.
@@ -3625,7 +3688,7 @@ class TeleBot:
         """
         return apihelper.set_my_default_administrator_rights(self.token, rights, for_channels)
 
-    def get_my_default_administrator_rights(self, for_channels: Optional[bool]=None) -> types.ChatAdministratorRights:
+    def get_my_default_administrator_rights(self, for_channels: Optional[bool] = None) -> types.ChatAdministratorRights:
         """
         Use this method to get the current default administrator rights of the bot.
         Returns ChatAdministratorRights on success.
@@ -3639,10 +3702,10 @@ class TeleBot:
         :rtype: :class:`telebot.types.ChatAdministratorRights`
         """
         return types.ChatAdministratorRights.de_json(apihelper.get_my_default_administrator_rights(self.token, for_channels))
-        
+
     def set_my_commands(self, commands: List[types.BotCommand],
-            scope: Optional[types.BotCommandScope]=None,
-            language_code: Optional[str]=None) -> bool:
+                        scope: Optional[types.BotCommandScope] = None,
+                        language_code: Optional[str] = None) -> bool:
         """
         Use this method to change the list of the bot's commands.
 
@@ -3664,16 +3727,16 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.set_my_commands(self.token, commands, scope, language_code)
-    
-    def delete_my_commands(self, scope: Optional[types.BotCommandScope]=None, 
-            language_code: Optional[str]=None) -> bool:
+
+    def delete_my_commands(self, scope: Optional[types.BotCommandScope] = None,
+                           language_code: Optional[str] = None) -> bool:
         """
         Use this method to delete the list of the bot's commands for the given scope and user language. 
         After deletion, higher level commands will be shown to affected users. 
         Returns True on success.
 
         Telegram documentation: https://core.telegram.org/bots/api#deletemycommands
-        
+
         :param scope: The scope of users for which the commands are relevant. 
             Defaults to BotCommandScopeDefault.
         :type scope: :class:`telebot.types.BotCommandScope`
@@ -3710,7 +3773,7 @@ class TeleBot:
         """
         return apihelper.set_chat_title(self.token, chat_id, title)
 
-    def set_chat_description(self, chat_id: Union[int, str], description: Optional[str]=None) -> bool:
+    def set_chat_description(self, chat_id: Union[int, str], description: Optional[str] = None) -> bool:
         """
         Use this method to change the description of a supergroup or a channel.
         The bot must be an administrator in the chat for this to work and must have the appropriate admin rights.
@@ -3730,8 +3793,8 @@ class TeleBot:
         return apihelper.set_chat_description(self.token, chat_id, description)
 
     def pin_chat_message(
-            self, chat_id: Union[int, str], message_id: int, 
-            disable_notification: Optional[bool]=False) -> bool:
+            self, chat_id: Union[int, str], message_id: int,
+            disable_notification: Optional[bool] = False) -> bool:
         """
         Use this method to pin a message in a supergroup.
         The bot must be an administrator in the chat for this to work and must have the appropriate admin rights.
@@ -3753,11 +3816,12 @@ class TeleBot:
         :return: True on success.
         :rtype: :obj:`bool`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
 
         return apihelper.pin_chat_message(self.token, chat_id, message_id, disable_notification)
 
-    def unpin_chat_message(self, chat_id: Union[int, str], message_id: Optional[int]=None) -> bool:
+    def unpin_chat_message(self, chat_id: Union[int, str], message_id: Optional[int] = None) -> bool:
         """
         Use this method to unpin specific pinned message in a supergroup chat.
         The bot must be an administrator in the chat for this to work and must have the appropriate admin rights.
@@ -3795,14 +3859,14 @@ class TeleBot:
         return apihelper.unpin_all_chat_messages(self.token, chat_id)
 
     def edit_message_text(
-            self, text: str, 
-            chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None, 
-            inline_message_id: Optional[str]=None, 
-            parse_mode: Optional[str]=None,
-            entities: Optional[List[types.MessageEntity]]=None,
-            disable_web_page_preview: Optional[bool]=None,
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None) -> Union[types.Message, bool]:
+            self, text: str,
+            chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            entities: Optional[List[types.MessageEntity]] = None,
+            disable_web_page_preview: Optional[bool] = None,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None) -> Union[types.Message, bool]:
         """
         Use this method to edit text and game messages.
 
@@ -3836,19 +3900,21 @@ class TeleBot:
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
-        disable_web_page_preview = self.disable_web_page_preview if (disable_web_page_preview is None) else disable_web_page_preview
+        disable_web_page_preview = self.disable_web_page_preview if (
+            disable_web_page_preview is None) else disable_web_page_preview
 
         result = apihelper.edit_message_text(self.token, text, chat_id, message_id, inline_message_id, parse_mode,
                                              entities, disable_web_page_preview, reply_markup)
-        if type(result) == bool:  # if edit inline message return is bool not Message.
+        # if edit inline message return is bool not Message.
+        if type(result) == bool:
             return result
         return types.Message.de_json(result)
 
     def edit_message_media(
-            self, media: Any, chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None,
-            inline_message_id: Optional[str]=None, 
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None) -> Union[types.Message, bool]:
+            self, media: Any, chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None) -> Union[types.Message, bool]:
         """
         Use this method to edit animation, audio, document, photo, or video messages.
         If a message is a part of a message album, then it can be edited only to a photo or a video.
@@ -3874,16 +3940,18 @@ class TeleBot:
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
-        result = apihelper.edit_message_media(self.token, media, chat_id, message_id, inline_message_id, reply_markup)
-        if type(result) == bool:  # if edit inline message return is bool not Message.
+        result = apihelper.edit_message_media(
+            self.token, media, chat_id, message_id, inline_message_id, reply_markup)
+        # if edit inline message return is bool not Message.
+        if type(result) == bool:
             return result
         return types.Message.de_json(result)
 
     def edit_message_reply_markup(
-            self, chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None,
-            inline_message_id: Optional[str]=None, 
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None) -> Union[types.Message, bool]:
+            self, chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None) -> Union[types.Message, bool]:
         """
         Use this method to edit only the reply markup of messages.
 
@@ -3904,20 +3972,21 @@ class TeleBot:
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
-        result = apihelper.edit_message_reply_markup(self.token, chat_id, message_id, inline_message_id, reply_markup)
+        result = apihelper.edit_message_reply_markup(
+            self.token, chat_id, message_id, inline_message_id, reply_markup)
         if type(result) == bool:
             return result
         return types.Message.de_json(result)
 
     def send_game(
-            self, chat_id: Union[int, str], game_short_name: str, 
-            disable_notification: Optional[bool]=None,
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            self, chat_id: Union[int, str], game_short_name: str,
+            disable_notification: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Used to send the game.
 
@@ -3953,23 +4022,26 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :obj:`types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         result = apihelper.send_game(
             self.token, chat_id, game_short_name, disable_notification,
-            reply_to_message_id, reply_markup, timeout, 
+            reply_to_message_id, reply_markup, timeout,
             allow_sending_without_reply, protect_content, message_thread_id)
         return types.Message.de_json(result)
 
     def set_game_score(
-            self, user_id: Union[int, str], score: int, 
-            force: Optional[bool]=None, 
-            chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None, 
-            inline_message_id: Optional[str]=None,
-            disable_edit_message: Optional[bool]=None) -> Union[types.Message, bool]:
+            self, user_id: Union[int, str], score: int,
+            force: Optional[bool] = None,
+            chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            disable_edit_message: Optional[bool] = None) -> Union[types.Message, bool]:
         """
         Sets the value of points in the game to a specific user.
 
@@ -4006,9 +4078,9 @@ class TeleBot:
         return types.Message.de_json(result)
 
     def get_game_high_scores(
-            self, user_id: int, chat_id: Optional[Union[int, str]]=None,
-            message_id: Optional[int]=None, 
-            inline_message_id: Optional[str]=None) -> List[types.GameHighScore]:
+            self, user_id: int, chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None) -> List[types.GameHighScore]:
         """
         Use this method to get data for high score tables. Will return the score of the specified user and several of
         their neighbors in a game. On success, returns an Array of GameHighScore objects.
@@ -4034,31 +4106,32 @@ class TeleBot:
         :return: On success, returns an Array of GameHighScore objects.
         :rtype: List[types.GameHighScore]
         """
-        result = apihelper.get_game_high_scores(self.token, user_id, chat_id, message_id, inline_message_id)
+        result = apihelper.get_game_high_scores(
+            self.token, user_id, chat_id, message_id, inline_message_id)
         return [types.GameHighScore.de_json(r) for r in result]
 
     # TODO: rewrite this method like in API
     def send_invoice(
-            self, chat_id: Union[int, str], title: str, description: str, 
-            invoice_payload: str, provider_token: str, currency: str, 
-            prices: List[types.LabeledPrice], start_parameter: Optional[str]=None, 
-            photo_url: Optional[str]=None, photo_size: Optional[int]=None, 
-            photo_width: Optional[int]=None, photo_height: Optional[int]=None,
-            need_name: Optional[bool]=None, need_phone_number: Optional[bool]=None, 
-            need_email: Optional[bool]=None, need_shipping_address: Optional[bool]=None,
-            send_phone_number_to_provider: Optional[bool]=None, 
-            send_email_to_provider: Optional[bool]=None, 
-            is_flexible: Optional[bool]=None,
-            disable_notification: Optional[bool]=None, 
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            provider_data: Optional[str]=None, 
-            timeout: Optional[int]=None,
-            allow_sending_without_reply: Optional[bool]=None,
+            self, chat_id: Union[int, str], title: str, description: str,
+            invoice_payload: str, provider_token: str, currency: str,
+            prices: List[types.LabeledPrice], start_parameter: Optional[str] = None,
+            photo_url: Optional[str] = None, photo_size: Optional[int] = None,
+            photo_width: Optional[int] = None, photo_height: Optional[int] = None,
+            need_name: Optional[bool] = None, need_phone_number: Optional[bool] = None,
+            need_email: Optional[bool] = None, need_shipping_address: Optional[bool] = None,
+            send_phone_number_to_provider: Optional[bool] = None,
+            send_email_to_provider: Optional[bool] = None,
+            is_flexible: Optional[bool] = None,
+            disable_notification: Optional[bool] = None,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            provider_data: Optional[str] = None,
+            timeout: Optional[int] = None,
+            allow_sending_without_reply: Optional[bool] = None,
             max_tip_amount: Optional[int] = None,
-            suggested_tip_amounts: Optional[List[int]]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            suggested_tip_amounts: Optional[List[int]] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Sends invoice.
 
@@ -4163,9 +4236,12 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :obj:`types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         result = apihelper.send_invoice(
             self.token, chat_id, title, description, invoice_payload, provider_token,
@@ -4177,23 +4253,22 @@ class TeleBot:
         return types.Message.de_json(result)
 
     def create_invoice_link(self,
-            title: str, description: str, payload:str, provider_token: str, 
-            currency: str, prices: List[types.LabeledPrice],
-            max_tip_amount: Optional[int] = None, 
-            suggested_tip_amounts: Optional[List[int]]=None,
-            provider_data: Optional[str]=None,
-            photo_url: Optional[str]=None,
-            photo_size: Optional[int]=None,
-            photo_width: Optional[int]=None,
-            photo_height: Optional[int]=None,
-            need_name: Optional[bool]=None,
-            need_phone_number: Optional[bool]=None,
-            need_email: Optional[bool]=None,
-            need_shipping_address: Optional[bool]=None,
-            send_phone_number_to_provider: Optional[bool]=None,
-            send_email_to_provider: Optional[bool]=None,
-            is_flexible: Optional[bool]=None) -> str:
-            
+                            title: str, description: str, payload: str, provider_token: str,
+                            currency: str, prices: List[types.LabeledPrice],
+                            max_tip_amount: Optional[int] = None,
+                            suggested_tip_amounts: Optional[List[int]] = None,
+                            provider_data: Optional[str] = None,
+                            photo_url: Optional[str] = None,
+                            photo_size: Optional[int] = None,
+                            photo_width: Optional[int] = None,
+                            photo_height: Optional[int] = None,
+                            need_name: Optional[bool] = None,
+                            need_phone_number: Optional[bool] = None,
+                            need_email: Optional[bool] = None,
+                            need_shipping_address: Optional[bool] = None,
+                            send_phone_number_to_provider: Optional[bool] = None,
+                            send_email_to_provider: Optional[bool] = None,
+                            is_flexible: Optional[bool] = None) -> str:
         """
         Use this method to create a link for an invoice. 
         Returns the created invoice link as String on success.
@@ -4283,22 +4358,22 @@ class TeleBot:
     # TODO: rewrite this method like in API
     def send_poll(
             self, chat_id: Union[int, str], question: str, options: List[str],
-            is_anonymous: Optional[bool]=None, type: Optional[str]=None, 
-            allows_multiple_answers: Optional[bool]=None, 
-            correct_option_id: Optional[int]=None,
-            explanation: Optional[str]=None, 
-            explanation_parse_mode: Optional[str]=None, 
-            open_period: Optional[int]=None, 
-            close_date: Optional[Union[int, datetime]]=None, 
-            is_closed: Optional[bool]=None,
-            disable_notification: Optional[bool]=False,
-            reply_to_message_id: Optional[int]=None, 
-            reply_markup: Optional[REPLY_MARKUP_TYPES]=None, 
-            allow_sending_without_reply: Optional[bool]=None, 
-            timeout: Optional[int]=None,
-            explanation_entities: Optional[List[types.MessageEntity]]=None,
-            protect_content: Optional[bool]=None,
-            message_thread_id: Optional[int]=None) -> types.Message:
+            is_anonymous: Optional[bool] = None, type: Optional[str] = None,
+            allows_multiple_answers: Optional[bool] = None,
+            correct_option_id: Optional[int] = None,
+            explanation: Optional[str] = None,
+            explanation_parse_mode: Optional[str] = None,
+            open_period: Optional[int] = None,
+            close_date: Optional[Union[int, datetime]] = None,
+            is_closed: Optional[bool] = None,
+            disable_notification: Optional[bool] = False,
+            reply_to_message_id: Optional[int] = None,
+            reply_markup: Optional[REPLY_MARKUP_TYPES] = None,
+            allow_sending_without_reply: Optional[bool] = None,
+            timeout: Optional[int] = None,
+            explanation_entities: Optional[List[types.MessageEntity]] = None,
+            protect_content: Optional[bool] = None,
+            message_thread_id: Optional[int] = None) -> types.Message:
         """
         Use this method to send a native poll.
         On success, the sent Message is returned.
@@ -4372,14 +4447,19 @@ class TeleBot:
         :return: On success, the sent Message is returned.
         :rtype: :obj:`types.Message`
         """
-        disable_notification = self.disable_notification if (disable_notification is None) else disable_notification
-        protect_content = self.protect_content if (protect_content is None) else protect_content
-        allow_sending_without_reply = self.allow_sending_without_reply if (allow_sending_without_reply is None) else allow_sending_without_reply
+        disable_notification = self.disable_notification if (
+            disable_notification is None) else disable_notification
+        protect_content = self.protect_content if (
+            protect_content is None) else protect_content
+        allow_sending_without_reply = self.allow_sending_without_reply if (
+            allow_sending_without_reply is None) else allow_sending_without_reply
 
         if isinstance(question, types.Poll):
-            raise RuntimeError("The send_poll signature was changed, please see send_poll function details.")
+            raise RuntimeError(
+                "The send_poll signature was changed, please see send_poll function details.")
 
-        explanation_parse_mode = self.parse_mode if (explanation_parse_mode is None) else explanation_parse_mode
+        explanation_parse_mode = self.parse_mode if (
+            explanation_parse_mode is None) else explanation_parse_mode
 
         return types.Message.de_json(
             apihelper.send_poll(
@@ -4391,8 +4471,8 @@ class TeleBot:
                 reply_markup, timeout, explanation_entities, protect_content, message_thread_id))
 
     def stop_poll(
-            self, chat_id: Union[int, str], message_id: int, 
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None) -> types.Poll:
+            self, chat_id: Union[int, str], message_id: int,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None) -> types.Poll:
         """
         Use this method to stop a poll which was sent by the bot. On success, the stopped Poll is returned.
 
@@ -4413,9 +4493,9 @@ class TeleBot:
         return types.Poll.de_json(apihelper.stop_poll(self.token, chat_id, message_id, reply_markup))
 
     def answer_shipping_query(
-            self, shipping_query_id: str, ok: bool, 
-            shipping_options: Optional[List[types.ShippingOption]]=None, 
-            error_message: Optional[str]=None) -> bool:
+            self, shipping_query_id: str, ok: bool,
+            shipping_options: Optional[List[types.ShippingOption]] = None,
+            error_message: Optional[str] = None) -> bool:
         """
         Asks for an answer to a shipping question.
 
@@ -4440,8 +4520,8 @@ class TeleBot:
         return apihelper.answer_shipping_query(self.token, shipping_query_id, ok, shipping_options, error_message)
 
     def answer_pre_checkout_query(
-            self, pre_checkout_query_id: int, ok: bool, 
-            error_message: Optional[str]=None) -> bool:
+            self, pre_checkout_query_id: int, ok: bool,
+            error_message: Optional[str] = None) -> bool:
         """
         Once the user has confirmed their payment and shipping details, the Bot API sends the final confirmation in the form of an Update with the
         field pre_checkout_query. Use this method to respond to such pre-checkout queries.
@@ -4469,12 +4549,12 @@ class TeleBot:
         return apihelper.answer_pre_checkout_query(self.token, pre_checkout_query_id, ok, error_message)
 
     def edit_message_caption(
-            self, caption: str, chat_id: Optional[Union[int, str]]=None, 
-            message_id: Optional[int]=None, 
-            inline_message_id: Optional[str]=None,
-            parse_mode: Optional[str]=None, 
-            caption_entities: Optional[List[types.MessageEntity]]=None,
-            reply_markup: Optional[types.InlineKeyboardMarkup]=None) -> Union[types.Message, bool]:
+            self, caption: str, chat_id: Optional[Union[int, str]] = None,
+            message_id: Optional[int] = None,
+            inline_message_id: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List[types.MessageEntity]] = None,
+            reply_markup: Optional[types.InlineKeyboardMarkup] = None) -> Union[types.Message, bool]:
         """
         Use this method to edit captions of messages.
 
@@ -4515,7 +4595,7 @@ class TeleBot:
     def reply_to(self, message: types.Message, text: str, **kwargs) -> types.Message:
         """
         Convenience function for `send_message(message.chat.id, text, reply_to_message_id=message.message_id, **kwargs)`
-        
+
         :param message: Instance of :class:`telebot.types.Message`
         :type message: :obj:`types.Message`
 
@@ -4530,14 +4610,14 @@ class TeleBot:
         return self.send_message(message.chat.id, text, reply_to_message_id=message.message_id, **kwargs)
 
     def answer_inline_query(
-            self, inline_query_id: str, 
-            results: List[Any], 
-            cache_time: Optional[int]=None, 
-            is_personal: Optional[bool]=None, 
-            next_offset: Optional[str]=None,
-            switch_pm_text: Optional[str]=None, 
-            switch_pm_parameter: Optional[str]=None,
-            button: Optional[types.InlineQueryResultsButton]=None) -> bool:
+            self, inline_query_id: str,
+            results: List[Any],
+            cache_time: Optional[int] = None,
+            is_personal: Optional[bool] = None,
+            next_offset: Optional[str] = None,
+            switch_pm_text: Optional[str] = None,
+            switch_pm_parameter: Optional[str] = None,
+            button: Optional[types.InlineQueryResultsButton] = None) -> bool:
         """
         Use this method to send answers to an inline query. On success, True is returned.
         No more than 50 results per query are allowed.
@@ -4580,9 +4660,11 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         if not button and (switch_pm_text or switch_pm_parameter):
-            logger.warning("switch_pm_text and switch_pm_parameter are deprecated for answer_inline_query. Use button instead.")
-            button = types.InlineQueryResultsButton(text=switch_pm_text, start_parameter=switch_pm_parameter)
-        
+            logger.warning(
+                "switch_pm_text and switch_pm_parameter are deprecated for answer_inline_query. Use button instead.")
+            button = types.InlineQueryResultsButton(
+                text=switch_pm_text, start_parameter=switch_pm_parameter)
+
         return apihelper.answer_inline_query(self.token, inline_query_id, results, cache_time, is_personal, next_offset,
                                              button)
 
@@ -4605,9 +4687,9 @@ class TeleBot:
         return apihelper.unpin_all_general_forum_topic_messages(self.token, chat_id)
 
     def answer_callback_query(
-            self, callback_query_id: int, 
-            text: Optional[str]=None, show_alert: Optional[bool]=None, 
-            url: Optional[str]=None, cache_time: Optional[int]=None) -> bool:
+            self, callback_query_id: int,
+            text: Optional[str] = None, show_alert: Optional[bool] = None,
+            url: Optional[str] = None, cache_time: Optional[int] = None) -> bool:
         """
         Use this method to send answers to callback queries sent from inline keyboards. The answer will be displayed to
         the user as a notification at the top of the chat screen or as an alert.
@@ -4635,7 +4717,7 @@ class TeleBot:
         """
         return apihelper.answer_callback_query(self.token, callback_query_id, text, show_alert, url, cache_time)
 
-    def set_sticker_set_thumbnail(self, name: str, user_id: int, thumbnail: Union[Any, str]=None):
+    def set_sticker_set_thumbnail(self, name: str, user_id: int, thumbnail: Union[Any, str] = None):
         """
         Use this method to set the thumbnail of a sticker set. 
         Animated thumbnails can be set for animated sticker sets only. Returns True on success.
@@ -4656,9 +4738,9 @@ class TeleBot:
         """
 
         return apihelper.set_sticker_set_thumbnail(self.token, name, user_id, thumbnail)
-    
+
     @util.deprecated(deprecation_text="Use set_sticker_set_thumbnail instead")
-    def set_sticker_set_thumb(self, name: str, user_id: int, thumb: Union[Any, str]=None):
+    def set_sticker_set_thumb(self, name: str, user_id: int, thumb: Union[Any, str] = None):
         """
         Use this method to set the thumbnail of a sticker set. 
         Animated thumbnails can be set for animated sticker sets only. Returns True on success.
@@ -4683,7 +4765,7 @@ class TeleBot:
     def get_sticker_set(self, name: str) -> types.StickerSet:
         """
         Use this method to get a sticker set. On success, a StickerSet object is returned.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#getstickerset
 
         :param name: Sticker set name
@@ -4706,10 +4788,11 @@ class TeleBot:
         :return: Returns an Array of Sticker objects.
         :rtype: :obj:`list` of :class:`telebot.types.Sticker`
         """
-        result = apihelper.get_custom_emoji_stickers(self.token, custom_emoji_ids)
+        result = apihelper.get_custom_emoji_stickers(
+            self.token, custom_emoji_ids)
         return [types.Sticker.de_json(sticker) for sticker in result]
-    
-    def set_sticker_keywords(self, sticker: str, keywords: List[str]=None) -> bool:
+
+    def set_sticker_keywords(self, sticker: str, keywords: List[str] = None) -> bool:
         """
         Use this method to change search keywords assigned to a regular or custom emoji sticker.
         The sticker must belong to a sticker set created by the bot.
@@ -4725,8 +4808,8 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.set_sticker_keywords(self.token, sticker, keywords)
-    
-    def set_sticker_mask_position(self, sticker: str, mask_position: types.MaskPosition=None) -> bool:
+
+    def set_sticker_mask_position(self, sticker: str, mask_position: types.MaskPosition = None) -> bool:
         """
         Use this method to change the mask position of a mask sticker.
         The sticker must belong to a sticker set that was created by the bot.
@@ -4742,9 +4825,8 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.set_sticker_mask_position(self.token, sticker, mask_position)
-    
 
-    def set_custom_emoji_sticker_set_thumbnail(self, name: str, custom_emoji_id: Optional[str]=None) -> bool:
+    def set_custom_emoji_sticker_set_thumbnail(self, name: str, custom_emoji_id: Optional[str] = None) -> bool:
         """
         Use this method to set the thumbnail of a custom emoji sticker set.
         Returns True on success.
@@ -4759,7 +4841,7 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.set_custom_emoji_sticker_set_thumbnail(self.token, name, custom_emoji_id)
-    
+
     def set_sticker_set_title(self, name: str, title: str) -> bool:
         """
         Use this method to set the title of a created sticker set.
@@ -4776,8 +4858,8 @@ class TeleBot:
         """
 
         return apihelper.set_sticker_set_title(self.token, name, title)
-    
-    def delete_sticker_set(self, name:str) -> bool:
+
+    def delete_sticker_set(self, name: str) -> bool:
         """
         Use this method to delete a sticker set. Returns True on success.
 
@@ -4789,7 +4871,7 @@ class TeleBot:
         """
 
         return apihelper.delete_sticker_set(self.token, name)
-    
+
     def set_sticker_emoji_list(self, sticker: str, emoji_list: List[str]) -> bool:
         """
         Use this method to set the emoji list of a custom emoji sticker set.
@@ -4807,12 +4889,11 @@ class TeleBot:
 
         return apihelper.set_sticker_emoji_list(self.token, sticker, emoji_list)
 
-
-    def upload_sticker_file(self, user_id: int, png_sticker: Union[Any, str]=None, sticker: Optional[types.InputFile]=None, sticker_format: Optional[str]=None) -> types.File:
+    def upload_sticker_file(self, user_id: int, png_sticker: Union[Any, str] = None, sticker: Optional[types.InputFile] = None, sticker_format: Optional[str] = None) -> types.File:
         """
         Use this method to upload a .png file with a sticker for later use in createNewStickerSet and addStickerToSet
         methods (can be used multiple times). Returns the uploaded File on success.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#uploadstickerfile
 
         :param user_id: User identifier of sticker set owner
@@ -4833,25 +4914,27 @@ class TeleBot:
         :rtype: :class:`telebot.types.File`
         """
         if png_sticker:
-            logger.warning('The parameter "png_sticker" is deprecated. Use "sticker" instead.')
+            logger.warning(
+                'The parameter "png_sticker" is deprecated. Use "sticker" instead.')
             sticker = png_sticker
             sticker_format = "static"
-        
-        result = apihelper.upload_sticker_file(self.token, user_id, sticker, sticker_format)
+
+        result = apihelper.upload_sticker_file(
+            self.token, user_id, sticker, sticker_format)
         return types.File.de_json(result)
 
     def create_new_sticker_set(
-            self, user_id: int, name: str, title: str, 
-            emojis: Optional[List[str]]=None, 
-            png_sticker: Union[Any, str]=None, 
-            tgs_sticker: Union[Any, str]=None, 
-            webm_sticker: Union[Any, str]=None,
-            contains_masks: Optional[bool]=None,
-            sticker_type: Optional[str]=None,
-            mask_position: Optional[types.MaskPosition]=None,
-            needs_repainting: Optional[bool]=None,
-            stickers: List[types.InputSticker]=None,
-            sticker_format: Optional[str]=None) -> bool:
+            self, user_id: int, name: str, title: str,
+            emojis: Optional[List[str]] = None,
+            png_sticker: Union[Any, str] = None,
+            tgs_sticker: Union[Any, str] = None,
+            webm_sticker: Union[Any, str] = None,
+            contains_masks: Optional[bool] = None,
+            sticker_type: Optional[str] = None,
+            mask_position: Optional[types.MaskPosition] = None,
+            needs_repainting: Optional[bool] = None,
+            stickers: List[types.InputSticker] = None,
+            sticker_format: Optional[str] = None) -> bool:
         """
         Use this method to create new sticker set owned by a user. 
         The bot will be able to edit the created sticker set.
@@ -4917,31 +5000,30 @@ class TeleBot:
             sticker_format = 'video'
         elif png_sticker:
             sticker_format = 'static'
-        
+
         if contains_masks is not None:
-            logger.warning('The parameter "contains_masks" is deprecated, use "sticker_type" instead')
+            logger.warning(
+                'The parameter "contains_masks" is deprecated, use "sticker_type" instead')
             if sticker_type is None:
-               sticker_type = 'mask' if contains_masks else 'regular'
+                sticker_type = 'mask' if contains_masks else 'regular'
 
         if stickers is None:
             stickers = png_sticker or tgs_sticker or webm_sticker
             if stickers is None:
                 raise ValueError('You must pass at least one sticker')
-            stickers = [types.InputSticker(sticker=stickers, emoji_list=emojis, mask_position=mask_position)]
-            
+            stickers = [types.InputSticker(
+                sticker=stickers, emoji_list=emojis, mask_position=mask_position)]
 
-               
         return apihelper.create_new_sticker_set(
             self.token, user_id, name, title, stickers, sticker_format, sticker_type, needs_repainting)
 
-
     def add_sticker_to_set(
             self, user_id: int, name: str, emojis: Union[List[str], str],
-            png_sticker: Optional[Union[Any, str]]=None, 
-            tgs_sticker: Optional[Union[Any, str]]=None,  
-            webm_sticker: Optional[Union[Any, str]]=None,
-            mask_position: Optional[types.MaskPosition]=None,
-            sticker: Optional[List[types.InputSticker]]=None) -> bool:
+            png_sticker: Optional[Union[Any, str]] = None,
+            tgs_sticker: Optional[Union[Any, str]] = None,
+            webm_sticker: Optional[Union[Any, str]] = None,
+            mask_position: Optional[types.MaskPosition] = None,
+            sticker: Optional[List[types.InputSticker]] = None) -> bool:
         """
         Use this method to add a new sticker to a set created by the bot.
         The format of the added sticker must match the format of the other stickers in the set.
@@ -4991,7 +5073,8 @@ class TeleBot:
         if sticker is None:
             old_sticker = png_sticker or tgs_sticker or webm_sticker
             if old_sticker is not None:
-                logger.warning('The parameters "..._sticker", "emojis" and "mask_position" are deprecated, use "sticker" instead')
+                logger.warning(
+                    'The parameters "..._sticker", "emojis" and "mask_position" are deprecated, use "sticker" instead')
             if not old_sticker:
                 raise ValueError('You must pass at least one sticker.')
             sticker = types.InputSticker(old_sticker, emojis, mask_position)
@@ -5002,7 +5085,7 @@ class TeleBot:
     def set_sticker_position_in_set(self, sticker: str, position: int) -> bool:
         """
         Use this method to move a sticker in a set created by the bot to a specific position . Returns True on success.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#setstickerpositioninset
 
         :param sticker: File identifier of the sticker
@@ -5019,7 +5102,7 @@ class TeleBot:
     def delete_sticker_from_set(self, sticker: str) -> bool:
         """
         Use this method to delete a sticker from a set created by the bot. Returns True on success.
-       
+
         Telegram documentation: https://core.telegram.org/bots/api#deletestickerfromset
 
         :param sticker: File identifier of the sticker
@@ -5029,8 +5112,8 @@ class TeleBot:
         return apihelper.delete_sticker_from_set(self.token, sticker)
 
     def create_forum_topic(self,
-            chat_id: int, name: str, icon_color: Optional[int]=None,
-            icon_custom_emoji_id: Optional[str]=None) -> types.ForumTopic:
+                           chat_id: int, name: str, icon_color: Optional[int] = None,
+                           icon_custom_emoji_id: Optional[str] = None) -> types.ForumTopic:
         """
         Use this method to create a topic in a forum supergroup chat. The bot must be an administrator
         in the chat for this to work and must have the can_manage_topics administrator rights.
@@ -5054,14 +5137,15 @@ class TeleBot:
         :rtype: :class:`telebot.types.ForumTopic`
         """
         return types.ForumTopic.de_json(
-            apihelper.create_forum_topic(self.token, chat_id, name, icon_color, icon_custom_emoji_id)
+            apihelper.create_forum_topic(
+                self.token, chat_id, name, icon_color, icon_custom_emoji_id)
         )
 
     def edit_forum_topic(
-            self, chat_id: Union[int, str],
-            message_thread_id: int, name: Optional[str]=None,
-            icon_custom_emoji_id: Optional[str]=None
-        ) -> bool:
+        self, chat_id: Union[int, str],
+        message_thread_id: int, name: Optional[str] = None,
+        icon_custom_emoji_id: Optional[str] = None
+    ) -> bool:
         """
         Use this method to edit name and icon of a topic in a forum supergroup chat. The bot must be an
         administrator in the chat for this to work and must have can_manage_topics administrator rights,
@@ -5170,9 +5254,9 @@ class TeleBot:
         Use this method to edit the name of the 'General' topic in a forum supergroup chat.
         The bot must be an administrator in the chat for this to work and must have can_manage_topics administrator rights.
         Returns True on success.
-        
+
         Telegram documentation: https://core.telegram.org/bots/api#editgeneralforumtopic
-        
+
         :param chat_id: Unique identifier for the target chat or username of the target channel (in the format @channelusername)
         :type chat_id: :obj:`int` or :obj:`str`
 
@@ -5281,11 +5365,12 @@ class TeleBot:
 
         :param args: Optional arguments for the callback function.
         :param kwargs: Optional keyword arguments for the callback function.
-        
+
         :return: None
         """
         message_id = message.message_id
-        self.register_for_reply_by_message_id(message_id, callback, *args, **kwargs)
+        self.register_for_reply_by_message_id(
+            message_id, callback, *args, **kwargs)
 
     def register_for_reply_by_message_id(
             self, message_id: int, callback: Callable, *args, **kwargs) -> None:
@@ -5306,7 +5391,8 @@ class TeleBot:
 
         :return: None
         """
-        self.reply_backend.register_handler(message_id, Handler(callback, *args, **kwargs))
+        self.reply_backend.register_handler(
+            message_id, Handler(callback, *args, **kwargs))
 
     def _notify_reply_handlers(self, new_messages) -> None:
         """
@@ -5317,10 +5403,12 @@ class TeleBot:
         """
         for message in new_messages:
             if hasattr(message, "reply_to_message") and message.reply_to_message is not None:
-                handlers = self.reply_backend.get_handlers(message.reply_to_message.message_id)
+                handlers = self.reply_backend.get_handlers(
+                    message.reply_to_message.message_id)
                 if handlers:
                     for handler in handlers:
-                        self._exec_task(handler["callback"], message, *handler["args"], **handler["kwargs"])
+                        self._exec_task(
+                            handler["callback"], message, *handler["args"], **handler["kwargs"])
 
     def register_next_step_handler(self, message: types.Message, callback: Callable, *args, **kwargs) -> None:
         """
@@ -5341,7 +5429,8 @@ class TeleBot:
         :return: None
         """
         chat_id = message.chat.id
-        self.register_next_step_handler_by_chat_id(chat_id, callback, *args, **kwargs)
+        self.register_next_step_handler_by_chat_id(
+            chat_id, callback, *args, **kwargs)
 
     def setup_middleware(self, middleware: BaseMiddleware):
         """
@@ -5352,20 +5441,23 @@ class TeleBot:
         :return: None
         """
         if not self.use_class_middlewares:
-            logger.error('Class-based middlewares are not enabled. Pass use_class_middlewares=True to enable it.')
+            logger.error(
+                'Class-based middlewares are not enabled. Pass use_class_middlewares=True to enable it.')
             return
 
         if not hasattr(middleware, 'update_types'):
-            logger.error('Middleware has no update_types parameter. Please add list of updates to handle.')
+            logger.error(
+                'Middleware has no update_types parameter. Please add list of updates to handle.')
             return
 
         if not hasattr(middleware, 'update_sensitive'):
-            logger.warning('Middleware has no update_sensitive parameter. Parameter was set to False.')
+            logger.warning(
+                'Middleware has no update_sensitive parameter. Parameter was set to False.')
             middleware.update_sensitive = False
 
         self.middlewares.append(middleware)
 
-    def set_state(self, user_id: int, state: Union[int, str, State], chat_id: Optional[int]=None) -> None:
+    def set_state(self, user_id: int, state: Union[int, str, State], chat_id: Optional[int] = None) -> None:
         """
         Sets a new state of a user.
 
@@ -5390,7 +5482,7 @@ class TeleBot:
             chat_id = user_id
         self.current_states.set_state(chat_id, user_id, state)
 
-    def reset_data(self, user_id: int, chat_id: Optional[int]=None):
+    def reset_data(self, user_id: int, chat_id: Optional[int] = None):
         """
         Reset data for a user in chat.
 
@@ -5406,13 +5498,13 @@ class TeleBot:
             chat_id = user_id
         self.current_states.reset_data(chat_id, user_id)
 
-    def delete_state(self, user_id: int, chat_id: Optional[int]=None) -> None:
+    def delete_state(self, user_id: int, chat_id: Optional[int] = None) -> None:
         """
         Delete the current state of a user.
 
         :param user_id: User's identifier
         :type user_id: :obj:`int`
-        
+
         :param chat_id: Chat's identifier
         :type chat_id: :obj:`int`
 
@@ -5422,7 +5514,7 @@ class TeleBot:
             chat_id = user_id
         self.current_states.delete_state(chat_id, user_id)
 
-    def retrieve_data(self, user_id: int, chat_id: Optional[int]=None) -> Optional[Any]:
+    def retrieve_data(self, user_id: int, chat_id: Optional[int] = None) -> Optional[Any]:
         """
         Returns context manager with data for a user in chat.
 
@@ -5439,7 +5531,7 @@ class TeleBot:
             chat_id = user_id
         return self.current_states.get_interactive_data(chat_id, user_id)
 
-    def get_state(self, user_id: int, chat_id: Optional[int]=None) -> Optional[Union[int, str, State]]:
+    def get_state(self, user_id: int, chat_id: Optional[int] = None) -> Optional[Union[int, str, State]]:
         """
         Gets current state of a user.
         Not recommended to use this method. But it is ok for debugging.
@@ -5457,7 +5549,7 @@ class TeleBot:
             chat_id = user_id
         return self.current_states.get_state(chat_id, user_id)
 
-    def add_data(self, user_id: int, chat_id: Optional[int]=None, **kwargs):
+    def add_data(self, user_id: int, chat_id: Optional[int] = None, **kwargs):
         """
         Add data to states.
 
@@ -5489,12 +5581,13 @@ class TeleBot:
         :type callback: :obj:`Callable[[telebot.types.Message], None]`
 
         :param args: Args to pass in callback func
-        
+
         :param kwargs: Args to pass in callback func
 
         :return: None
         """
-        self.next_step_backend.register_handler(chat_id, Handler(callback, *args, **kwargs))
+        self.next_step_backend.register_handler(
+            chat_id, Handler(callback, *args, **kwargs))
 
     def clear_step_handler(self, message: types.Message) -> None:
         """
@@ -5555,7 +5648,8 @@ class TeleBot:
             if handlers:
                 for handler in handlers:
                     need_pop = True
-                    self._exec_task(handler["callback"], message, *handler["args"], **handler["kwargs"])
+                    self._exec_task(
+                        handler["callback"], message, *handler["args"], **handler["kwargs"])
             if need_pop:
                 # removing message that was detected with next_step_handler
                 new_messages.pop(i)
@@ -5574,10 +5668,10 @@ class TeleBot:
             'pass_bot': pass_bot,
             'filters': {ftype: fvalue for ftype, fvalue in filters.items() if fvalue is not None}
             # Remove None values, they are skipped in _test_filter anyway
-            #'filters': filters
+            # 'filters': filters
         }
 
-    def middleware_handler(self, update_types: Optional[List[str]]=None):
+    def middleware_handler(self, update_types: Optional[List[str]] = None):
         """
         Function-based middleware handler decorator.
 
@@ -5624,10 +5718,12 @@ class TeleBot:
         :return:
         """
         if not apihelper.ENABLE_MIDDLEWARE:
-            raise RuntimeError("Middleware is not enabled. Use apihelper.ENABLE_MIDDLEWARE before initialising TeleBot.")
+            raise RuntimeError(
+                "Middleware is not enabled. Use apihelper.ENABLE_MIDDLEWARE before initialising TeleBot.")
 
         if self.use_class_middlewares:
-            logger.error("middleware_handler/register_middleware_handler/add_middleware_handler cannot be used with use_class_middlewares=True. Skipped.")
+            logger.error(
+                "middleware_handler/register_middleware_handler/add_middleware_handler cannot be used with use_class_middlewares=True. Skipped.")
             return
 
         added = False
@@ -5652,7 +5748,7 @@ class TeleBot:
         bot = TeleBot('TOKEN')
 
         bot.register_middleware_handler(print_channel_post_text, update_types=['channel_post', 'edited_channel_post'])
- 
+
         :param callback: Function that will be used as a middleware handler.
         :type callback: :obj:`function`
 
@@ -5669,7 +5765,8 @@ class TeleBot:
         :meta private:
         """
         if not isinstance(commands, list) or not all(isinstance(item, str) for item in commands):
-            logger.error(f"{method_name}: Commands filter should be list of strings (commands), unknown type supplied to the 'commands' filter list. Not able to use the supplied type.")
+            logger.error(
+                f"{method_name}: Commands filter should be list of strings (commands), unknown type supplied to the 'commands' filter list. Not able to use the supplied type.")
 
     @staticmethod
     def check_regexp_input(regexp, method_name):
@@ -5677,15 +5774,16 @@ class TeleBot:
         :meta private:
         """
         if not isinstance(regexp, str):
-            logger.error(f"{method_name}: Regexp filter should be string. Not able to use the supplied type.")
+            logger.error(
+                f"{method_name}: Regexp filter should be string. Not able to use the supplied type.")
 
     def message_handler(
             self,
-            commands: Optional[List[str]]=None,
-            regexp: Optional[str]=None,
-            func: Optional[Callable]=None,
-            content_types: Optional[List[str]]=None,
-            chat_types: Optional[List[str]]=None,
+            commands: Optional[List[str]] = None,
+            regexp: Optional[str] = None,
+            func: Optional[Callable] = None,
+            content_types: Optional[List[str]] = None,
+            chat_types: Optional[List[str]] = None,
             **kwargs):
         """
         Handles New incoming message of any kind - text, photo, sticker, etc.
@@ -5755,7 +5853,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("message_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "message_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         def decorator(handler):
@@ -5783,8 +5882,8 @@ class TeleBot:
         """
         self.message_handlers.append(handler_dict)
 
-    def register_message_handler(self, callback: Callable, content_types: Optional[List[str]]=None, commands: Optional[List[str]]=None,
-            regexp: Optional[str]=None, func: Optional[Callable]=None, chat_types: Optional[List[str]]=None, pass_bot: Optional[bool]=False, **kwargs):
+    def register_message_handler(self, callback: Callable, content_types: Optional[List[str]] = None, commands: Optional[List[str]] = None,
+                                 regexp: Optional[str] = None, func: Optional[Callable] = None, chat_types: Optional[List[str]] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers message handler.
 
@@ -5824,10 +5923,9 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("register_message_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "register_message_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
-
-        
 
         handler_dict = self._build_handler_dict(callback,
                                                 chat_types=chat_types,
@@ -5877,7 +5975,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("edited_message_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "edited_message_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         def decorator(handler):
@@ -5897,7 +5996,7 @@ class TeleBot:
         """
         Adds the edit message handler
         Note that you should use register_edited_message_handler to add edited_message_handler to the bot.
-        
+
         :meta private:
 
         :param handler_dict:
@@ -5905,9 +6004,9 @@ class TeleBot:
         """
         self.edited_message_handlers.append(handler_dict)
 
-    def register_edited_message_handler(self, callback: Callable, content_types: Optional[List[str]]=None,
-        commands: Optional[List[str]]=None, regexp: Optional[str]=None, func: Optional[Callable]=None,
-        chat_types: Optional[List[str]]=None, pass_bot: Optional[bool]=False, **kwargs):
+    def register_edited_message_handler(self, callback: Callable, content_types: Optional[List[str]] = None,
+                                        commands: Optional[List[str]] = None, regexp: Optional[str] = None, func: Optional[Callable] = None,
+                                        chat_types: Optional[List[str]] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers edited message handler.
 
@@ -5947,7 +6046,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("register_edited_message_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "register_edited_message_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         handler_dict = self._build_handler_dict(callback,
@@ -5995,7 +6095,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         def decorator(handler):
@@ -6016,14 +6117,14 @@ class TeleBot:
         Note that you should use register_channel_post_handler to add channel_post_handler to the bot.
 
         :meta private:
-        
+
         :param handler_dict:
         :return:
         """
         self.channel_post_handlers.append(handler_dict)
-    
-    def register_channel_post_handler(self, callback: Callable, content_types: Optional[List[str]]=None, commands: Optional[List[str]]=None,
-            regexp: Optional[str]=None, func: Optional[Callable]=None, pass_bot: Optional[bool]=False, **kwargs):
+
+    def register_channel_post_handler(self, callback: Callable, content_types: Optional[List[str]] = None, commands: Optional[List[str]] = None,
+                                      regexp: Optional[str] = None, func: Optional[Callable] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers channel post message handler.
 
@@ -6060,7 +6161,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("register_channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "register_channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         handler_dict = self._build_handler_dict(callback,
@@ -6107,7 +6209,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("edited_channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "edited_channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         def decorator(handler):
@@ -6134,8 +6237,8 @@ class TeleBot:
         """
         self.edited_channel_post_handlers.append(handler_dict)
 
-    def register_edited_channel_post_handler(self, callback: Callable, content_types: Optional[List[str]]=None,
-            commands: Optional[List[str]]=None, regexp: Optional[str]=None, func: Optional[Callable]=None, pass_bot: Optional[bool]=False, **kwargs):
+    def register_edited_channel_post_handler(self, callback: Callable, content_types: Optional[List[str]] = None,
+                                             commands: Optional[List[str]] = None, regexp: Optional[str] = None, func: Optional[Callable] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers edited channel post message handler.
 
@@ -6172,7 +6275,8 @@ class TeleBot:
             self.check_regexp_input(regexp, method_name)
 
         if isinstance(content_types, str):
-            logger.warning("register_edited_channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
+            logger.warning(
+                "register_edited_channel_post_handler: 'content_types' filter should be List of strings (content types), not string.")
             content_types = [content_types]
 
         handler_dict = self._build_handler_dict(callback,
@@ -6197,7 +6301,8 @@ class TeleBot:
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_inline_handler(handler_dict)
             return handler
 
@@ -6215,7 +6320,7 @@ class TeleBot:
         """
         self.inline_handlers.append(handler_dict)
 
-    def register_inline_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+    def register_inline_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers inline handler.
 
@@ -6232,7 +6337,8 @@ class TeleBot:
 
         :return: decorated function
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_inline_handler(handler_dict)
 
     def chosen_inline_handler(self, func, **kwargs):
@@ -6243,13 +6349,14 @@ class TeleBot:
 
         :param func: Function executed as a filter
         :type func: :obj:`function`
-        
+
         :param kwargs: Optional keyword arguments(custom filters)
 
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_chosen_inline_handler(handler_dict)
             return handler
 
@@ -6267,7 +6374,7 @@ class TeleBot:
         """
         self.chosen_inline_handlers.append(handler_dict)
 
-    def register_chosen_inline_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+    def register_chosen_inline_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers chosen inline handler.
 
@@ -6284,7 +6391,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_chosen_inline_handler(handler_dict)
 
     def callback_query_handler(self, func, **kwargs):
@@ -6296,11 +6404,12 @@ class TeleBot:
         :type func: :obj:`function`
 
         :param kwargs: Optional keyword arguments(custom filters)
-        
+
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_callback_query_handler(handler_dict)
             return handler
 
@@ -6318,7 +6427,7 @@ class TeleBot:
         """
         self.callback_query_handlers.append(handler_dict)
 
-    def register_callback_query_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+    def register_callback_query_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers callback query handler.
 
@@ -6335,7 +6444,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_callback_query_handler(handler_dict)
 
     def shipping_query_handler(self, func, **kwargs):
@@ -6347,11 +6457,12 @@ class TeleBot:
         :type func: :obj:`function`
 
         :param kwargs: Optional keyword arguments(custom filters)
-        
+
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_shipping_query_handler(handler_dict)
             return handler
 
@@ -6369,7 +6480,7 @@ class TeleBot:
         """
         self.shipping_query_handlers.append(handler_dict)
 
-    def register_shipping_query_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+    def register_shipping_query_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers shipping query handler.
 
@@ -6386,7 +6497,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_shipping_query_handler(handler_dict)
 
     def pre_checkout_query_handler(self, func, **kwargs):
@@ -6402,7 +6514,8 @@ class TeleBot:
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_pre_checkout_query_handler(handler_dict)
             return handler
 
@@ -6419,8 +6532,8 @@ class TeleBot:
         :return:
         """
         self.pre_checkout_query_handlers.append(handler_dict)
-    
-    def register_pre_checkout_query_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+
+    def register_pre_checkout_query_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers pre-checkout request handler.
 
@@ -6436,7 +6549,8 @@ class TeleBot:
 
         :return: decorated function
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_pre_checkout_query_handler(handler_dict)
 
     def poll_handler(self, func, **kwargs):
@@ -6451,7 +6565,8 @@ class TeleBot:
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_poll_handler(handler_dict)
             return handler
 
@@ -6469,7 +6584,7 @@ class TeleBot:
         """
         self.poll_handlers.append(handler_dict)
 
-    def register_poll_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+    def register_poll_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers poll handler.
 
@@ -6486,7 +6601,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_poll_handler(handler_dict)
 
     def poll_answer_handler(self, func=None, **kwargs):
@@ -6499,11 +6615,12 @@ class TeleBot:
         :type func: :obj:`function`
 
         :param kwargs: Optional keyword arguments(custom filters)
-        
+
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_poll_answer_handler(handler_dict)
             return handler
 
@@ -6521,7 +6638,7 @@ class TeleBot:
         """
         self.poll_answer_handlers.append(handler_dict)
 
-    def register_poll_answer_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool]=False, **kwargs):
+    def register_poll_answer_handler(self, callback: Callable, func: Callable, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers poll answer handler.
 
@@ -6538,7 +6655,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_poll_answer_handler(handler_dict)
 
     def my_chat_member_handler(self, func=None, **kwargs):
@@ -6555,7 +6673,8 @@ class TeleBot:
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_my_chat_member_handler(handler_dict)
             return handler
 
@@ -6573,7 +6692,7 @@ class TeleBot:
         """
         self.my_chat_member_handlers.append(handler_dict)
 
-    def register_my_chat_member_handler(self, callback: Callable, func: Optional[Callable]=None, pass_bot: Optional[bool]=False, **kwargs):
+    def register_my_chat_member_handler(self, callback: Callable, func: Optional[Callable] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers my chat member handler.
 
@@ -6590,7 +6709,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_my_chat_member_handler(handler_dict)
 
     def chat_member_handler(self, func=None, **kwargs):
@@ -6608,7 +6728,8 @@ class TeleBot:
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_chat_member_handler(handler_dict)
             return handler
 
@@ -6626,7 +6747,7 @@ class TeleBot:
         """
         self.chat_member_handlers.append(handler_dict)
 
-    def register_chat_member_handler(self, callback: Callable, func: Optional[Callable]=None, pass_bot: Optional[bool]=False, **kwargs):
+    def register_chat_member_handler(self, callback: Callable, func: Optional[Callable] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers chat member handler.
 
@@ -6643,7 +6764,8 @@ class TeleBot:
 
         :return:None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_chat_member_handler(handler_dict)
 
     def chat_join_request_handler(self, func=None, **kwargs):
@@ -6656,11 +6778,12 @@ class TeleBot:
         :type func: :obj:`function`
 
         :param kwargs: Optional keyword arguments(custom filters)
-        
+
         :return: None
         """
         def decorator(handler):
-            handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
+            handler_dict = self._build_handler_dict(
+                handler, func=func, **kwargs)
             self.add_chat_join_request_handler(handler_dict)
             return handler
 
@@ -6678,7 +6801,7 @@ class TeleBot:
         """
         self.chat_join_request_handlers.append(handler_dict)
 
-    def register_chat_join_request_handler(self, callback: Callable, func: Optional[Callable]=None, pass_bot:Optional[bool]=False, **kwargs):
+    def register_chat_join_request_handler(self, callback: Callable, func: Optional[Callable] = None, pass_bot: Optional[bool] = False, **kwargs):
         """
         Registers chat join request handler.
 
@@ -6695,7 +6818,8 @@ class TeleBot:
 
         :return: None
         """
-        handler_dict = self._build_handler_dict(callback, func=func, pass_bot=pass_bot, **kwargs)
+        handler_dict = self._build_handler_dict(
+            callback, func=func, pass_bot=pass_bot, **kwargs)
         self.add_chat_join_request_handler(handler_dict)
 
     def _test_message_handler(self, message_handler, message):
@@ -6753,7 +6877,7 @@ class TeleBot:
         elif message_filter == 'func':
             return filter_value(message)
         elif self.custom_filters and message_filter in self.custom_filters:
-            return self._check_filter(message_filter,filter_value,message)
+            return self._check_filter(message_filter, filter_value, message)
         else:
             return False
 
@@ -6766,7 +6890,8 @@ class TeleBot:
         elif isinstance(filter_check, AdvancedCustomFilter):
             return filter_check.check(message, filter_value)
         else:
-            logger.error("Custom filter: wrong type. Should be SimpleCustomFilter or AdvancedCustomFilter.")
+            logger.error(
+                "Custom filter: wrong type. Should be SimpleCustomFilter or AdvancedCustomFilter.")
             return False
 
     # middleware check-up method
@@ -6778,8 +6903,9 @@ class TeleBot:
         :return:
         """
         middlewares = None
-        if self.middlewares: 
-            middlewares = [i for i in self.middlewares if update_type in i.update_types]
+        if self.middlewares:
+            middlewares = [
+                i for i in self.middlewares if update_type in i.update_types]
         return middlewares
 
     def _run_middlewares_and_handler(self, message, handlers, middlewares, update_type):
@@ -6813,9 +6939,11 @@ class TeleBot:
             for middleware in middlewares:
                 if middleware.update_sensitive:
                     if hasattr(middleware, f'pre_process_{update_type}'):
-                        result = getattr(middleware, f'pre_process_{update_type}')(message, data)
+                        result = getattr(middleware, f'pre_process_{update_type}')(
+                            message, data)
                     else:
-                        logger.error('Middleware {} does not have pre_process_{} method. pre_process function execution was skipped.'.format(middleware.__class__.__name__, update_type))
+                        logger.error('Middleware {} does not have pre_process_{} method. pre_process function execution was skipped.'.format(
+                            middleware.__class__.__name__, update_type))
                         result = None
                 else:
                     result = middleware.pre_process(message, data)
@@ -6830,8 +6958,10 @@ class TeleBot:
             try:
                 for handler in handlers:
                     params = []
-                    process_handler = self._test_message_handler(handler, message)
-                    if not process_handler: continue
+                    process_handler = self._test_message_handler(
+                        handler, message)
+                    if not process_handler:
+                        continue
                     for i in inspect.signature(handler['function']).parameters:
                         params.append(i)
                     if len(params) == 1:
@@ -6840,9 +6970,11 @@ class TeleBot:
                         if len(params) == 2:
                             result = handler['function'](message, data)
                         elif len(params) == 3:
-                            result = handler['function'](message, data=data, bot=self)
+                            result = handler['function'](
+                                message, data=data, bot=self)
                         else:
-                            logger.error("It is not allowed to pass data and values inside data to the handler. Check your handler: {}".format(handler['function']))
+                            logger.error("It is not allowed to pass data and values inside data to the handler. Check your handler: {}".format(
+                                handler['function']))
                             return
                     else:
                         data_copy = data.copy()
@@ -6852,8 +6984,9 @@ class TeleBot:
                                 del data_copy[key]
                         if handler.get('pass_bot'):
                             data_copy["bot"] = self
-                        if len(data_copy) > len(params) - 1: # remove the message parameter
-                            logger.error("You are passing more parameters than the handler needs. Check your handler: {}".format(handler['function']))
+                        if len(data_copy) > len(params) - 1:  # remove the message parameter
+                            logger.error("You are passing more parameters than the handler needs. Check your handler: {}".format(
+                                handler['function']))
                             return
                         result = handler["function"](message, **data_copy)
                     if not isinstance(result, ContinueHandling):
@@ -6864,15 +6997,18 @@ class TeleBot:
                     self.exception_handler.handle(e)
                 else:
                     logger.error(str(e))
-                    logger.debug("Exception traceback:\n%s", traceback.format_exc())
+                    logger.debug("Exception traceback:\n%s",
+                                 traceback.format_exc())
 
         if middlewares:
             for middleware in middlewares:
                 if middleware.update_sensitive:
                     if hasattr(middleware, f'post_process_{update_type}'):
-                        getattr(middleware, f'post_process_{update_type}')(message, data, handler_error)
+                        getattr(middleware, f'post_process_{update_type}')(
+                            message, data, handler_error)
                     else:
-                        logger.error("Middleware: {} does not have post_process_{} method. Post process function was not executed.".format(middleware.__class__.__name__, update_type))
+                        logger.error("Middleware: {} does not have post_process_{} method. Post process function was not executed.".format(
+                            middleware.__class__.__name__, update_type))
                 else:
                     middleware.post_process(message, data, handler_error)
 
@@ -6885,7 +7021,7 @@ class TeleBot:
         :param update_type: handler/update type (Update fields)
         :return:
         """
-        if not(handlers) and not(self.use_class_middlewares):
+        if not (handlers) and not (self.use_class_middlewares):
             return
 
         if self.use_class_middlewares:

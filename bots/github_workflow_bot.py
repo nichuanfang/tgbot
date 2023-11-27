@@ -2,8 +2,7 @@
 import my_telebot
 from settings.config import github_config
 from util.github_util import trigger_github_workflow
-
-logger = my_telebot.logger
+from util.logging import logger
 
 bot = my_telebot.TeleBot(github_config['BOT_TOKEN'], threaded=False)
 

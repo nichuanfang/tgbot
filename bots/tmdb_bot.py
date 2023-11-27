@@ -1,10 +1,10 @@
 # import telebot
+from util.logging import logger
 import my_telebot
 from settings.config import tmdb_config
 from tmdbv3api import TMDb
 from tmdbv3api import Movie
 from tmdbv3api import TV
-
 tmdb = TMDb()
 
 tmdb.api_key = tmdb_config['API_KEY']
@@ -13,8 +13,6 @@ tmdb.language = 'zh-CN'
 movie = Movie()
 
 tv = TV()
-
-logger = my_telebot.logger
 
 bot = my_telebot.TeleBot(tmdb_config['BOT_TOKEN'], threaded=False)
 

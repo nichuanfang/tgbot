@@ -1,12 +1,11 @@
 # import telebot
-import my_telebot
 from telebot import apihelper
 from bots import dogyun_bot
 from bots.dogyun_bot import lucky_draw_notice, balance_lack_notice
 from bots import github_workflow_bot
 from bots import tmdb_bot
 from bots import train_bot
-import logging
+from util.logging import logger
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
 apihelper.SESSION_TIME_TO_LIVE = None
@@ -14,10 +13,6 @@ apihelper.MAX_RETRIES = 0
 apihelper.READ_TIMEOUT = 123
 apihelper.CONNECT_TIMEOUT = 123
 
-
-# 设置tg的日志
-logger = my_telebot.logger
-my_telebot.logger.setLevel(logging.INFO)
 scheduler = BlockingScheduler()
 
 
