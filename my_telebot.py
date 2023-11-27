@@ -974,17 +974,19 @@ class TeleBot:
                              logger_level=logger_level, allowed_updates=allowed_updates, restart_on_change=False,
                              *args, **kwargs)
             except Exception as e:
-                if logger_level and logger_level >= logging.ERROR:
-                    logger.error("Infinity polling exception: %s", str(e))
-                if logger_level and logger_level >= logging.DEBUG:
-                    logger.error("Exception traceback:\n%s",
-                                 traceback.format_exc())
+                # if logger_level and logger_level >= logging.ERROR:
+                #     logger.error("Infinity polling exception: %s", str(e))
+                # if logger_level and logger_level >= logging.DEBUG:
+                #     logger.error("Exception traceback:\n%s",
+                #                  traceback.format_exc())
                 time.sleep(3)
                 continue
             if logger_level and logger_level >= logging.INFO:
-                logger.error("Infinity polling: polling exited")
+                # logger.error("Infinity polling: polling exited")
+                continue
         if logger_level and logger_level >= logging.INFO:
-            logger.error("Break infinity polling")
+            # logger.error("Break infinity polling")
+            pass
 
     def polling(self, non_stop: Optional[bool] = False, skip_pending: Optional[bool] = False, interval: Optional[int] = 0,
                 timeout: Optional[int] = 20, long_polling_timeout: Optional[int] = 20,
