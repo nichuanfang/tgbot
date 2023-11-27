@@ -1,5 +1,4 @@
 # import telebot
-from telebot import apihelper
 from bots import dogyun_bot
 from bots.dogyun_bot import lucky_draw_notice, balance_lack_notice
 from bots import github_workflow_bot
@@ -8,10 +7,6 @@ from bots import train_bot
 from util.logging import logger
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
-apihelper.SESSION_TIME_TO_LIVE = None
-apihelper.MAX_RETRIES = 0
-apihelper.READ_TIMEOUT = 123
-apihelper.CONNECT_TIMEOUT = 123
 
 scheduler = BlockingScheduler()
 
@@ -19,23 +14,22 @@ scheduler = BlockingScheduler()
 def dogyun_bot_func():
     dogyun_bot.bot.remove_webhook()
     # 启动轮询
-    dogyun_bot.bot.infinity_polling(timeout=123, long_polling_timeout=123)
+    dogyun_bot.bot.infinity_polling()
 
 
 def github_workflow_bot_func():
     github_workflow_bot.bot.remove_webhook()
-    github_workflow_bot.bot.infinity_polling(
-        timeout=123, long_polling_timeout=123)
+    github_workflow_bot.bot.infinity_polling()
 
 
 def tmdb_bot_func():
     tmdb_bot.bot.remove_webhook()
-    tmdb_bot.bot.infinity_polling(timeout=123, long_polling_timeout=123)
+    tmdb_bot.bot.infinity_polling()
 
 
 def train_bot_func():
     train_bot.bot.remove_webhook()
-    train_bot.bot.infinity_polling(timeout=123, long_polling_timeout=123)
+    train_bot.bot.infinity_polling()
 
 
 def scheduler_func():

@@ -31,6 +31,9 @@ import string
 import ssl
 from util.logging import logger
 
+apihelper.SESSION_TIME_TO_LIVE = 5 * 60
+
+
 REPLY_MARKUP_TYPES = Union[
     types.InlineKeyboardMarkup, types.ReplyKeyboardMarkup,
     types.ReplyKeyboardRemove, types.ForceReply]
