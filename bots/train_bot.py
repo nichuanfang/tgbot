@@ -4,7 +4,8 @@ import os
 import re
 from time import sleep
 import requests
-import telebot
+# import telebot
+import my_telebot
 from settings.config import train_config
 import fake_useragent
 from rich.console import Console
@@ -14,7 +15,7 @@ import traceback
 # =====================全局变量==================================
 ua = fake_useragent.UserAgent()
 
-logger = telebot.logger
+logger = my_telebot.logger
 
 console = Console()
 
@@ -648,7 +649,7 @@ def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)]):
 
 
 # ================================telegram bot======================================
-bot = telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
+bot = my_telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
 
 
 @bot.message_handler(commands=['query_left_ticket'])

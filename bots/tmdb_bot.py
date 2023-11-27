@@ -1,4 +1,5 @@
-import telebot
+# import telebot
+import my_telebot
 from settings.config import tmdb_config
 from tmdbv3api import TMDb
 from tmdbv3api import Movie
@@ -13,9 +14,9 @@ movie = Movie()
 
 tv = TV()
 
-logger = telebot.logger
+logger = my_telebot.logger
 
-bot = telebot.TeleBot(tmdb_config['BOT_TOKEN'], threaded=False)
+bot = my_telebot.TeleBot(tmdb_config['BOT_TOKEN'], threaded=False)
 
 
 @bot.message_handler(commands=['movie_popular'])

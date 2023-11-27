@@ -1,4 +1,5 @@
-import telebot
+# import telebot
+import my_telebot
 from telebot import apihelper
 from bots import dogyun_bot
 from bots.dogyun_bot import lucky_draw_notice, balance_lack_notice
@@ -15,8 +16,8 @@ apihelper.CONNECT_TIMEOUT = 123
 
 
 # 设置tg的日志
-logger = telebot.logger
-telebot.logger.setLevel(logging.INFO)
+logger = my_telebot.logger
+my_telebot.logger.setLevel(logging.INFO)
 scheduler = BlockingScheduler()
 
 

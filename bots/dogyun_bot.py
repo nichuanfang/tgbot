@@ -1,6 +1,7 @@
 import base64
 import re
-import telebot
+# import telebot
+import my_telebot
 import requests
 from settings.config import dogyun_config
 from datetime import datetime
@@ -9,9 +10,9 @@ from bs4 import BeautifulSoup
 import subprocess
 from util.github_util import trigger_github_workflow
 
-logger = telebot.logger
+logger = my_telebot.logger
 
-bot = telebot.TeleBot(dogyun_config['BOT_TOKEN'], threaded=False)
+bot = my_telebot.TeleBot(dogyun_config['BOT_TOKEN'], threaded=False)
 
 
 @bot.message_handler(commands=['server_info'])

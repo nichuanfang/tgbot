@@ -1,10 +1,11 @@
-import telebot
+# import telebot
+import my_telebot
 from settings.config import github_config
 from util.github_util import trigger_github_workflow
 
-logger = telebot.logger
+logger = my_telebot.logger
 
-bot = telebot.TeleBot(github_config['BOT_TOKEN'], threaded=False)
+bot = my_telebot.TeleBot(github_config['BOT_TOKEN'], threaded=False)
 
 
 @bot.message_handler(commands=['scrape_metadata'])
