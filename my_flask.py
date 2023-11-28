@@ -46,7 +46,7 @@ def run(hook_data: list[dict]):
         if bot_name == 'DogyunBot':
             print(f'定义webhook:{bot_name}')
 
-            @app.route('webhook_url', methods=['POST'])
+            @app.route(webhook_url, methods=['POST'])
             def dogyun_bot_webhook():
                 if flask.request.headers.get('content-type') == 'application/json':
                     json_string = flask.request.get_data().decode('utf-8')
