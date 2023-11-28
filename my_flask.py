@@ -25,6 +25,8 @@ def register_webhook(bot: telebot.TeleBot, WEBHOOK_HOST: str, hook_data: list):
     time.sleep(0.1)
 
     # Set webhook
+    print(
+        f'bot:{bot.get_my_name()}已设置webhook: {WEBHOOK_URL_BASE + WEBHOOK_URL_PATH}')
     bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                     certificate=open(WEBHOOK_SSL_CERT, 'r'))
     hook_data.append({
