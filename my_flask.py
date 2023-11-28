@@ -7,9 +7,11 @@ from my_telebot import TeleBot
 # flask监听地址
 WEBHOOK_LISTEN = '0.0.0.0'
 # flask监听端口 默认8888
-WEBHOOK_LISTEN_PORT = 8888
+WEBHOOK_LISTEN_PORT = 88
 # 证书路径
 WEBHOOK_SSL_CERT = '/cert/cert.pem'
+# 密钥路径
+WEBHOOK_SSL_PRIV = '/cert/key.pem'
 
 
 def register_webhook(bot: telebot.TeleBot, WEBHOOK_HOST: str, hook_data: list):
@@ -18,7 +20,7 @@ def register_webhook(bot: telebot.TeleBot, WEBHOOK_HOST: str, hook_data: list):
     Args:
         bot (telebot.TeleBot): _description_
     """
-    WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}'
+    WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}:{WEBHOOK_LISTEN_PORT}'
     WEBHOOK_URL_PATH = f"/{bot.token}"
     # Remove webhook, it fails sometimes the set if there is a previous webhook
     bot.remove_webhook()
@@ -95,4 +97,5 @@ def run(hook_data: list[dict]):
     # Start flask server
     app.run(host=WEBHOOK_LISTEN,
             port=WEBHOOK_LISTEN_PORT,
+            ssl_context=(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV),
             debug=True)
