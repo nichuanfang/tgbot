@@ -2,30 +2,21 @@ import time
 import flask
 import telebot
 
-# webhook监听地址
+# flask监听地址
 WEBHOOK_LISTEN = '0.0.0.0'
+# flask监听端口 默认8888
+WEBHOOK_LISTEN_PORT = 8888
 # 证书路径
 WEBHOOK_SSL_CERT = '/cert/cert.pem'
-# 根路径
-WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, 443)
 
 
-def set_webhook_host(host: str):
-    """设置webhook_host
-
-    Args:
-        host (str): _description_
-    """
-    global WEBHOOK_HOST
-    WEBHOOK_HOST = host
-
-
-def register_webhook(bot: telebot.TeleBot, hook_data: list):
+def register_webhook(bot: telebot.TeleBot, WEBHOOK_HOST: str, hook_data: list):
     """注册webhook
 
     Args:
         bot (telebot.TeleBot): _description_
     """
+    WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}'
     WEBHOOK_URL_PATH = f"/{bot.token}/"
     # Remove webhook, it fails sometimes the set if there is a previous webhook
     bot.remove_webhook()
@@ -61,5 +52,5 @@ def run(hook_data: list[dict]):
 
     # Start flask server
     app.run(host=WEBHOOK_LISTEN,
-            port=8888,
+            port=WEBHOOK_LISTEN_PORT,
             debug=True)

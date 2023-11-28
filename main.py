@@ -18,13 +18,12 @@ def bot_func():
         WEBHOOK_HOST = os.environ['WEBHOOK_HOST']
     except:
         raise Exception('环境变量vps_host未配置!')
-    my_flask.set_webhook_host(WEBHOOK_HOST)
     # 注册机器人webhook
     hook_data = []
-    my_flask.register_webhook(dogyun_bot.bot, hook_data)
-    my_flask.register_webhook(github_workflow_bot.bot, hook_data)
-    my_flask.register_webhook(tmdb_bot.bot, hook_data)
-    my_flask.register_webhook(train_bot.bot, hook_data)
+    my_flask.register_webhook(dogyun_bot.bot, WEBHOOK_HOST, hook_data)
+    my_flask.register_webhook(github_workflow_bot.bot, WEBHOOK_HOST, hook_data)
+    my_flask.register_webhook(tmdb_bot.bot, WEBHOOK_HOST, hook_data)
+    my_flask.register_webhook(train_bot.bot, WEBHOOK_HOST, hook_data)
     my_flask.run(hook_data)
 
 
@@ -65,16 +64,14 @@ def scheduler_func():
 
 
 if __name__ == '__main__':
-    thread1 = threading.Thread(target=dogyun_bot_func, daemon=True)
-    thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
-    thread3 = threading.Thread(target=tmdb_bot_func, daemon=True)
-    thread4 = threading.Thread(target=train_bot_func, daemon=True)
-    thread5 = threading.Thread(target=scheduler_func, daemon=True)
+    # thread1 = threading.Thread(target=dogyun_bot_func, daemon=True)
+    # thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
+    # thread3 = threading.Thread(target=tmdb_bot_func, daemon=True)
+    # thread4 = threading.Thread(target=train_bot_func, daemon=True)
+    thread1 = threading.Thread(target=bot_func, daemon=True)
+    thread2 = threading.Thread(target=scheduler_func, daemon=True)
 
     thread1.start()
     thread2.start()
-    thread3.start()
-    thread4.start()
-    thread5.start()
 
     thread1.join()
