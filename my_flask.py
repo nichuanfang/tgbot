@@ -1,7 +1,7 @@
 import time
 import flask
 import telebot
-
+import json
 from my_telebot import TeleBot
 
 # flask监听地址
@@ -40,7 +40,7 @@ def run(hook_data: list[dict]):
 
     for hook in hook_data:
         bot: TeleBot = hook['bot']
-        bot_name = bot.get_my_name()['name']
+        bot_name = json.loads(bot.get_my_name())['name']
         webhook_url = hook['webhook_url']
 
         if bot_name == 'DogyunBot':
