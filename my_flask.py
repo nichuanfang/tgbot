@@ -25,8 +25,6 @@ def register_webhook(bot: telebot.TeleBot, WEBHOOK_HOST: str, hook_data: list):
     time.sleep(0.1)
 
     # Set webhook
-    print(
-        f'bot:{bot.get_my_name()}已设置webhook: {WEBHOOK_URL_BASE + WEBHOOK_URL_PATH}')
     bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                     certificate=open(WEBHOOK_SSL_CERT, 'r'))
     hook_data.append({
@@ -44,6 +42,11 @@ def run(hook_data: list[dict]):
         bot: TeleBot = hook['bot']
         bot_name = bot.get_my_name()
         webhook_url = hook['webhook_url']
+        print(f'bot_name: {bot_name}')
+        if bot_name == 'DogyunBot' or bot_name == 'MyTmdbBot' or bot_name == 'GithubWorkflowBot' or bot_name == 'TrainBot':
+            print('触发定义botwebhook')
+        else:
+            print('触发定义botwebhook失败!')
 
         if bot_name == 'DogyunBot':
             print(f'定义webhook:{bot_name}')
