@@ -19,7 +19,7 @@ def register_webhook(bot: telebot.TeleBot, WEBHOOK_HOST: str, hook_data: list):
         bot (telebot.TeleBot): _description_
     """
     WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}'
-    WEBHOOK_URL_PATH = f"/{bot.token}/"
+    WEBHOOK_URL_PATH = f"/{bot.token}"
     # Remove webhook, it fails sometimes the set if there is a previous webhook
     bot.remove_webhook()
     time.sleep(0.1)
@@ -46,7 +46,7 @@ def run(hook_data: list[dict]):
         if bot_name == 'DogyunBot':
             print(f'定义webhook:{bot_name}')
 
-            @app.route(webhook_url, methods=['POST'])
+            @app.route('webhook_url', methods=['POST'])
             def dogyun_bot_webhook():
                 if flask.request.headers.get('content-type') == 'application/json':
                     json_string = flask.request.get_data().decode('utf-8')
