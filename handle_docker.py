@@ -4,6 +4,7 @@ import yaml
 from dns import resolver
 
 TGBOT_TOKEN = sys.argv[1]
+WEBHOOK_HOST = sys.argv[2]
 
 
 special_hosts = ['kyfw.12306.cn', 'api.telegram.org',
@@ -39,6 +40,7 @@ yaml_content['services']['tgbot']['extra_hosts'] = extra_hosts
 # 更新tgbot_token
 yaml_content['services']['tgbot']['environment'] = {
     'TZ': 'Asia/Shanghai',
+    'WEBHOOK_HOST': WEBHOOK_HOST,
     'TGBOT_TOKEN': f'{TGBOT_TOKEN}'
 }
 # 更新docker-compose.yml

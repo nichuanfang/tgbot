@@ -4,6 +4,8 @@ from bots.dogyun_bot import lucky_draw_notice, balance_lack_notice
 from bots import github_workflow_bot
 from bots import tmdb_bot
 from bots import train_bot
+import my_flask
+import os
 from util.logging import logger
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -11,25 +13,40 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 scheduler = BlockingScheduler()
 
 
-def dogyun_bot_func():
-    dogyun_bot.bot.remove_webhook()
-    # 启动轮询
-    dogyun_bot.bot.infinity_polling(long_polling_timeout=60)
+def bot_func():
+    try:
+        WEBHOOK_HOST = os.environ['WEBHOOK_HOST']
+    except:
+        raise Exception('环境变量vps_host未配置!')
+    my_flask.set_webhook_host(WEBHOOK_HOST)
+    # 注册机器人webhook
+    hook_data = []
+    my_flask.register_webhook(dogyun_bot.bot, hook_data)
+    my_flask.register_webhook(github_workflow_bot.bot, hook_data)
+    my_flask.register_webhook(tmdb_bot.bot, hook_data)
+    my_flask.register_webhook(train_bot.bot, hook_data)
+    my_flask.run(hook_data)
 
 
-def github_workflow_bot_func():
-    github_workflow_bot.bot.remove_webhook()
-    github_workflow_bot.bot.infinity_polling(long_polling_timeout=60)
+# def dogyun_bot_func():
+#     dogyun_bot.bot.remove_webhook()
+#     # 启动轮询
+#     dogyun_bot.bot.infinity_polling(long_polling_timeout=60)
 
 
-def tmdb_bot_func():
-    tmdb_bot.bot.remove_webhook()
-    tmdb_bot.bot.infinity_polling(long_polling_timeout=60)
+# def github_workflow_bot_func():
+#     github_workflow_bot.bot.remove_webhook()
+#     github_workflow_bot.bot.infinity_polling(long_polling_timeout=60)
 
 
-def train_bot_func():
-    train_bot.bot.remove_webhook()
-    train_bot.bot.infinity_polling(long_polling_timeout=60)
+# def tmdb_bot_func():
+#     tmdb_bot.bot.remove_webhook()
+#     tmdb_bot.bot.infinity_polling(long_polling_timeout=60)
+
+
+# def train_bot_func():
+#     train_bot.bot.remove_webhook()
+#     train_bot.bot.infinity_polling(long_polling_timeout=60)
 
 
 def scheduler_func():
