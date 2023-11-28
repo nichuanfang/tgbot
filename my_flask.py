@@ -40,7 +40,7 @@ def register_webhook(bot: telebot.TeleBot, hook_data: list):
     })
 
 
-def run(WEBHOOK_URL_PATHS: list, hook_data: list[dict]):
+def run(hook_data: list[dict]):
     """运行flask
     """
     app = flask.Flask(__name__)
