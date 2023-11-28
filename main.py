@@ -14,6 +14,7 @@ scheduler = BlockingScheduler()
 def dogyun_bot_func():
     dogyun_bot.bot.remove_webhook()
     # 启动轮询
+
     dogyun_bot.bot.infinity_polling(long_polling_timeout=60)
 
 
