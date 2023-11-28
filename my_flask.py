@@ -2,6 +2,8 @@ import time
 import flask
 import telebot
 
+from my_telebot import TeleBot
+
 # flask监听地址
 WEBHOOK_LISTEN = '0.0.0.0'
 # flask监听端口 默认8888
@@ -37,18 +39,51 @@ def run(hook_data: list[dict]):
     app = flask.Flask(__name__)
 
     for hook in hook_data:
-        bot = hook['bot']
+        bot: TeleBot = hook['bot']
+        bot_name = bot.get_my_name()
+        print(f'机器人名称: {bot_name}')
         webhook_url = hook['webhook_url']
 
-        @app.route(webhook_url, methods=['POST'])
-        def webhook():
-            if flask.request.headers.get('content-type') == 'application/json':
-                json_string = flask.request.get_data().decode('utf-8')
-                update = telebot.types.Update.de_json(json_string)
-                bot.process_new_updates([update])
-                return ''
-            else:
-                flask.abort(403)
+        if bot_name == 'DogyunBot':
+            @app.route(webhook_url, methods=['POST'])
+            def dogyun_bot_webhook():
+                if flask.request.headers.get('content-type') == 'application/json':
+                    json_string = flask.request.get_data().decode('utf-8')
+                    update = telebot.types.Update.de_json(json_string)
+                    bot.process_new_updates([update])
+                    return ''
+                else:
+                    flask.abort(403)
+        elif bot_name == 'MyTmdbBot':
+            @app.route(webhook_url, methods=['POST'])
+            def tmdb_webhook():
+                if flask.request.headers.get('content-type') == 'application/json':
+                    json_string = flask.request.get_data().decode('utf-8')
+                    update = telebot.types.Update.de_json(json_string)
+                    bot.process_new_updates([update])
+                    return ''
+                else:
+                    flask.abort(403)
+        elif bot_name == 'GithubWorkflowBot':
+            @app.route(webhook_url, methods=['POST'])
+            def github_webhook():
+                if flask.request.headers.get('content-type') == 'application/json':
+                    json_string = flask.request.get_data().decode('utf-8')
+                    update = telebot.types.Update.de_json(json_string)
+                    bot.process_new_updates([update])
+                    return ''
+                else:
+                    flask.abort(403)
+        elif bot_name == 'TrainBot':
+            @app.route(webhook_url, methods=['POST'])
+            def train_bot_webhook():
+                if flask.request.headers.get('content-type') == 'application/json':
+                    json_string = flask.request.get_data().decode('utf-8')
+                    update = telebot.types.Update.de_json(json_string)
+                    bot.process_new_updates([update])
+                    return ''
+                else:
+                    flask.abort(403)
 
     # Start flask server
     app.run(host=WEBHOOK_LISTEN,
