@@ -41,10 +41,11 @@ def run(hook_data: list[dict]):
     for hook in hook_data:
         bot: TeleBot = hook['bot']
         bot_name = bot.get_my_name()
-        print(f'机器人名称: {bot_name}')
         webhook_url = hook['webhook_url']
 
         if bot_name == 'DogyunBot':
+            print(f'定义webhook:{bot_name}')
+
             @app.route(webhook_url, methods=['POST'])
             def dogyun_bot_webhook():
                 if flask.request.headers.get('content-type') == 'application/json':
@@ -55,6 +56,8 @@ def run(hook_data: list[dict]):
                 else:
                     flask.abort(403)
         elif bot_name == 'MyTmdbBot':
+            print(f'定义webhook:{bot_name}')
+
             @app.route(webhook_url, methods=['POST'])
             def tmdb_webhook():
                 if flask.request.headers.get('content-type') == 'application/json':
@@ -65,6 +68,8 @@ def run(hook_data: list[dict]):
                 else:
                     flask.abort(403)
         elif bot_name == 'GithubWorkflowBot':
+            print(f'定义webhook:{bot_name}')
+
             @app.route(webhook_url, methods=['POST'])
             def github_webhook():
                 if flask.request.headers.get('content-type') == 'application/json':
@@ -75,6 +80,8 @@ def run(hook_data: list[dict]):
                 else:
                     flask.abort(403)
         elif bot_name == 'TrainBot':
+            print(f'定义webhook:{bot_name}')
+
             @app.route(webhook_url, methods=['POST'])
             def train_bot_webhook():
                 if flask.request.headers.get('content-type') == 'application/json':
