@@ -68,10 +68,9 @@ if __name__ == '__main__':
     # thread2 = threading.Thread(target=github_workflow_bot_func, daemon=True)
     # thread3 = threading.Thread(target=tmdb_bot_func, daemon=True)
     # thread4 = threading.Thread(target=train_bot_func, daemon=True)
-    thread1 = threading.Thread(target=bot_func, daemon=True)
-    thread2 = threading.Thread(target=scheduler_func, daemon=True)
+    # thread1 = threading.Thread(target=bot_func, daemon=True)
+    thread = threading.Thread(target=scheduler_func, daemon=True)
 
-    thread1.start()
-    thread2.start()
-
-    thread1.join()
+    thread.start()
+    # thread2.start()
+    bot_func()
