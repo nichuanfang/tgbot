@@ -40,13 +40,8 @@ def run(hook_data: list[dict]):
 
     for hook in hook_data:
         bot: TeleBot = hook['bot']
-        bot_name = bot.get_my_name()
+        bot_name = bot.get_my_name()['name']
         webhook_url = hook['webhook_url']
-        print(f'bot_name: {bot_name}')
-        if bot_name == 'DogyunBot' or bot_name == 'MyTmdbBot' or bot_name == 'GithubWorkflowBot' or bot_name == 'TrainBot':
-            print('触发定义botwebhook')
-        else:
-            print('触发定义botwebhook失败!')
 
         if bot_name == 'DogyunBot':
             print(f'定义webhook:{bot_name}')
