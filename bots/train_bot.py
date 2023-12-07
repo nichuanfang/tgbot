@@ -689,7 +689,9 @@ def to_station_handler(message, stations, from_station):
             sent_msg, to_station_handler, stations, from_station)
         return None
 
-    text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
+    # 获取yyyy-MM-dd HH:mm:ss格式的日期
+    train_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    text = f'请输入出发日期,时分秒可省略.\n格式: 【{train_date}】'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
         sent_msg, query_handler, stations, from_station, to_station, True, [])
@@ -878,7 +880,8 @@ def to_station_handler_transit(message, stations, from_station):
             sent_msg, to_station_handler_transit, stations, from_station)
         return None
 
-    text = '请输入出发日期,时分秒可省略.\n格式: 【yyyy-MM-dd HH:mm:ss】'
+    train_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    text = f'请输入出发日期,时分秒可省略.\n格式: 【{train_date}】'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
         sent_msg, transit_query_handler, stations, from_station, to_station)
