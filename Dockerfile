@@ -1,4 +1,4 @@
-FROM python:3.11-buster
+FROM python:3.11-slim-buster
 MAINTAINER ncf <f18326186224@gmail.com>
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG C.UTF-8
