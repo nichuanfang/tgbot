@@ -1,5 +1,8 @@
 FROM python:3.11-slim-buster
-MAINTAINER ncf <f18326186224@gmail.com>
+LABEL version="1.0" \
+     description="tgbot for python3.11" \
+     vendor="f18326186224@gmail.com" \
+     build-date="2023-11-10"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG C.UTF-8
 COPY requirements.txt /tmp
