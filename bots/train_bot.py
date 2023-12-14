@@ -17,6 +17,9 @@ ua = fake_useragent.UserAgent()
 
 console = Console()
 
+
+bot = my_telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
+
 # /root/code/tgbot  or  /app
 base_path = '/app'
 
@@ -647,8 +650,6 @@ def assemble_transit_bot_msg(train_entries: list[(str, Train, Train)]):
 
 
 # ================================telegram bot======================================
-bot = my_telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
-
 
 @bot.message_handler(commands=['query_left_ticket'])
 def query_left_ticket(message):

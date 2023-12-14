@@ -122,3 +122,8 @@ def common(message):
         tv_res = search_tv(message)
         if movie_res == None and tv_res == None:
             bot.reply_to(message, '未找到任何电影剧集!')
+
+
+@bot.message_handler(commands=['add_resource'])
+def add_resource(message):
+    bot.reply_to(message, '请发送资源链接!')
