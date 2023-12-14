@@ -1,10 +1,11 @@
 # 处理hosts文件
+import os
 import sys
 import yaml
 from dns import resolver
 
 TGBOT_TOKEN = sys.argv[1]
-
+ALIGO_TOKEN = os.environ['ALIGO_TOKEN']
 
 special_hosts = ['kyfw.12306.cn', 'api.telegram.org',
                  'console.dogyun.com', 'vm.dogyun.com']
@@ -39,6 +40,7 @@ yaml_content['services']['tgbot']['extra_hosts'] = extra_hosts
 # 更新tgbot_token
 yaml_content['services']['tgbot']['environment'] = {
     'TZ': 'Asia/Shanghai',
+    'ALIGO_TOKEN': f'{ALIGO_TOKEN}',
     'TGBOT_TOKEN': f'{TGBOT_TOKEN}'
 }
 # 更新docker-compose.yml
