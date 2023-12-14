@@ -112,6 +112,29 @@ def search_tv(message):
         return None
 
 
+@bot.message_handler(commands=['add_resource'])
+def add_resource(message):
+    bot.reply_to(message, '电影/剧集名称:')
+    bot.register_next_step_handler(message, add_resource_step)
+
+
+def add_resource_step(message):
+    movie_res = search_movie(message)
+    tv_res = search_tv(message)
+    if movie_res == None and tv_res == None:
+        bot.reply_to(message, '输入的资源不存在!')
+        bot.register_next_step_handler(message, add_resource_step)
+    else:
+        if movie_res != None:
+            # 电影资源
+            # bot.register_next_step_handler(message, add_movie_step)
+            pass
+        else:
+            # 剧集资源
+            # bot.register_next_step_handler(message, add_tv_step)
+            pass
+
+
 @bot.message_handler(content_types=['text'])
 def common(message):
     raw_msg = message.text.strip().replace(' ', '')
@@ -122,8 +145,3 @@ def common(message):
         tv_res = search_tv(message)
         if movie_res == None and tv_res == None:
             bot.reply_to(message, '未找到任何电影剧集!')
-
-
-@bot.message_handler(commands=['add_resource'])
-def add_resource(message):
-    bot.reply_to(message, '请发送资源链接!')
