@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import platform
 import re
 from time import sleep
 import requests
@@ -21,7 +22,10 @@ console = Console()
 bot = my_telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
 
 # /root/code/tgbot
-base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if  platform.system() == 'Windows':
+    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+else:
+    base_path = '/app'
 
 
 # 通用请求头
