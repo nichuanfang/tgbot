@@ -974,11 +974,11 @@ class TeleBot:
                              logger_level=logger_level, allowed_updates=allowed_updates, restart_on_change=False,
                              *args, **kwargs)
             except Exception as e:
-                # if logger_level and logger_level >= logging.ERROR:
-                #     logger.error("Infinity polling exception: %s", str(e))
-                # if logger_level and logger_level >= logging.DEBUG:
-                #     logger.error("Exception traceback:\n%s",
-                #                  traceback.format_exc())
+                if logger_level and logger_level >= logging.ERROR:
+                    logger.error("Infinity polling exception: %s", str(e))
+                if logger_level and logger_level >= logging.DEBUG:
+                    logger.error("Exception traceback:\n%s",
+                                 traceback.format_exc())
                 time.sleep(3)
                 continue
             if logger_level and logger_level >= logging.INFO:

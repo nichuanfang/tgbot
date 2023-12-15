@@ -20,8 +20,9 @@ console = Console()
 
 bot = my_telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
 
-# /root/code/tgbot  or  /app
-base_path = '/app'
+# /root/code/tgbot
+base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 # 通用请求头
 headers = {
@@ -692,7 +693,7 @@ def to_station_handler(message, stations, from_station):
 
     # 获取yyyy-MM-dd HH:mm:ss格式的日期
     train_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    text = f'请输入出发日期,时分秒可省略.\n格式: 【`{train_date}`】'
+    text = f'请输入出发日期,时分秒可省略.\n格式: 【{train_date}】'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
         sent_msg, query_handler, stations, from_station, to_station, True, [])
@@ -882,7 +883,7 @@ def to_station_handler_transit(message, stations, from_station):
         return None
 
     train_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    text = f'请输入出发日期,时分秒可省略.\n格式: 【`{train_date}`】'
+    text = f'请输入出发日期,时分秒可省略.\n格式: 【{train_date}】'
     sent_msg = bot.send_message(message.chat.id, text)
     bot.register_next_step_handler(
         sent_msg, transit_query_handler, stations, from_station, to_station)

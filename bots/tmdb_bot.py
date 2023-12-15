@@ -114,25 +114,36 @@ def search_tv(message):
 
 @bot.message_handler(commands=['add_resource'])
 def add_resource(message):
-    bot.reply_to(message, '电影/剧集名称:')
+    bot.reply_to(message, '请输入电影/剧集名称')
     bot.register_next_step_handler(message, add_resource_step)
 
 
 def add_resource_step(message):
-    movie_res = search_movie(message)
-    tv_res = search_tv(message)
+    search_text = message.text.strip().replace(' ', '')
+    movie_res = search_movie(search_text)
+    tv_res = search_tv(search_text)
     if movie_res == None and tv_res == None:
         bot.reply_to(message, '输入的资源不存在!')
-        bot.register_next_step_handler(message, add_resource_step)
+        bot.register_next_step_handler(message, add_resource)
     else:
-        if movie_res != None:
-            # 电影资源
-            # bot.register_next_step_handler(message, add_movie_step)
-            pass
+        # 让用户选择电影/剧集
+        bot.reply_to(message, '请选择电影/剧集')
+        bot.register_next_step_handler(message, add_resource_step2)
+
+
+def add_resource_step2(message):
+    raw_msg = message.text.strip().replace(' ', '')
+    if raw_msg and not raw_msg.startswith('/'):
+        message.text = '/movie_search '+raw_msg
+        movie_res = search_movie(message)
+        message.text = '/tv_search '+raw_msg
+        tv_res = search_tv(message)
+        if movie_res == None and tv_res == None:
+            bot.reply_to(message, '未找到任何电影剧集!')
         else:
-            # 剧集资源
-            # bot.register_next_step_handler(message, add_tv_step)
-            pass
+            # 让用户选择电影/剧集
+            bot.reply_to(message, '请选择电影/剧集')
+            bot.register_next_step_handler(message, add_resource_step2)
 
 
 @bot.message_handler(content_types=['text'])
