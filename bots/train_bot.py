@@ -22,7 +22,7 @@ console = Console()
 bot = my_telebot.TeleBot(train_config['BOT_TOKEN'], threaded=False)
 
 # /root/code/tgbot
-if  platform.system() == 'Windows':
+if platform.system() == 'Windows':
     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 else:
     base_path = '/app'

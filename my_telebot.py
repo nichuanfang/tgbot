@@ -39,6 +39,7 @@ REPLY_MARKUP_TYPES = Union[
     types.InlineKeyboardMarkup, types.ReplyKeyboardMarkup,
     types.ReplyKeyboardRemove, types.ForceReply]
 
+BOOT_RECORD = {}
 
 """
 Module : telebot
@@ -1060,9 +1061,10 @@ class TeleBot:
 
         if restart_on_change:
             self._setup_change_detector(path_to_watch)
-
-        logger.info(
-            'Starting your bot with username: [@%s]', self.user.username)
+        if not (self.user.username in BOOT_RECORD):
+            logger.info(
+                'Starting your bot with username: [@%s]', self.user.username)
+            BOOT_RECORD[self.user.username] = True
 
         if self.threaded:
             self.__threaded_polling(non_stop=non_stop, interval=interval, timeout=timeout, long_polling_timeout=long_polling_timeout,
@@ -1078,7 +1080,9 @@ class TeleBot:
         else:
             warning = ""
         # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
-        logger.info('Started polling.' + warning)
+        # if not (self.user.username in BOOT_RECORD):
+        #     logger.info('Started polling.' + warning)
+        #     BOOT_RECORD[self.user.username] = True
         self.__stop_polling.clear()
         error_interval = 0.25
 
@@ -1161,7 +1165,9 @@ class TeleBot:
         else:
             warning = ""
         # if logger_level and logger_level >= logging.INFO:   # enable in future releases. Change output to logger.error
-        logger.info('Started polling.' + warning)
+        # if not (self.user.username in BOOT_RECORD):
+        #     logger.info('Started polling.' + warning)
+        #     BOOT_RECORD[self.user.username] = True
         self.__stop_polling.clear()
         error_interval = 0.25
 
