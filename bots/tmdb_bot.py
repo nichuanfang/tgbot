@@ -146,13 +146,13 @@ def add_resource_step2(message):
             bot.register_next_step_handler(message, add_resource_step2)
 
 
-@bot.message_handler(content_types=['text'])
-def common(message):
-    raw_msg = message.text.strip().replace(' ', '')
-    if raw_msg and not raw_msg.startswith('/'):
-        message.text = '/movie_search '+raw_msg
-        movie_res = search_movie(message)
-        message.text = '/tv_search '+raw_msg
-        tv_res = search_tv(message)
-        if movie_res == None and tv_res == None:
-            bot.reply_to(message, '未找到任何电影剧集!')
+# @bot.message_handler(content_types=['text'])
+# def common(message):
+#     raw_msg = message.text.strip().replace(' ', '')
+#     if raw_msg and not raw_msg.startswith('/'):
+#         message.text = '/movie_search '+raw_msg
+#         movie_res = search_movie(message)
+#         message.text = '/tv_search '+raw_msg
+#         tv_res = search_tv(message)
+#         if movie_res == None and tv_res == None:
+#             bot.reply_to(message, '未找到任何电影剧集!')
