@@ -34,6 +34,12 @@ def get_share_ids(links: str):
                 'name': split.split('、')[1].split(':')[0].strip(),
                 'share_id': pattern.findall(split)[0]
             })
+        elif split.__contains__('https://www.aliyundrive.com/s/'):
+            # 剩余的 name取https://www.aliyundrive.com/s/前面的内容 share_id取正则表达式匹配到的内容
+            res.append({
+                'name': split.split('https://www.aliyundrive.com/s/')[0].strip(),
+                'share_id': pattern.findall(split)[0]
+            })
 
     return res
 
