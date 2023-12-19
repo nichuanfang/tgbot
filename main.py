@@ -4,7 +4,7 @@ from bots.dogyun_bot import lucky_draw_notice, balance_lack_notice
 from bots import github_workflow_bot
 from bots import tmdb_bot
 from bots import train_bot
-from util.logging import logger
+from util.my_logging import logger
 import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
 

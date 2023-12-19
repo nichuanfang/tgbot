@@ -30,7 +30,7 @@ import random
 import string
 
 import ssl
-from util.logging import logger
+from util.my_logging import logger
 
 apihelper.SESSION_TIME_TO_LIVE = 5 * 60
 

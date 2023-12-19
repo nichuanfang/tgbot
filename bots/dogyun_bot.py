@@ -9,7 +9,7 @@ from datetime import date
 from bs4 import BeautifulSoup
 import subprocess
 from util.github_util import trigger_github_workflow
-from util.logging import logger
+from util.my_logging import logger
 
 bot = my_telebot.TeleBot(dogyun_config['BOT_TOKEN'], threaded=False)
 
