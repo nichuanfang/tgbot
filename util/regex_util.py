@@ -19,19 +19,19 @@ def get_share_ids(links: str):
     for split in splits:
         if split.__contains__('<a href="https://www.aliyundrive.com/s/'):
             res.append({
-                'name': split.split('">')[1].split('</a>')[0],
+                'name': split.rsplit('">', 1)[1].split('</a>', 1)[0],
                 'share_id': pattern.findall(split)[0]
             })
         elif split.__contains__('·') and split.__contains__('(https://www.aliyundrive.com/s/'):
             # 例如  '·W 五月碧云天 1999 (https://www.aliyundrive.com/s/c5jeq18oCbh)'  name取 五月碧云天 1999  share_id取 c5jeq18oCbh
             res.append({
-                'name': split.split('·')[1].split('(')[0].strip(),
+                'name': split.split('·', 1)[1].rsplit('(', 1)[0].strip(),
                 'share_id': pattern.findall(split)[0]
             })
         elif split.__contains__('、') and split.__contains__('https://www.aliyundrive.com/s/'):
             # 去除 数字、
             res.append({
-                'name': split.split('、')[1].split(':')[0].strip(),
+                'name': split.split('、', 1)[1].rsplit(':', 2)[0].strip(),
                 'share_id': pattern.findall(split)[0]
             })
         elif split.__contains__('https://www.aliyundrive.com/s/'):

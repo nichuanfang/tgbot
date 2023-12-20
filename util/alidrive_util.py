@@ -2,6 +2,7 @@
 import base64
 import json
 import os
+import re
 import time
 from aligo import Aligo
 from difflib import SequenceMatcher
@@ -74,29 +75,58 @@ def calculate_tv_file_size(parent_file_id: str, share_token: str):
     return 0
 
 
-def preprocess_string(s):
-    # 移除空格和括号 不考虑大小写
-    s = s.replace(" ", "").replace("(", "").replace(")", "").lower()
-    return s
-
-
-def similarity_score(s1, s2, file_size, weight_edit_distance, weight_file_size):
-    """计算相似度得分
+def extract_year(string: str) -> int:
+    """从字符串中提取年份
 
     Args:
-        s1 (_type_): 第一个字符串
-        s2 (_type_): 第二个字符串
-        file_size (_type_): 文件大小
-        weight_edit_distance (_type_): 字符串相似度权重
-        weight_file_size (_type_): 文件大小权重
+        string (str): 输入字符串
 
     Returns:
-        _type_: 相似度得分
+        int: 提取到的年份，如果未找到或不在1900-2100范围内则返回0
     """
-    similarity = SequenceMatcher(None,
-                                 preprocess_string(s1), preprocess_string(s2)).ratio()
-    score = weight_edit_distance * similarity + weight_file_size * file_size
-    return score
+    match = re.search(r'\b(\d{4})\b', string)
+    if match:
+        year = int(match.group(1))
+        if 1900 <= year <= 2100:
+            return year
+    return 0
+
+
+def calculate_similarity(str1: str, str2: str) -> float:
+    """计算两个字符串的匹配度
+
+    Args:
+        str1 (str): 第一个字符串
+        str2 (str): 第二个字符串
+
+    Returns:
+        float: 匹配度，范围在0到1之间，值越大表示越相似
+    """
+    # 提取非数字部分
+    non_digit1 = re.sub(r'\s', '', re.sub(r'\d', '', str1))
+    non_digit2 = re.sub(r'\s', '', re.sub(r'\d', '', str2))
+
+    # 计算非数字部分的公共部分
+    common_non_digit = set(non_digit1) & set(non_digit2)
+    non_digit_similarity = len(common_non_digit) / len(non_digit1)
+
+    if non_digit_similarity < 0.5:
+        return 0.0
+
+    # 提取数字部分（年份）
+    digit1 = extract_year(str1)
+    digit2 = extract_year(str2)
+
+    # 检查数字部分是否为年份且相同
+    if digit1 == digit2:
+        digit_similarity = 1.0
+    else:
+        digit_similarity = 0.0
+
+    # 综合计算相似度
+    similarity = (non_digit_similarity + digit_similarity) / 2
+
+    return similarity
 
 
 def handle_share_res(name: str, share_res: list[dict[str, str]], type):
@@ -122,6 +152,14 @@ def handle_share_res(name: str, share_res: list[dict[str, str]], type):
         except:
             continue
 
+        # 相似度匹配程度
+        score = calculate_similarity(
+            name, share_name)
+
+        # 如果相似度小于0.25则跳过
+        if score < 0.25:
+            continue
+
         # 转为GB  保留两位小数
         try:
             if type == 'movie':
@@ -143,9 +181,6 @@ def handle_share_res(name: str, share_res: list[dict[str, str]], type):
             print(f'死链检测失败: {e}')
             continue
 
-        # 除了文件大小还要考虑相似度匹配程度
-        score = similarity_score(
-            name, share_name, max_size, 1, 0)
         res.append({
             'name': share_name,
             'url': f'https://www.aliyundrive.com/s/{share_id}',
