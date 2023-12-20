@@ -17,12 +17,13 @@ except Exception as e:
     raise Exception(f'请检查环境变量ALIGO_TOKEN是否正确: {e}')
 
 
-def calculate_file_size(parent_file_id: str, share_token: str):
+def calculate_file_size(parent_file_id: str, share_token: str, max_recursion: int = 5):
     """计算电影文件大小
 
     Args:
         parent_file_id (str): 父文件id
         share_token (str): 分享token
+        max_recursion (int): 最大递归次数，默认为5
 
     Returns:
         float: 视频文件大小
@@ -33,20 +34,21 @@ def calculate_file_size(parent_file_id: str, share_token: str):
         # 在这里根据文件类型判断是否是视频文件，可以使用相应的方法来获取文件大小
         if share_file.file_extension in ('mkv', 'mp4', 'avi', 'mov', 'wmv', 'flv', 'f4v', 'm4v', 'rmvb', 'rm', '3gp', 'dat', 'ts', 'mts', 'vob'):
             max_size = share_file.size
-    else:  # 如果是文件夹
+            max_recursion -= 1  # 处理视频文件时将递归次数减1
+    elif max_recursion > 0:  # 如果是文件夹且递归次数大于0
         share_file_list = aligo.get_share_file_list(
             share_token, parent_file_id)
         for share_file in share_file_list:
             size = calculate_file_size(
-                share_file.file_id, share_token)  # 传递正确的参数
+                share_file.file_id, share_token, max_recursion)  # 递归调用时保持递归次数不变
             if size > max_size:
                 max_size = size
-    time.sleep(0.2)
+    time.sleep(0.1)
     return max_size
 
 
 def calculate_tv_file_size(parent_file_id: str, share_token: str):
-    """计算电影文件大小
+    """计算剧集文件大小
 
     Args:
         parent_file_id (str): 父文件id
@@ -68,7 +70,7 @@ def calculate_tv_file_size(parent_file_id: str, share_token: str):
                 share_file.file_id, share_token)  # 传递正确的参数
             if size > 0:
                 return size
-    time.sleep(0.2)
+    time.sleep(0.1)
     return 0
 
 
@@ -150,7 +152,7 @@ def handle_share_res(name: str, share_res: list[dict[str, str]], type):
             'size': f'{max_size}GB',
             'score': score
         })
-        time.sleep(0.2)
+        time.sleep(0.1)
     # 根据score排序 从大到小
     res.sort(key=lambda x: x['score'], reverse=True)
     return res
