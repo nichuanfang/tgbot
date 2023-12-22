@@ -129,7 +129,7 @@ def calculate_similarity(str1: str, str2: str) -> float:
     return similarity
 
 
-def handle_share_res(name: str, share_res: list[dict[str, str]], type):
+def handle_share_res(name: str, share_res: list[dict[str, str]]):
     """处理分享链接列表
 
     Args:
@@ -147,8 +147,6 @@ def handle_share_res(name: str, share_res: list[dict[str, str]], type):
             share_id = share_item['share_id']
             share_name = share_item['name']
             share_info = aligo.get_share_info(share_id)
-            # 分享token
-            share_token = aligo.get_share_token(share_id)
         except:
             continue
 
@@ -161,21 +159,21 @@ def handle_share_res(name: str, share_res: list[dict[str, str]], type):
             continue
 
         # 转为GB  保留两位小数
-        try:
-            if type == 'movie':
-                max_size = calculate_file_size(
-                    'root', share_token)
-            elif type == 'tv':
-                max_size = calculate_tv_file_size(
-                    'root', share_token)
-            max_size = round(max_size / 1024 / 1024 / 1024, 2)
-        except:
-            max_size = 0
+        # try:
+        #     if type == 'movie':
+        #         max_size = calculate_file_size(
+        #             'root', share_token)
+        #     elif type == 'tv':
+        #         max_size = calculate_tv_file_size(
+        #             'root', share_token)
+        #     max_size = round(max_size / 1024 / 1024 / 1024, 2)
+        # except:
+        #     max_size = 0
 
         # 死链检测
         try:
-            if share_info.file_count < 1 or max_size == 0:
-                # 总文件数小于1 或者 视频文件大小为0
+            if share_info.file_count < 1:
+                # 总文件数小于1
                 continue
         except Exception as e:
             print(f'死链检测失败: {e}')
@@ -184,7 +182,6 @@ def handle_share_res(name: str, share_res: list[dict[str, str]], type):
         res.append({
             'name': share_name,
             'url': f'https://www.aliyundrive.com/s/{share_id}',
-            'size': f'{max_size}GB',
             'score': score
         })
         time.sleep(0.1)

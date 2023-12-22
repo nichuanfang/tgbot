@@ -271,7 +271,7 @@ def add_movie_step(message, movie_id):
     bot.send_message(message.chat.id, '正在处理分享链接,请稍后...')
     # 处理分享链接
     share_links = alidrive_util.handle_share_res(
-        f'{movie_detail.title} {movie_detail.release_date.split("-")[0]}', share_res, 'movie')
+        f'{movie_detail.title} {movie_detail.release_date.split("-")[0]}', share_res)
     # 让用户选择分享链接对应的资源
     if len(share_links) == 0:
         bot.reply_to(message, '未找到任何有效的分享链接!请重新输入')
@@ -294,7 +294,7 @@ def add_tv_step(message, tv_id):
     bot.send_message(message.chat.id, '正在处理分享链接,请稍后...')
     # 处理分享链接
     share_links = alidrive_util.handle_share_res(
-        f'{tv_detail.name} {tv_detail.first_air_date.split("-")[0]}', share_res, 'tv')
+        f'{tv_detail.name} {tv_detail.first_air_date.split("-")[0]}', share_res)
     # 让用户选择分享链接对应的资源
     if len(share_links) == 0:
         bot.reply_to(message, '未找到任何有效的分享链接!请重新输入')
