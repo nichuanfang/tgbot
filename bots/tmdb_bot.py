@@ -281,7 +281,7 @@ def add_movie_step(message, movie_id):
     response_text = '搜索结果：\n'
     for link in share_links:
         response_text = response_text + \
-            f'· <a href="{link["url"]}">{link["name"]} ({link["size"]})</a> \n'
+            f'· <a href="{link["url"]}">{link["name"]}</a> \n'
     bot.send_message(message.chat.id, response_text, 'HTML')
 
 
@@ -304,7 +304,7 @@ def add_tv_step(message, tv_id):
     response_text = '搜索结果：\n'
     for link in share_links:
         response_text = response_text + \
-            f'· <a href="{link["url"]}">{link["name"]} ({link["size"]})</a> \n'
+            f'· <a href="{link["url"]}">{link["name"]}</a> \n'
     bot.send_message(message.chat.id, response_text, 'HTML')
 
 
