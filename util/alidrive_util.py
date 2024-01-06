@@ -110,7 +110,7 @@ def calculate_similarity(str1: str, str2: str) -> float:
     common_non_digit = set(non_digit1) & set(non_digit2)
     non_digit_similarity = len(common_non_digit) / len(non_digit1)
 
-    if non_digit_similarity < 0.5:
+    if non_digit_similarity < 1:
         return 0.0
 
     # 提取数字部分（年份）
@@ -148,6 +148,7 @@ def handle_share_res(name: str, share_res: list[dict[str, str]]):
             share_name = share_item['name']
             share_info = aligo.get_share_info(share_id)
         except:
+            time.sleep(1)
             continue
 
         # 相似度匹配程度
@@ -156,6 +157,7 @@ def handle_share_res(name: str, share_res: list[dict[str, str]]):
 
         # 如果相似度小于0.25则跳过
         if score < 0.25:
+            time.sleep(1)
             continue
 
         # 转为GB  保留两位小数
@@ -172,11 +174,13 @@ def handle_share_res(name: str, share_res: list[dict[str, str]]):
 
         # 死链检测
         try:
-            if share_info.file_count < 1:
+            if share_info.file_count < 1 and len(share_info.file_infos) != 0 and share_info.file_infos[0].file_id != '':
+                time.sleep(1)
                 # 总文件数小于1
                 continue
         except Exception as e:
             print(f'死链检测失败: {e}')
+            time.sleep(1)
             continue
 
         res.append({
@@ -184,7 +188,7 @@ def handle_share_res(name: str, share_res: list[dict[str, str]]):
             'url': f'https://www.aliyundrive.com/s/{share_id}',
             'score': score
         })
-        time.sleep(0.1)
+        time.sleep(1)
     # 根据score排序 从大到小
     res.sort(key=lambda x: x['score'], reverse=True)
     return res
