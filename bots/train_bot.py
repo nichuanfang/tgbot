@@ -3,15 +3,16 @@ import json
 import os
 import platform
 import re
+import traceback
 from time import sleep
+
+import fake_useragent
 import requests
+from rich.console import Console
+
 # import telebot
 import my_telebot
 from settings.config import train_config
-import fake_useragent
-from rich.console import Console
-import traceback
-from util.my_logging import logger
 
 # =====================全局变量==================================
 ua = fake_useragent.UserAgent()
@@ -738,7 +739,7 @@ def query_handler(message, stations, from_station, to_station, need_send=True, p
             bot.register_next_step_handler(
                 sent_msg, query_handler, stations, from_station, to_station, True, passed_queries)
             return None
-        elif (target_date - now_date).days < 0:
+        elif (target_date - now_date).days < 0 and (now_date-target_date).seconds > 60:
             text = '日期必须大于今天,请重新输入'
             sent_msg = bot.send_message(message.chat.id, text)
             bot.register_next_step_handler(
@@ -1051,7 +1052,7 @@ def transit_query_handler(message, stations, from_station, to_station):
         bot.register_next_step_handler(
             sent_msg, query_handler, stations, from_station, to_station)
         return None
-    elif (target_date - now_date).days < 0:
+    elif (target_date - now_date).days < 0 and (now_date-target_date).seconds > 60:
         text = '日期必须大于今天,请重新输入'
         sent_msg = bot.send_message(message.chat.id, text)
         bot.register_next_step_handler(
