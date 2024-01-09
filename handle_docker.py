@@ -1,14 +1,14 @@
 # 处理hosts文件
 import os
 import sys
+
 import yaml
 from dns import resolver
 
 TGBOT_TOKEN = sys.argv[1]
 ALIGO_TOKEN = os.environ['ALIGO_TOKEN']
 
-special_hosts = ['kyfw.12306.cn', 'api.telegram.org',
-                 'console.dogyun.com', 'vm.dogyun.com', 'api.aliyundrive.com']
+special_hosts = ['kyfw.12306.cn', 'api.telegram.org', 'api.aliyundrive.com']
 
 
 # 读取docker/dockerfile_work/tgbot/docker-compose.yml
