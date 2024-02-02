@@ -13,7 +13,13 @@ try:
         ALIGO_TOKEN).decode(encoding='utf-8')
     aligo_config: dict = json.loads(aligo_config_str)
     refresh_token = aligo_config['refresh_token']
+    device_id = aligo_config['device_id']
+    x_device_id = aligo_config['x_device_id']
     aligo = Aligo(refresh_token=refresh_token, re_login=False)
+    # 更新session的x-device-id
+    aligo._session.headers.update({'x-device-id': x_device_id, 'x-signature': aligo._auth._X_SIGNATURE})
+    aligo._auth.token.device_id = device_id
+    aligo._auth.token.x_device_id = x_device_id
 except Exception as e:
 	# print('未配置环境变量ALIGO_TOKEN')
 	# aligo = Aligo()
